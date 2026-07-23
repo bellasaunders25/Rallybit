@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Rallybit is a configurable Discord bot for activity checks, moderation, tickets, automation, and community tools.">
+  <title>Rallybit — Discord community management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css?v=1.0">
+  <link rel="stylesheet" href="/style.css?v=5.0">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-icon-32.png">
+  <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
+</head>
+<body>
+  <div id="header-placeholder"></div>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-layout">
+        <div class="hero-copy">
+          <span class="eyebrow"><i class="bi bi-circle-fill"></i> Online and ready</span>
+          <h1>One dashboard for your Discord community.</h1>
+          <p>Configure activity checks, tickets, moderation, welcomes, levels, giveaways, and automation without piecing together multiple bots.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="/invite.php"><i class="bi bi-discord"></i> Add to Discord</a>
+            <a class="button button-secondary" href="/dashboard/"><i class="bi bi-grid-1x2"></i> Open dashboard</a>
+          </div>
+          <div class="hero-notes">
+            <span><i class="bi bi-check2"></i> All modules included</span>
+            <span><i class="bi bi-check2"></i> Per-server controls</span>
+            <span><i class="bi bi-check2"></i> No feature tiers</span>
+          </div>
+        </div>
+
+        <div class="dashboard-sample" aria-label="Rallybit dashboard overview">
+          <div class="sample-header">
+            <div><span>Stargaze Studio</span><strong>Server dashboard</strong></div>
+            <span class="status-badge"><i></i> Bot online</span>
+          </div>
+          <div class="sample-stats">
+            <div><i class="bi bi-people"></i><span>Members<strong>2,216</strong></span></div>
+            <div><i class="bi bi-check2-circle"></i><span>Checks<strong>148</strong></span></div>
+            <div><i class="bi bi-lightning-charge"></i><span>Active tools<strong>8</strong></span></div>
+          </div>
+          <div class="sample-section-title"><span>Modules</span><a href="/dashboard/">Manage all</a></div>
+          <div class="sample-modules">
+            <div><i class="bi bi-ticket-perforated"></i><span><strong>Tickets</strong><small>Panel and transcripts</small></span><b>On</b></div>
+            <div><i class="bi bi-shield-check"></i><span><strong>Security</strong><small>Age gate and protection</small></span><b>On</b></div>
+            <div><i class="bi bi-person-plus"></i><span><strong>Welcome</strong><small>Join and leave messages</small></span><b>On</b></div>
+            <div><i class="bi bi-clock-history"></i><span><strong>Automation</strong><small>Recurring community tasks</small></span><b>On</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="proof-bar">
+      <div class="container proof-grid">
+        <div><strong>2,216</strong><span>members reached</span></div>
+        <div><strong>8+</strong><span>configurable modules</span></div>
+        <div><strong>24/7</strong><span>automated workflows</span></div>
+        <div><strong>Free</strong><span>complete feature set</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">Modules</span>
+          <h2>Enable what your server needs.</h2>
+          <p>Every module has focused settings and a clear purpose. Start small, then add more as your community grows.</p>
+        </div>
+        <div class="module-grid">
+          <article class="module-card"><i class="bi bi-activity"></i><div><h3>Activity checks</h3><p>Run manual or scheduled check-ins with buttons, reactions, winners, and audit history.</p></div><a href="/docs/features.html">View module <i class="bi bi-arrow-right"></i></a></article>
+          <article class="module-card"><i class="bi bi-ticket-perforated"></i><div><h3>Tickets</h3><p>Publish support panels, open private channels, claim requests, and export transcripts.</p></div><a href="/docs/setup.html">View module <i class="bi bi-arrow-right"></i></a></article>
+          <article class="module-card"><i class="bi bi-shield-check"></i><div><h3>Moderation</h3><p>Manage warnings, timeouts, bans, account-age rules, and server protection.</p></div><a href="/docs/commands.html">View module <i class="bi bi-arrow-right"></i></a></article>
+          <article class="module-card"><i class="bi bi-person-plus"></i><div><h3>Welcome</h3><p>Configure join and leave messages, invite tracking, verification, and automatic roles.</p></div><a href="/docs/features.html">View module <i class="bi bi-arrow-right"></i></a></article>
+          <article class="module-card"><i class="bi bi-bar-chart"></i><div><h3>Levels and profiles</h3><p>Reward participation with XP, role milestones, leaderboards, and member profiles.</p></div><a href="/docs/profiles.html">View module <i class="bi bi-arrow-right"></i></a></article>
+          <article class="module-card"><i class="bi bi-clock-history"></i><div><h3>Automation</h3><p>Schedule quizzes, pulses, giveaways, icebreakers, and recurring activity checks.</p></div><a href="/docs/features.html">View module <i class="bi bi-arrow-right"></i></a></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-muted">
+      <div class="container setup-layout">
+        <div class="section-heading left">
+          <span class="eyebrow">Setup</span>
+          <h2>From invite to configured in minutes.</h2>
+          <p>Choose a server, enable the modules you want, and manage everything from one consistent control panel.</p>
+          <a class="button button-secondary" href="/docs/setup.html"><i class="bi bi-book"></i> Read the setup guide</a>
+        </div>
+        <ol class="setup-steps">
+          <li><span>1</span><div><h3>Connect your server</h3><p>Invite Rallybit and sign in with Discord.</p></div></li>
+          <li><span>2</span><div><h3>Choose modules</h3><p>Enable tickets, checks, moderation, levels, or automation.</p></div></li>
+          <li><span>3</span><div><h3>Save and run</h3><p>Changes sync to the bot and are ready to use immediately.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container final-cta">
+        <div><span class="eyebrow">Get started</span><h2>Give your staff one place to manage the server.</h2><p>All Rallybit modules are included from day one.</p></div>
+        <div class="hero-actions"><a class="button button-primary" href="/invite.php"><i class="bi bi-discord"></i> Add Rallybit</a><a class="button button-secondary" href="/dashboard/"><i class="bi bi-box-arrow-in-right"></i> Sign in</a></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer-placeholder"></div>
+  <script src="/script.js?v=5.0"></script>
+</body>
+</html>

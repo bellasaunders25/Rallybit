@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+*.log
+*.backup
+*.py[cod]
+*.tar.gz
+backups/
+rallybitbot/.env
+rallybitbot/.venv/
+rallybitbot/venv/
+rallybitbot/__pycache__/
+rallybitbot/**/__pycache__/
+rallybitbot/data/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+data/server_logs/*.txt
+*.log
