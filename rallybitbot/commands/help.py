@@ -16,7 +16,7 @@ def setup_help_commands(tree):
         dashboard = settings.get("dashboard_url") or DASHBOARD_URL
         embed = discord.Embed(
             title="Rallybit command centre",
-            description="Activity checks, community games, anonymous pulse checks and practical moderation—without paid feature gates.",
+            description="Every existing Rallybit tool stays free. Advanced operations are available through Coming soon plan previews.",
             color=0x5865F2,
         )
         embed.add_field(
@@ -54,7 +54,12 @@ def setup_help_commands(tree):
             value="`/setauto` Check schedule\n`/startauto` Resume checks\n`/stopauto` Pause checks\n`/setlogs` Log channel\n`/settings` Server setup\n`/dashboard` Dashboard link",
             inline=True,
         )
-        embed.set_footer(text="Rallybit 7.2.1 • Every feature is included for every server")
+        embed.add_field(
+            name="Premium operations",
+            value="`/case member` Search case files\n`/case stats` Staff workload\n`/backup create` Save configuration\n`/backup drift` Detect changes\n`/network overview` Owned servers\n`/premium plans` Compare previews",
+            inline=True,
+        )
+        embed.set_footer(text="Rallybit 7.2.2 • Core commands remain free")
         view = discord.ui.View()
         view.add_item(discord.ui.Button(label="Dashboard", url=dashboard, emoji="🌐"))
         view.add_item(discord.ui.Button(label="Support", url=support, emoji="💬"))

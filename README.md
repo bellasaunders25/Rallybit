@@ -5,9 +5,9 @@ Rallybit is a Discord community toolkit for activity checks, recurring community
 ## Plans and preview access
 
 - **Free** keeps every existing Rallybit command at no charge.
-- **Community** adds a server insights overview for one manually granted server.
-- **Pro** adds CSV exports and persistent staff shift tracking for one manually granted server.
-- **Network** follows one Discord owner across every server they own. It never follows a moderator or administrator into a server owned by someone else.
+- **Community** adds insights, searchable member case files, recent-case filters, and moderation workload statistics for one manually granted server.
+- **Pro** adds filtered CSV exports, persistent staff shift tracking, ten retained configuration backups, drift reports, and transactional Rallybit-setting restores for one manually granted server.
+- **Network** follows one Discord owner across every server they own, adding an owned-server overview, configured announcement destinations, owner-only cross-server broadcasts, and network exports. It never follows a moderator or administrator into a server owned by someone else.
 - Paid checkout is not enabled. Bot developers can grant and revoke previews, with optional UTC expiration, from Dashboard → Developer tools.
 
 Use `/premium plans` and `/premium status` in Discord to view available tiers and effective access.
@@ -180,6 +180,20 @@ python main.py
 /staff clockout
 /staff status
 /staff leaderboard
+/case member
+/case recent
+/case stats
+/case export
+/backup create
+/backup list
+/backup inspect
+/backup drift
+/backup restore
+/backup delete
+/network channel
+/network overview
+/network broadcast
+/network export
 
 /community icebreaker
 /community pulse
@@ -225,6 +239,8 @@ pulse_history.json
 community_settings.json
 premium_entitlements.json
 staff_shifts.json
+premium_backups.json
+network_settings.json
 ```
 
 The files are created with empty JSON objects in a clean installation. Keep the `rallybitbot/data/` directory writable by the bot service account.

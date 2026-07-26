@@ -6,8 +6,16 @@ if (!$guild_id) { header('Location: index.php'); exit; }
 $guild_name = trim((string)($_GET['name'] ?? 'Server'));
 $guilds = discord_api_request('/users/@me/guilds', $_SESSION['access_token']) ?: [];
 $allowed = false;
-foreach ($guilds as $guild) if ((string)$guild['id'] === $guild_id && has_admin_permission((int)$guild['permissions'])) { $allowed = true; $guild_name = $guild['name']; break; }
+$managedGuild = null;
+foreach ($guilds as $guild) if ((string)$guild['id'] === $guild_id && has_admin_permission((int)$guild['permissions'])) { $allowed = true; $managedGuild = $guild; $guild_name = $guild['name']; break; }
 if (!$allowed) { http_response_code(403); exit('You do not have permission to manage this server.'); }
+$plan = dashboard_plan_for_guild($managedGuild ?? [], get_premium_entitlements(), (string)($_SESSION['user_id'] ?? ''), is_bot_admin());
+$planSummary = match ($plan['key']) {
+    'community' => 'Community adds insights, searchable moderation cases, and workload statistics.',
+    'pro' => 'Pro adds case exports, staff operations, and restorable Rallybit configuration backups.',
+    'network' => 'Network adds Pro tools across owned servers plus owner-only broadcasts and exports.',
+    default => 'Every core Rallybit command is free. Premium operations are available as authorised previews.',
+};
 $settings_all = load_json_data(SETTINGS_FILE);
 $settings = $settings_all[$guild_id] ?? [];
 $message = '';
@@ -36,7 +44,7 @@ $avatar = !empty($_SESSION['avatar']) ? 'https://cdn.discordapp.com/avatars/' . 
 ?>
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=htmlspecialchars($guild_name)?> — Rallybit</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="/dashboard/style.css?v=5.6"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-icon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="/assets/brand/rallybit-icon-192.png"><link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png"></head><body>
 <div class="dash-shell"><?php render_dashboard_sidebar('settings', $guild_id, $guild_name); ?>
-<main class="dash-main"><header class="dash-header compact"><div><a class="back-link" href="index.php"><i class="bi bi-arrow-left" aria-hidden="true"></i> All servers</a><span class="kicker">Server configuration</span><h1><?=htmlspecialchars($guild_name)?></h1><p>Every Rallybit feature is enabled for this server.</p></div><span class="access-chip">Complete access</span></header>
+<main class="dash-main"><header class="dash-header compact"><div><a class="back-link" href="index.php"><i class="bi bi-arrow-left" aria-hidden="true"></i> All servers</a><span class="kicker">Server configuration</span><h1><?=htmlspecialchars($guild_name)?></h1><p><?=htmlspecialchars($planSummary)?></p></div><span class="dashboard-plan-badge plan-<?=htmlspecialchars((string)$plan['key'])?>"><img class="plan-logo" src="/assets/brand/rallybit-icon.png" alt=""><span><small>Server plan</small><strong><?=htmlspecialchars((string)$plan['name'])?></strong></span></span></header>
 <?php if($message):?><div class="alert <?=str_contains($message,'successfully')?'success':'error'?>"><?=htmlspecialchars($message)?></div><?php endif;?>
 <form method="post" class="settings-layout"><input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>"><div class="settings-column">
 <section class="panel"><div class="panel-heading"><span>01</span><div><h2>Check appearance</h2><p>Choose what members see and how they respond.</p></div></div><label>Activity check message<textarea name="activity_text" rows="6"><?=htmlspecialchars($settings['activity_text'] ?? "**ACTIVITY CHECK**\nReact below if you're active!")?></textarea></label><div class="field-grid"><label>Participation mode<select name="reactor_type"><option value="reaction" <?=($settings['reactor_type']??'reaction')==='reaction'?'selected':''?>>Emoji reaction</option><option value="button" <?=($settings['reactor_type']??'')==='button'?'selected':''?>>Interactive button</option></select></label><label>Reaction emoji<input name="reactor" value="<?=htmlspecialchars($settings['reactor'] ?? '✅')?>"></label></div><label>Button text<input name="button_text" maxlength="80" value="<?=htmlspecialchars($settings['button_text'] ?? "I'm Active! ⚡")?>"><small>Use <code>{count}</code> to display the live participant count.</small></label></section>

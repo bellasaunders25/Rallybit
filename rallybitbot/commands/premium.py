@@ -16,7 +16,7 @@ from config.config import (
     STAFF_SHIFTS_FILE,
     TICKET_HISTORY_FILE,
 )
-from core.premium import PLAN_DEFINITIONS, premium_check, resolve_entitlement
+from core.premium import premium_check, resolve_entitlement
 from storage.json_store import load_json, save_json
 
 
@@ -253,9 +253,9 @@ def setup_premium_commands(tree: app_commands.CommandTree) -> None:
             color=BRAND,
         )
         embed.add_field(name="Free — £0", value="Every existing Rallybit command.", inline=False)
-        embed.add_field(name="Community — £3.99/month", value="Coming soon · Server insights overview.", inline=False)
-        embed.add_field(name="Pro — £8.99/month", value="Coming soon · CSV exports and staff shift tools.", inline=False)
-        embed.add_field(name="Network — £19.99/month", value="Coming soon · All premium tools across every server you own.", inline=False)
+        embed.add_field(name="Community — £3.99/month", value="Coming soon · Insights plus searchable moderation case files and workload stats.", inline=False)
+        embed.add_field(name="Pro — £8.99/month", value="Coming soon · CSV exports, staff operations, and restorable Rallybit configuration backups.", inline=False)
+        embed.add_field(name="Network — £19.99/month", value="Coming soon · Everything in Pro across unlimited owned servers, with cross-server broadcasts and exports.", inline=False)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @insights.command(name="overview", description="View activity, ticket, moderation, and staff totals.")
@@ -405,3 +405,5 @@ def setup_premium_commands(tree: app_commands.CommandTree) -> None:
     tree.add_command(premium)
     tree.add_command(insights)
     tree.add_command(staff)
+    from commands.premium_operations import setup_premium_operation_commands
+    setup_premium_operation_commands(tree)

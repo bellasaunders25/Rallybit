@@ -130,9 +130,16 @@
     <article class="command" data-searchable><h3><code>/premium status</code></h3><p>Show the effective plan, access source, server coverage, and expiration.</p></article>
     <article class="command" data-searchable><h3><code>/premium plans</code></h3><p>Compare the Free, Community, Pro, and Network previews.</p></article>
     <article class="command" data-searchable><h3><code>/insights overview</code> <small>Community</small></h3><p>Show activity checks, participants, tickets, moderation actions, and staff time over 7 to 365 days.</p></article>
+    <article class="command" data-searchable><h3><code>/case member</code> / <code>recent</code> <small>Community</small></h3><p>Open a member's moderation case file or search recent actions by type and moderator. Results are private and respect the configured warning-role permission.</p></article>
+    <article class="command" data-searchable><h3><code>/case stats</code> <small>Community</small></h3><p>Measure moderation workload by action type and moderator over a selected period.</p></article>
     <article class="command" data-searchable><h3><code>/insights export</code> <small>Pro</small></h3><p>Export detailed activity, ticket, moderation, and staff-shift records as a CSV file.</p></article>
+    <article class="command" data-searchable><h3><code>/case export</code> <small>Pro</small></h3><p>Export moderation cases to CSV with optional member, moderator, action, and date filters.</p></article>
     <article class="command" data-searchable><h3><code>/staff clockin</code> / <code>clockout</code> <small>Pro</small></h3><p>Start or complete a persistent staff shift, with an optional shift note.</p></article>
     <article class="command" data-searchable><h3><code>/staff status</code> / <code>leaderboard</code> <small>Pro</small></h3><p>Inspect recorded shift time and rank staff activity over a selected period.</p></article>
+    <article class="command" data-searchable><h3><code>/backup create</code> / <code>list</code> / <code>inspect</code> <small>Pro</small></h3><p>Retain up to ten labelled snapshots of every Rallybit configuration module, together with a channel and role manifest.</p></article>
+    <article class="command" data-searchable><h3><code>/backup drift</code> / <code>restore</code> / <code>delete</code> <small>Pro</small></h3><p>Compare current settings and server structure with a snapshot, transactionally restore Rallybit settings, or remove a retained backup. Restore never deletes or recreates Discord channels and roles.</p></article>
+    <article class="command" data-searchable><h3><code>/network channel</code> / <code>overview</code> <small>Network</small></h3><p>Server owners configure an announcement destination in each owned server and see member totals and readiness across the complete network.</p></article>
+    <article class="command" data-searchable><h3><code>/network broadcast</code> / <code>export</code> <small>Network</small></h3><p>Send one mention-safe embed to every configured server you own or export the owned-server inventory and destination readiness to CSV. Network operations are owner-only.</p></article>
   </div>
 
   <h2>Permission notes</h2>

@@ -12,11 +12,12 @@ import discord
 from discord import app_commands
 
 import commands.premium as premium_commands
+import commands.premium_operations as premium_operations
 import core.premium as premium
 import core.service_notice as service_notice
 from core.bot_profile import validate_avatar_url, validate_profile_name
 from core.presence import discord_presence_status, normalise_presence_status
-from storage.json_store import save_json
+from storage.json_store import load_json, save_json
 
 
 class PremiumEntitlementTests(unittest.TestCase):
@@ -148,6 +149,52 @@ class PremiumInsightTests(unittest.TestCase):
                     setattr(premium_commands, name, value)
 
 
+class PremiumOperationsTests(unittest.TestCase):
+    def test_case_filters(self) -> None:
+        now = datetime.now(timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            original = premium_operations.MOD_HISTORY_FILE
+            try:
+                premium_operations.MOD_HISTORY_FILE = str(Path(directory) / "moderation.json")
+                save_json(premium_operations.MOD_HISTORY_FILE, {
+                    "123": {
+                        "7": [
+                            {"action": "warn", "moderator_id": "9", "timestamp": now.isoformat()},
+                            {"action": "kick", "moderator_id": "8", "timestamp": (now - timedelta(days=20)).isoformat()},
+                        ],
+                        "6": [{"action": "ban", "moderator_id": "9", "timestamp": now.isoformat()}],
+                    }
+                })
+                rows = premium_operations.filter_case_rows(123, days=7, moderator_id=9)
+                self.assertEqual([row["action"] for row in rows], ["warn", "ban"])
+                self.assertEqual(
+                    [row["action"] for row in premium_operations.filter_case_rows(123, member_id=7, action="kick")],
+                    ["kick"],
+                )
+            finally:
+                premium_operations.MOD_HISTORY_FILE = original
+
+    def test_configuration_restore_round_trip(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = str(root / "first.json")
+            second = str(root / "second.json")
+            original_sources = premium_operations.CONFIG_SOURCES
+            try:
+                premium_operations.CONFIG_SOURCES = {"first": first, "second": second}
+                save_json(first, {"123": {"enabled": False}, "other": {"keep": True}})
+                save_json(second, {"123": {"channel_id": "old"}})
+                restored = premium_operations.restore_config_backup(123, {
+                    "settings": {"first": {"enabled": True}, "second": None}
+                })
+                self.assertEqual(restored, 2)
+                self.assertEqual(load_json(first)["123"], {"enabled": True})
+                self.assertEqual(load_json(first)["other"], {"keep": True})
+                self.assertNotIn("123", load_json(second))
+            finally:
+                premium_operations.CONFIG_SOURCES = original_sources
+
+
 class PremiumApiTests(unittest.TestCase):
     def test_rejected_profile_update_restores_saved_settings(self) -> None:
         import core.api as api
@@ -221,10 +268,16 @@ class PresentationAndRegistrationTests(unittest.TestCase):
         client = discord.Client(intents=discord.Intents.none())
         tree = app_commands.CommandTree(client)
         premium_commands.setup_premium_commands(tree)
-        self.assertEqual({command.name for command in tree.get_commands()}, {"premium", "insights", "staff"})
+        self.assertEqual(
+            {command.name for command in tree.get_commands()},
+            {"premium", "insights", "staff", "case", "backup", "network"},
+        )
         self.assertEqual({command.name for command in tree.get_command("premium").commands}, {"plans", "status"})
         self.assertEqual({command.name for command in tree.get_command("insights").commands}, {"overview", "export"})
         self.assertEqual({command.name for command in tree.get_command("staff").commands}, {"clockin", "clockout", "status", "leaderboard"})
+        self.assertEqual({command.name for command in tree.get_command("case").commands}, {"member", "recent", "stats", "export"})
+        self.assertEqual({command.name for command in tree.get_command("backup").commands}, {"create", "list", "inspect", "drift", "restore", "delete"})
+        self.assertEqual({command.name for command in tree.get_command("network").commands}, {"channel", "overview", "broadcast", "export"})
 
 
 if __name__ == "__main__":
