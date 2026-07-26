@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from copy import deepcopy
 from storage.json_store import load_json, save_json
-from config.config import BOT_SETTINGS_FILE, DASHBOARD_URL, SUPPORT_SERVER_URL
+from config.config import (
+    BOT_PRESENCE_STATUS,
+    BOT_PROFILE_AVATAR_URL,
+    BOT_PROFILE_NAME,
+    BOT_SETTINGS_FILE,
+    DASHBOARD_URL,
+    SUPPORT_SERVER_URL,
+)
 
 DEFAULT_BOT_SETTINGS = {
     "activitycheck": {"active": True, "is_unlimited": True},
@@ -15,6 +22,9 @@ DEFAULT_BOT_SETTINGS = {
         "version": "7.2.1",
         "max_winners": 100,
         "max_duration": 1440,
+        "presence_status": BOT_PRESENCE_STATUS if BOT_PRESENCE_STATUS in {"online", "idle", "dnd", "offline"} else "online",
+        "profile_name": BOT_PROFILE_NAME,
+        "profile_avatar_url": BOT_PROFILE_AVATAR_URL,
         "webhooks": {},
     },
 }

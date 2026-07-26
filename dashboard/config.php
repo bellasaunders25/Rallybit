@@ -54,6 +54,8 @@ define('BANNED_USERS_FILE', 'banned_users.json');
 define('BOT_SETTINGS_FILE', 'bot_settings.json');
 define('LOG_FILE', 'activity_log.json');
 define('NOTICE_FILE', 'notice.json');
+define('PREMIUM_ENTITLEMENTS_FILE', 'premium_entitlements.json');
+define('STAFF_SHIFTS_FILE', 'staff_shifts.json');
 define('LIMITS_FILE', 'limits.json');
 define('BOT_GUILDS_FILE', 'bot_guilds.json');
 define('ADMINS_FILE', 'admins.json');

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from copy import deepcopy
 import json
 import hmac
 import os
@@ -14,6 +15,10 @@ import discord
 from flask import Flask, jsonify, request
 
 from config.config import API_HOST, API_PORT, API_SECRET, DATA_DIR, TOPGG_WEBHOOK_TOKEN
+from core.bot_profile import apply_bot_profile, validate_avatar_url, validate_profile_name
+from core.bot_settings import get_bot_settings, save_bot_settings
+from core.premium import grant_entitlement, load_entitlements, revoke_entitlement
+from core.presence import normalise_presence_status
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
@@ -30,7 +35,8 @@ ALLOWED_FILES = {
     "level_settings.json", "level_stats.json", "autorole_settings.json", "reaction_roles.json",
     "verification_settings.json", "ticket_settings.json", "ticket_panels.json", "open_tickets.json",
     "ticket_history.json", "automation_schedules.json", "afk_status.json",
-    "report_settings.json", "reports.json", "review_settings.json"
+    "report_settings.json", "reports.json", "review_settings.json",
+    "premium_entitlements.json", "staff_shifts.json"
 }
 
 
@@ -102,6 +108,86 @@ def write_json_route():
     temp = path.with_suffix(path.suffix + ".tmp")
     temp.write_text(json.dumps(payload.get("data", {}), indent=2), encoding="utf-8")
     temp.replace(path)
+    return jsonify({"ok": True})
+
+
+@app.post("/api/bot/profile")
+def update_bot_profile():
+    if not auth(request): return jsonify({"error": "unauthorized"}), 401
+    if discord_bot is None: return jsonify({"error": "bot unavailable"}), 503
+    payload = request.get_json(silent=True) or {}
+    try:
+        profile_name = validate_profile_name(payload.get("name"))
+        avatar_url = validate_avatar_url(payload.get("avatar_url"))
+        requested_status = str(payload.get("status") or "online").strip().lower()
+        presence_status = normalise_presence_status(requested_status)
+        if requested_status != presence_status:
+            return jsonify({"error": "invalid presence status"}), 400
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    settings = get_bot_settings()
+    previous_settings = deepcopy(settings)
+    global_cfg = settings.setdefault("global", {})
+    global_cfg.update({
+        "profile_name": profile_name,
+        "profile_avatar_url": avatar_url,
+        "presence_status": presence_status,
+    })
+    save_bot_settings(settings)
+    try:
+        result = _run_bot_coro(apply_bot_profile(discord_bot, include_identity=True))
+    except Exception as exc:
+        save_bot_settings(previous_settings)
+        try:
+            _run_bot_coro(apply_bot_profile(discord_bot, include_identity=True))
+        except Exception as rollback_exc:
+            print(f"[BOT PROFILE] Rollback could not be applied live: {rollback_exc!r}")
+        return jsonify({"error": f"Discord rejected the profile update; the saved settings were restored: {exc}"}), 502
+    return jsonify({"ok": True, "status": presence_status, "result": result})
+
+
+@app.post("/api/premium/entitlements")
+def premium_entitlements():
+    if not auth(request): return jsonify({"error": "unauthorized"}), 401
+    return jsonify({"ok": True, "data": load_entitlements()})
+
+
+@app.post("/api/premium/grant")
+def premium_grant():
+    if not auth(request): return jsonify({"error": "unauthorized"}), 401
+    payload = request.get_json(silent=True) or {}
+    try:
+        record = grant_entitlement(
+            subject_type=payload.get("subject_type"),
+            subject_id=payload.get("subject_id"),
+            plan=str(payload.get("plan") or "").lower(),
+            expires_at=payload.get("expires_at"),
+            granted_by=payload.get("actor_id"),
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except RuntimeError as exc:
+        return jsonify({"error": str(exc)}), 500
+    return jsonify({"ok": True, "record": record})
+
+
+@app.post("/api/premium/revoke")
+def premium_revoke():
+    if not auth(request): return jsonify({"error": "unauthorized"}), 401
+    payload = request.get_json(silent=True) or {}
+    try:
+        removed = revoke_entitlement(
+            subject_type=payload.get("subject_type"),
+            subject_id=payload.get("subject_id"),
+            revoked_by=payload.get("actor_id"),
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except RuntimeError as exc:
+        return jsonify({"error": str(exc)}), 500
+    if not removed:
+        return jsonify({"error": "No active entitlement was found for that ID."}), 404
     return jsonify({"ok": True})
 
 

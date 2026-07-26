@@ -1,6 +1,16 @@
 # Rallybit
 
-Rallybit is a free Discord community toolkit for activity checks, recurring community quizzes, anonymous pulse checks, participation rankings, moderation workflows, audit logs, and a web dashboard.
+Rallybit is a Discord community toolkit for activity checks, recurring community quizzes, anonymous pulse checks, participation rankings, moderation workflows, audit logs, and a web dashboard. Every existing command remains free; advanced Community, Pro, and Network tools are available as developer previews while public plans are Coming soon.
+
+## Plans and preview access
+
+- **Free** keeps every existing Rallybit command at no charge.
+- **Community** adds a server insights overview for one manually granted server.
+- **Pro** adds CSV exports and persistent staff shift tracking for one manually granted server.
+- **Network** follows one Discord owner across every server they own. It never follows a moderator or administrator into a server owned by someone else.
+- Paid checkout is not enabled. Bot developers can grant and revoke previews, with optional UTC expiration, from Dashboard → Developer tools.
+
+Use `/premium plans` and `/premium status` in Discord to view available tiers and effective access.
 
 ## Build 7.2.2 highlights
 
@@ -127,6 +137,9 @@ Fill in `rallybitbot/.env`:
 - `OWNER_ID`
 - `DASHBOARD_URL`
 - `SUPPORT_SERVER_URL`
+- `BOT_PROFILE_NAME` — optional global username for this Discord application
+- `BOT_PROFILE_AVATAR_URL` — optional public HTTPS avatar URL smaller than 8 MB
+- `BOT_PRESENCE_STATUS` — `online`, `idle`, `dnd`, or `offline`
 - `BOT_API_SECRET` — must exactly match the website's `BOT_API_KEY`
 - `API_HOST=127.0.0.1` unless the bridge is protected by a private network or reverse proxy
 
@@ -156,6 +169,15 @@ python main.py
 /channel transcript
 /channel purge
 
+/premium status
+/premium plans
+/insights overview
+/insights export
+/staff clockin
+/staff clockout
+/staff status
+/staff leaderboard
+
 /community icebreaker
 /community pulse
 /community pingrole
@@ -165,6 +187,12 @@ python main.py
 ```
 
 Use `/help` inside Discord for the complete command centre.
+
+## Shared and self-hosted bot identity
+
+Discord bot usernames, profile pictures, and presence are global to a bot application. The Developer tools page can update the shared Rallybit application immediately, so those controls must remain restricted to bot developers.
+
+For a separately branded or self-hosted instance, create a separate Discord application and configure its token plus `BOT_PROFILE_NAME`, `BOT_PROFILE_AVATAR_URL`, and `BOT_PRESENCE_STATUS` in that instance's private `.env` file. Never enter customer bot tokens into the Rallybit web dashboard. Automated dedicated-instance provisioning is a Network feature marked Coming soon.
 
 ## 3. Deploy the website
 
@@ -192,6 +220,8 @@ moderation_warnings.json
 moderation_history.json
 pulse_history.json
 community_settings.json
+premium_entitlements.json
+staff_shifts.json
 ```
 
 The files are created with empty JSON objects in a clean installation. Keep the `rallybitbot/data/` directory writable by the bot service account.

@@ -6,11 +6,14 @@ function render_dashboard_sidebar(
     string $active = 'overview',
     ?string $guildId = null,
     ?string $guildName = null,
-    ?int $serverCount = null
+    ?int $serverCount = null,
+    ?array $plan = null
 ): void {
     $loggedIn = is_logged_in();
     $displayName = (string)($_SESSION['global_name'] ?? $_SESSION['username'] ?? 'Member');
     $username = (string)($_SESSION['username'] ?? 'member');
+    $plan = $plan ?? (is_array($_SESSION['dashboard_plan'] ?? null) ? $_SESSION['dashboard_plan'] : ['key' => 'free', 'name' => 'Free']);
+    $planKey = in_array(($plan['key'] ?? 'free'), ['free', 'community', 'pro', 'network'], true) ? (string)$plan['key'] : 'free';
     $guildQuery = $guildId !== null
         ? '?' . http_build_query(['id' => $guildId, 'name' => $guildName ?? 'Server'])
         : '';
@@ -27,9 +30,9 @@ function render_dashboard_sidebar(
     };
     ?>
     <aside class="dash-sidebar">
-        <a class="dash-brand" href="/index.html">
-            <img src="/assets/brand/rallybit-icon.png" alt="">
-            <span>Rallybit</span>
+        <a class="dash-brand plan-brand plan-<?=htmlspecialchars($planKey)?>" href="/index.html">
+            <img class="plan-logo" src="/assets/brand/rallybit-icon.png" alt="">
+            <span>Rallybit<small><?=htmlspecialchars((string)($plan['name'] ?? 'Free'))?> plan</small></span>
         </a>
 
         <?php if ($loggedIn): ?>
@@ -72,4 +75,3 @@ function render_dashboard_sidebar(
     </aside>
     <?php
 }
-

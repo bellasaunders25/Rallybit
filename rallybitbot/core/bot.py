@@ -12,12 +12,18 @@ from discord import app_commands
 
 from config.config import DATA_DIR, DISCORD_TOKEN, SHARD_COUNT, SUPPORT_SERVER_URL
 from core.bot_settings import get_branding, get_webhook
+from core.service_notice import get_service_notice
+
+
+class RallybitCommandTree(app_commands.CommandTree):
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return not bool(get_service_notice()["active"])
 
 
 class BotClient(discord.AutoShardedClient):
     def __init__(self, intents: discord.Intents):
         super().__init__(intents=intents, shard_count=SHARD_COUNT)
-        self.tree = app_commands.CommandTree(self)
+        self.tree = RallybitCommandTree(self)
         self.tree.on_error = self.on_app_command_error
         self._commands_synced = False
         self.shard_starts: dict[int, datetime] = {}
@@ -73,6 +79,7 @@ class BotClient(discord.AutoShardedClient):
         from commands.snipes import setup_snipe_commands
         from commands.leaderboard import setup_leaderboard_command
         from commands.profile import setup_profile_command
+        from commands.premium import setup_premium_commands
         from commands.support import setup_support_command
         from commands.tickets import setup_ticket_commands
         from commands.utility import setup_utility_commands
@@ -86,6 +93,7 @@ class BotClient(discord.AutoShardedClient):
         setup_afk_commands(self.tree)
         setup_leaderboard_command(self.tree)
         setup_profile_command(self.tree)
+        setup_premium_commands(self.tree)
         setup_help_commands(self.tree)
         setup_support_command(self.tree)
         setup_ticket_commands(self.tree)
@@ -296,6 +304,11 @@ class BotClient(discord.AutoShardedClient):
                 rotate_presence.start(self)
         except Exception as exc:
             print(f"[PRESENCE] Unable to start: {exc}")
+        try:
+            from core.bot_profile import apply_bot_profile
+            await apply_bot_profile(self, include_identity=True)
+        except Exception as exc:
+            print(f"[BOT PROFILE] Unable to apply the configured profile: {exc!r}")
         brand, version = get_branding()
         print(f"✅ {brand} online | {len(self.guilds):,} servers | {version}")
         self.send_webhook(get_webhook("status"), {"embeds": [{
@@ -326,6 +339,23 @@ class BotClient(discord.AutoShardedClient):
         self.save_guilds_to_file()
 
     async def on_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+        notice = get_service_notice()
+        if notice["active"]:
+            embed = discord.Embed(
+                title=notice["title"],
+                description=notice["message"],
+                color=0xF0B232,
+                timestamp=discord.utils.utcnow(),
+            )
+            embed.set_footer(text="Rallybit commands are temporarily paused")
+            try:
+                if interaction.response.is_done():
+                    await interaction.followup.send(embed=embed, ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+                else:
+                    await interaction.response.send_message(embed=embed, ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+            except discord.HTTPException:
+                pass
+            return
         if isinstance(error, app_commands.MissingPermissions):
             message = "You need the required server permissions to use that command."
         elif isinstance(error, app_commands.CheckFailure):
