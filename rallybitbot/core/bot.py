@@ -15,9 +15,56 @@ from core.bot_settings import get_branding, get_webhook
 from core.service_notice import get_service_notice
 
 
+NOTICE_SENT_KEY = "rallybit_service_notice_sent"
+
+
+def _service_notice_embed(notice: dict) -> discord.Embed:
+    embed = discord.Embed(
+        title=notice["title"],
+        description=notice["message"],
+        color=0xF0B232,
+        timestamp=discord.utils.utcnow(),
+    )
+    embed.set_footer(text="Rallybit commands are temporarily paused")
+    return embed
+
+
+async def send_service_notice(interaction: discord.Interaction, notice: dict) -> bool:
+    """Acknowledge a blocked command before CommandTree stops dispatching it."""
+    extras = getattr(interaction, "extras", None)
+    if isinstance(extras, dict) and extras.get(NOTICE_SENT_KEY):
+        return True
+
+    embed = _service_notice_embed(notice)
+    try:
+        if interaction.response.is_done():
+            await interaction.followup.send(
+                embed=embed,
+                ephemeral=True,
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
+        else:
+            await interaction.response.send_message(
+                embed=embed,
+                ephemeral=True,
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
+    except discord.HTTPException as exc:
+        print(f"[SERVICE NOTICE] Unable to acknowledge command: {exc!r}")
+        return False
+
+    if isinstance(extras, dict):
+        extras[NOTICE_SENT_KEY] = True
+    return True
+
+
 class RallybitCommandTree(app_commands.CommandTree):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        return not bool(get_service_notice()["active"])
+        notice = get_service_notice()
+        if not notice["active"]:
+            return True
+        await send_service_notice(interaction, notice)
+        return False
 
 
 class BotClient(discord.AutoShardedClient):
@@ -341,20 +388,7 @@ class BotClient(discord.AutoShardedClient):
     async def on_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         notice = get_service_notice()
         if notice["active"]:
-            embed = discord.Embed(
-                title=notice["title"],
-                description=notice["message"],
-                color=0xF0B232,
-                timestamp=discord.utils.utcnow(),
-            )
-            embed.set_footer(text="Rallybit commands are temporarily paused")
-            try:
-                if interaction.response.is_done():
-                    await interaction.followup.send(embed=embed, ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
-                else:
-                    await interaction.response.send_message(embed=embed, ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
-            except discord.HTTPException:
-                pass
+            await send_service_notice(interaction, notice)
             return
         if isinstance(error, app_commands.MissingPermissions):
             message = "You need the required server permissions to use that command."

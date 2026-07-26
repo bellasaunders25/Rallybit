@@ -5,7 +5,8 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
 
 import discord
 from discord import app_commands
@@ -179,10 +180,20 @@ class PresentationAndRegistrationTests(unittest.TestCase):
     def test_global_notice_gate(self) -> None:
         import core.bot as bot
 
-        with patch("core.bot.get_service_notice", return_value={"active": True}):
-            self.assertFalse(asyncio.run(bot.RallybitCommandTree.interaction_check(None, None)))
+        response = SimpleNamespace(is_done=lambda: False, send_message=AsyncMock())
+        interaction = SimpleNamespace(response=response, followup=SimpleNamespace(send=AsyncMock()), extras={})
+        active_notice = {"active": True, "title": "Maintenance", "message": "Please try again later."}
+        with patch("core.bot.get_service_notice", return_value=active_notice):
+            self.assertFalse(asyncio.run(bot.RallybitCommandTree.interaction_check(None, interaction)))
+        response.send_message.assert_awaited_once()
+        sent = response.send_message.await_args.kwargs
+        self.assertTrue(sent["ephemeral"])
+        self.assertEqual(sent["embed"].title, "Maintenance")
+        self.assertEqual(sent["embed"].description, "Please try again later.")
+        self.assertTrue(interaction.extras[bot.NOTICE_SENT_KEY])
+
         with patch("core.bot.get_service_notice", return_value={"active": False}):
-            self.assertTrue(asyncio.run(bot.RallybitCommandTree.interaction_check(None, None)))
+            self.assertTrue(asyncio.run(bot.RallybitCommandTree.interaction_check(None, interaction)))
 
     def test_notice_fallback_profile_and_presence_validation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
