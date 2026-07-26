@@ -25,6 +25,7 @@ define('DISCORD_REDIRECT_URI', env_value('DISCORD_REDIRECT_URI'));
 define('MASTER_ADMIN_ID', env_value('MASTER_ADMIN_ID'));
 define('BOT_API_URL', rtrim(env_value('BOT_API_URL', 'http://127.0.0.1:8080'), '/'));
 define('BOT_API_KEY', env_value('BOT_API_KEY'));
+define('DASHBOARD_SESSION_DAYS', max(1, min(90, (int)env_value('DASHBOARD_SESSION_DAYS', '30'))));
 
 define('SETTINGS_FILE', 'activity_settings.json');
 
@@ -64,6 +65,14 @@ define('BADGES_FILE', 'badges.json');
 function check_login(): void {
     if (empty($_SESSION['user_id'])) {
         header('Location: login.php');
+        exit;
+    }
+    if (function_exists('ensure_discord_access_token') && !ensure_discord_access_token()) {
+        $_SESSION = [];
+        session_regenerate_id(true);
+        $redirect = (string)($_SERVER['REQUEST_URI'] ?? '/dashboard/index.php');
+        if (!str_starts_with($redirect, '/dashboard/') || str_starts_with($redirect, '//')) $redirect = '/dashboard/index.php';
+        header('Location: login.php?redirect=' . rawurlencode($redirect));
         exit;
     }
 }

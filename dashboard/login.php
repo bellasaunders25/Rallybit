@@ -1,6 +1,5 @@
 <?php
-require_once 'config.php';
-if (session_status() === PHP_SESSION_NONE) session_start();
+require_once 'includes/functions.php';
 if (!DISCORD_CLIENT_ID || !DISCORD_REDIRECT_URI) exit('Discord OAuth is not configured.');
 if (isset($_GET['redirect'])) {
     $target = (string)$_GET['redirect'];

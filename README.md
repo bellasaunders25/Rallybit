@@ -118,8 +118,11 @@ Fill in:
 - `SUPPORT_SERVER_URL` — support-server invite
 - `BOT_API_URL` — private bot API address, normally `http://127.0.0.1:8080`
 - `BOT_API_KEY` — a long random secret shared with the bot
+- `DASHBOARD_SESSION_DAYS` — persistent dashboard login lifetime, from 1 to 90 days (default 30)
 
 In the Discord Developer Portal, add the exact redirect URI and enable the `identify` and `guilds` OAuth scopes.
+
+Dashboard sessions persist across browser restarts. Discord access tokens are refreshed server-side using the OAuth refresh token, which remains inside the protected PHP session and is never written to a browser-readable cookie.
 
 ## 2. Configure the bot
 

@@ -8,22 +8,44 @@
  * Secure Session Management
  * Enforces secure cookie settings to prevent session hijacking.
  */
-function secure_session_init() {
+function secure_session_init(): void {
     if (session_status() === PHP_SESSION_NONE) {
-        // Enforce cookie security settings
-        ini_set('session.cookie_httponly', 1);
-        ini_set('session.use_only_cookies', 1);
-        
-        $is_https = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || 
-                    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-        
-        if ($is_https) {
-            ini_set('session.cookie_secure', 1);
-        }
-        
-        ini_set('session.cookie_samesite', 'Lax');
-        
+        $configuredDays = (int)(getenv('DASHBOARD_SESSION_DAYS') ?: 30);
+        $sessionDays = max(1, min(90, $configuredDays));
+        $lifetime = $sessionDays * 86400;
+        $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
+            (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https');
+
+        ini_set('session.cookie_httponly', '1');
+        ini_set('session.use_only_cookies', '1');
+        ini_set('session.use_strict_mode', '1');
+        ini_set('session.gc_maxlifetime', (string)$lifetime);
+        ini_set('session.cookie_lifetime', (string)$lifetime);
+        session_set_cookie_params([
+            'lifetime' => $lifetime,
+            'path' => '/',
+            'secure' => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
         session_start();
+
+        $now = time();
+        if (empty($_SESSION['_created_at']) || $now - (int)$_SESSION['_created_at'] > 43200) {
+            session_regenerate_id(true);
+            $_SESSION['_created_at'] = $now;
+        }
+        $_SESSION['_last_seen_at'] = $now;
+
+        // Refresh the browser cookie on every request so active dashboard
+        // sessions remain signed in for the full configured period.
+        setcookie(session_name(), session_id(), [
+            'expires' => $now + $lifetime,
+            'path' => '/',
+            'secure' => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
     }
 }
 
