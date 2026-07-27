@@ -1,22 +1,27 @@
 from __future__ import annotations
 
 import asyncio
-from copy import deepcopy
-import json
 import hmac
+import json
 import os
 import platform
 import sys
 import time
+from copy import deepcopy
 from pathlib import Path
 
-import psutil
 import discord
+import psutil
 from flask import Flask, jsonify, request
 
 from config.config import API_HOST, API_PORT, API_SECRET, DATA_DIR, TOPGG_WEBHOOK_TOKEN
-from core.bot_profile import apply_bot_profile, validate_avatar_url, validate_profile_name
+from core.bot_profile import (
+    apply_bot_profile,
+    validate_avatar_url,
+    validate_profile_name,
+)
 from core.bot_settings import get_bot_settings, save_bot_settings
+from core.plan_branding import sync_plan_avatars
 from core.premium import grant_entitlement, load_entitlements, revoke_entitlement
 from core.presence import normalise_presence_status
 
@@ -169,7 +174,14 @@ def premium_grant():
         return jsonify({"error": str(exc)}), 400
     except RuntimeError as exc:
         return jsonify({"error": str(exc)}), 500
-    return jsonify({"ok": True, "record": record})
+    try:
+        if str(payload.get("subject_type")) == "server":
+            avatar_result = _run_bot_coro(sync_plan_avatars(discord_bot, server_id=int(payload.get("subject_id")), force=True))
+        else:
+            avatar_result = _run_bot_coro(sync_plan_avatars(discord_bot, owner_id=int(payload.get("subject_id")), force=True))
+    except Exception as exc:
+        avatar_result = [{"ok": False, "error": f"Plan granted, but the server avatar could not refresh: {exc}"}]
+    return jsonify({"ok": True, "record": record, "avatar_result": avatar_result})
 
 
 @app.post("/api/premium/revoke")
@@ -188,7 +200,14 @@ def premium_revoke():
         return jsonify({"error": str(exc)}), 500
     if not removed:
         return jsonify({"error": "No active entitlement was found for that ID."}), 404
-    return jsonify({"ok": True})
+    try:
+        if str(payload.get("subject_type")) == "server":
+            avatar_result = _run_bot_coro(sync_plan_avatars(discord_bot, server_id=int(payload.get("subject_id")), force=True))
+        else:
+            avatar_result = _run_bot_coro(sync_plan_avatars(discord_bot, owner_id=int(payload.get("subject_id")), force=True))
+    except Exception as exc:
+        avatar_result = [{"ok": False, "error": f"Plan revoked, but the server avatar could not refresh: {exc}"}]
+    return jsonify({"ok": True, "avatar_result": avatar_result})
 
 
 @app.post("/api/logs/read")
@@ -298,8 +317,9 @@ async def _dashboard_action_async(payload):
         if not session: raise RuntimeError("No pulse is active.")
         await session.finish("dashboard"); return {"message": "Pulse ended."}
     if action == "icebreaker.post":
-        from commands.community import ICEBREAKERS
         import random
+
+        from commands.community import ICEBREAKERS
         category = str(params.get("category", "casual")); pool = ICEBREAKERS.get(category, sum(ICEBREAKERS.values(), []))
         role = guild.get_role(int(params.get("ping_role_id", 0))) if params.get("ping_role_id") else None
         content = role.mention if role and (role.mentionable or channel.permissions_for(guild.me).mention_everyone) else None
@@ -317,7 +337,11 @@ async def _dashboard_action_async(payload):
         if not session or session.guild.id != guild.id: raise RuntimeError("Giveaway not found.")
         await session.finish("dashboard"); return {"message": "Giveaway ended."}
     if action == "security.trap":
-        from commands.security import get_security_settings, save_security_settings, _create_or_repair_trap
+        from commands.security import (
+            _create_or_repair_trap,
+            get_security_settings,
+            save_security_settings,
+        )
         settings = get_security_settings(guild.id)
         settings["trap"]["enabled"] = True
         if params.get("action"): settings["trap"]["action"] = str(params["action"])
@@ -337,7 +361,14 @@ async def _dashboard_action_async(payload):
             except Exception: pass
         return {"message": f"{'Locked' if enabled else 'Unlocked'} {changed} text channels."}
     if action == "moderation.warn":
-        from commands.moderation import _add_warning, _append_history, _hierarchy_error, _send_log, can_use_moderation_action, moderation_denial
+        from commands.moderation import (
+            _add_warning,
+            _append_history,
+            _hierarchy_error,
+            _send_log,
+            can_use_moderation_action,
+            moderation_denial,
+        )
         member = guild.get_member(int(params.get("user_id", 0)))
         if not member: raise RuntimeError("Member not found.")
         if not can_use_moderation_action(actor, "warn"): raise RuntimeError(moderation_denial("warn"))
@@ -352,7 +383,14 @@ async def _dashboard_action_async(payload):
         return {"message": f"Warned {member}."}
     if action in {"moderation.timeout", "moderation.kick", "moderation.ban"}:
         from datetime import timedelta
-        from commands.moderation import _append_history, _hierarchy_error, _send_log, can_use_moderation_action, moderation_denial
+
+        from commands.moderation import (
+            _append_history,
+            _hierarchy_error,
+            _send_log,
+            can_use_moderation_action,
+            moderation_denial,
+        )
         member = guild.get_member(int(params.get("user_id", 0)))
         if not member: raise RuntimeError("Member not found.")
         action_name = action.split(".")[1]
@@ -414,7 +452,13 @@ async def _dashboard_action_async(payload):
         data = load_json(REACTION_ROLES_FILE) or {}; data.setdefault(str(guild.id), {}).setdefault(str(message.id), {})[key] = role.id; save_json(REACTION_ROLES_FILE, data)
         return {"message": f"Reaction role added to message {message.id}."}
     if action == "level.setxp":
-        from commands.levels import _member_record, _save_stats, level_from_xp, _apply_reward_roles, _settings
+        from commands.levels import (
+            _apply_reward_roles,
+            _member_record,
+            _save_stats,
+            _settings,
+            level_from_xp,
+        )
         member = guild.get_member(int(params.get("user_id", 0)))
         if not member: raise RuntimeError("Member not found.")
         xp = max(0, int(params.get("xp", 0)))

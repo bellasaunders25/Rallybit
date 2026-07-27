@@ -127,6 +127,7 @@ class BotClient(discord.AutoShardedClient):
         from commands.leaderboard import setup_leaderboard_command
         from commands.profile import setup_profile_command
         from commands.premium import setup_premium_commands
+        from commands.prettfy import setup_prettfy_command
         from commands.support import setup_support_command
         from commands.tickets import setup_ticket_commands
         from commands.utility import setup_utility_commands
@@ -141,6 +142,7 @@ class BotClient(discord.AutoShardedClient):
         setup_leaderboard_command(self.tree)
         setup_profile_command(self.tree)
         setup_premium_commands(self.tree)
+        setup_prettfy_command(self.tree)
         setup_help_commands(self.tree)
         setup_support_command(self.tree)
         setup_ticket_commands(self.tree)
@@ -264,6 +266,12 @@ class BotClient(discord.AutoShardedClient):
         self.loop.create_task(self._cache_loop())
 
         try:
+            from core.plan_branding import plan_avatar_sync_loop
+            self.loop.create_task(plan_avatar_sync_loop(self), name="rallybit:plan-avatars")
+        except Exception as exc:
+            print(f"[PLAN AVATARS] Unable to start plan branding: {exc!r}")
+
+        try:
             from commands.tickets import restore_ticket_views
             restored_ticket_views = await restore_ticket_views(self)
             if restored_ticket_views:
@@ -376,6 +384,13 @@ class BotClient(discord.AutoShardedClient):
 
     async def on_guild_join(self, guild: discord.Guild):
         self.save_guilds_to_file()
+        try:
+            from core.plan_branding import sync_guild_plan_avatar
+            result = await sync_guild_plan_avatar(guild)
+            if not result.get("ok"):
+                print(f"[PLAN AVATARS] New guild avatar update failed: {result!r}")
+        except Exception as exc:
+            print(f"[PLAN AVATARS] New guild branding failed: {exc!r}")
         try:
             owner = guild.owner or await self.fetch_user(guild.owner_id)
             await owner.send(f"Thanks for adding **Rallybit** to **{guild.name}**. Get started with `/help`.\nSupport: {SUPPORT_SERVER_URL}")

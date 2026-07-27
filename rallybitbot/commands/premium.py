@@ -254,7 +254,7 @@ def setup_premium_commands(tree: app_commands.CommandTree) -> None:
         )
         embed.add_field(name="Free — £0", value="Every existing Rallybit command.", inline=False)
         embed.add_field(name="Community — £3.99/month", value="Coming soon · Insights plus searchable moderation case files and workload stats.", inline=False)
-        embed.add_field(name="Pro — £8.99/month", value="Coming soon · CSV exports, staff operations, and restorable Rallybit configuration backups.", inline=False)
+        embed.add_field(name="Pro — £8.99/month", value="Coming soon · AI-guided server styling with preview and undo, CSV exports, staff operations, and restorable configuration backups.", inline=False)
         embed.add_field(name="Network — £19.99/month", value="Coming soon · Everything in Pro across unlimited owned servers, with cross-server broadcasts and exports.", inline=False)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 

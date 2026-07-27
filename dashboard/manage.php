@@ -12,7 +12,7 @@ if (!$allowed) { http_response_code(403); exit('You do not have permission to ma
 $plan = dashboard_plan_for_guild($managedGuild ?? [], get_premium_entitlements(), (string)($_SESSION['user_id'] ?? ''), is_bot_admin());
 $planSummary = match ($plan['key']) {
     'community' => 'Community adds insights, searchable moderation cases, and workload statistics.',
-    'pro' => 'Pro adds case exports, staff operations, and restorable Rallybit configuration backups.',
+    'pro' => 'Pro adds AI-guided server styling with preview and undo, case exports, staff operations, and restorable Rallybit configuration backups.',
     'network' => 'Network adds Pro tools across owned servers plus owner-only broadcasts and exports.',
     default => 'Every core Rallybit command is free. Premium operations are available as authorised previews.',
 };

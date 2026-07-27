@@ -6,8 +6,9 @@ Rallybit is a Discord community toolkit for activity checks, recurring community
 
 - **Free** keeps every existing Rallybit command at no charge.
 - **Community** adds insights, searchable member case files, recent-case filters, and moderation workload statistics for one manually granted server.
-- **Pro** adds filtered CSV exports, persistent staff shift tracking, ten retained configuration backups, drift reports, and transactional Rallybit-setting restores for one manually granted server.
+- **Pro** adds the AI-guided `/prettfy` naming wizard with per-phase previews and undo, filtered CSV exports, persistent staff shift tracking, ten retained configuration backups, drift reports, and transactional Rallybit-setting restores for one manually granted server.
 - **Network** follows one Discord owner across every server they own, adding an owned-server overview, configured announcement destinations, owner-only cross-server broadcasts, and network exports. It never follows a moderator or administrator into a server owned by someone else.
+- The bot's server-specific avatar follows the effective plan colour: Free keeps the shared violet logo, while Community, Pro, and Network use their matching guild avatar. Plan changes and expirations are synchronised automatically.
 - Paid checkout is not enabled. Bot developers can grant and revoke previews, with optional UTC expiration, from Dashboard → Developer tools.
 
 Use `/premium plans` and `/premium status` in Discord to view available tiers and effective access.
@@ -180,6 +181,7 @@ python main.py
 /staff clockout
 /staff status
 /staff leaderboard
+/prettfy
 /case member
 /case recent
 /case stats
@@ -204,6 +206,12 @@ python main.py
 ```
 
 Use `/help` inside Discord for the complete command centre.
+
+### Prettfy AI naming wizard
+
+`/prettfy` is a Pro preview command for administrators with Manage Channels and Manage Roles. The bot collects the design brief in DMs, proposes channel names first, and changes only explicitly approved names. It then repeats the preview and approval process for roles. It never changes permission overwrites, role permissions, hierarchy, colours, topics, assignments, or channel types. Use `/prettfy undo_last:true` to preview and restore names from the latest active run.
+
+Configure `OPENROUTER_API_KEY` only in the bot's private `.env` file. `OPENROUTER_MODEL` defaults to `openrouter/free` and can be pinned to another structured-output-compatible model. OpenRouter's free router is rate limited; the key must never be committed or entered through Discord.
 
 ## Shared and self-hosted bot identity
 

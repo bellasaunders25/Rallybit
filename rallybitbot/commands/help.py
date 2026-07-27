@@ -56,7 +56,7 @@ def setup_help_commands(tree):
         )
         embed.add_field(
             name="Premium operations",
-            value="`/case member` Search case files\n`/case stats` Staff workload\n`/backup create` Save configuration\n`/backup drift` Detect changes\n`/network overview` Owned servers\n`/premium plans` Compare previews",
+            value="`/prettfy` Preview server styling\n`/case member` Search case files\n`/case stats` Staff workload\n`/backup create` Save configuration\n`/network overview` Owned servers\n`/premium plans` Compare previews",
             inline=True,
         )
         embed.set_footer(text="Rallybit 7.2.2 • Core commands remain free")

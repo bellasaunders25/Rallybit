@@ -30,6 +30,8 @@ SUPPORT_SERVER_URL = os.getenv("SUPPORT_SERVER_URL", "https://discord.com")
 BOT_PROFILE_NAME = os.getenv("BOT_PROFILE_NAME", "").strip()
 BOT_PROFILE_AVATAR_URL = os.getenv("BOT_PROFILE_AVATAR_URL", "").strip()
 BOT_PRESENCE_STATUS = os.getenv("BOT_PRESENCE_STATUS", "online").strip().lower()
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openrouter/free").strip() or "openrouter/free"
 
 # Existing custom emoji IDs are intentionally retained until the visual rebrand.
 WIN_BADGE_1 = "<:5won:1445611065705627732>"
@@ -104,3 +106,5 @@ AFK_STATUS_FILE = data_file("afk_status.json")
 REPORT_SETTINGS_FILE = data_file("report_settings.json")
 REPORTS_FILE = data_file("reports.json")
 REVIEW_SETTINGS_FILE = data_file("review_settings.json")
+PRETTFY_HISTORY_FILE = data_file("prettfy_history.json")
+PLAN_AVATAR_STATE_FILE = data_file("plan_avatar_state.json")

@@ -1,0 +1,129 @@
+from __future__ import annotations
+
+import asyncio
+import json
+import tempfile
+import unittest
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
+
+import discord
+from discord import app_commands
+
+import commands.prettfy as prettfy
+import core.plan_branding as plan_branding
+from storage.json_store import load_json
+
+
+class _Response:
+    def __init__(self, payload: dict) -> None:
+        self.payload = payload
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args):
+        return False
+
+    def read(self) -> bytes:
+        return json.dumps(self.payload).encode("utf-8")
+
+
+class PrettfyTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.original_history = prettfy.PRETTFY_HISTORY_FILE
+        prettfy.PRETTFY_HISTORY_FILE = str(Path(self.temp_dir.name) / "prettfy.json")
+
+    def tearDown(self) -> None:
+        prettfy.PRETTFY_HISTORY_FILE = self.original_history
+        self.temp_dir.cleanup()
+
+    def test_proposals_are_limited_to_known_ids_and_safe_unique_names(self) -> None:
+        payload = {
+            "renames": [
+                {"id": "1", "new_name": "『📢』shouts", "reason": "Consistent"},
+                {"id": "2", "new_name": "『📢』shouts", "reason": "Duplicate"},
+                {"id": "999", "new_name": "unknown", "reason": "Injected"},
+                {"id": "3", "new_name": "@everyone\nnews", "reason": "Clean"},
+            ],
+            "permission_notes": ["Review staff visibility manually"],
+        }
+        rows, notes = prettfy.validate_proposals(payload, {"1": "announcements", "2": "updates", "3": "news"})
+        self.assertEqual([row["id"] for row in rows], ["1", "3"])
+        self.assertEqual(rows[1]["new_name"], "everyonenews")
+        self.assertEqual(notes, ["Review staff visibility manually"])
+
+    def test_history_records_approved_names_and_marks_undo(self) -> None:
+        record_id = prettfy.create_history(123, 456)
+        self.assertTrue(prettfy.add_history_item(123, record_id, "channels", 7, "announcements"))
+        active = prettfy.latest_active_history(123)
+        self.assertEqual(active["channels"], [{"id": "7", "name": "announcements"}])
+        self.assertTrue(prettfy.mark_history_undone(123, record_id, 456))
+        self.assertIsNone(prettfy.latest_active_history(123))
+        stored = load_json(prettfy.PRETTFY_HISTORY_FILE)
+        self.assertEqual(stored["123"][0]["status"], "undone")
+
+    def test_openrouter_request_uses_structured_output_without_exposing_key(self) -> None:
+        content = {
+            "summary": "Clean plan",
+            "renames": [],
+            "permission_review_recommended": False,
+            "permission_notes": [],
+        }
+        captured = {}
+
+        def fake_urlopen(request, timeout):
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            captured["timeout"] = timeout
+            return _Response({"choices": [{"message": {"content": json.dumps(content)}}]})
+
+        with patch.object(prettfy, "OPENROUTER_API_KEY", "private-test-key"), patch.object(
+            prettfy.urllib.request, "urlopen", side_effect=fake_urlopen
+        ):
+            result = prettfy.request_plan(
+                item_type="channels",
+                inventory=[{"id": "1", "name": "general", "kind": "text"}],
+                brief="Modern",
+                style="Clean",
+            )
+        self.assertEqual(result, content)
+        self.assertEqual(captured["body"]["response_format"]["type"], "json_schema")
+        self.assertTrue(captured["body"]["provider"]["require_parameters"])
+        self.assertNotIn("private-test-key", json.dumps(captured["body"]))
+
+    def test_command_registers_as_direct_pro_command(self) -> None:
+        client = discord.Client(intents=discord.Intents.none())
+        tree = app_commands.CommandTree(client)
+        prettfy.setup_prettfy_command(tree)
+        command = tree.get_command("prettfy")
+        self.assertIsNotNone(command)
+        self.assertEqual(command.name, "prettfy")
+
+    def test_channel_apply_passes_only_name_and_audit_reason(self) -> None:
+        channel = SimpleNamespace(id=7, name="announcements", edit=AsyncMock())
+        guild = SimpleNamespace(id=123, get_channel=lambda _item_id: channel)
+        user = SimpleNamespace(id=456)
+        record_id = prettfy.create_history(guild.id, user.id)
+        proposals = [{"id": "7", "old_name": "announcements", "new_name": "『📢』shouts", "reason": ""}]
+        with patch.object(prettfy, "_is_authorised", return_value=True):
+            changed, failures = asyncio.run(prettfy._apply_channels(guild, user, proposals, record_id))
+        self.assertEqual((changed, failures), (1, []))
+        kwargs = channel.edit.await_args.kwargs
+        self.assertEqual(kwargs["name"], "『📢』shouts")
+        self.assertEqual(set(kwargs), {"name", "reason"})
+
+    def test_plan_avatar_assets_match_each_paid_tier(self) -> None:
+        for plan in ("community", "pro", "network"):
+            payload, digest = plan_branding._avatar_payload(plan)
+            self.assertIsInstance(payload, bytes)
+            self.assertGreater(len(payload), 1000)
+            self.assertEqual(len(digest), 64)
+        payload, digest = plan_branding._avatar_payload("free")
+        self.assertIsNone(payload)
+        self.assertEqual(digest, "global")
+
+
+if __name__ == "__main__":
+    unittest.main()
