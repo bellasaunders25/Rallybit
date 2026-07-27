@@ -22,6 +22,7 @@ from config.config import (
     DASHBOARD_URL,
     OPENROUTER_API_KEY,
     OPENROUTER_MODEL,
+    PRETTFY_DRAFTS_FILE,
     PRETTFY_HISTORY_FILE,
 )
 from core.premium import has_plan, premium_check, resolve_entitlement
@@ -32,9 +33,10 @@ SUCCESS = 0x45C486
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MAX_HISTORY = 10
 MAX_REVISIONS = 3
-MAX_PLAN_BATCH = 50
+MAX_PLAN_BATCH = 20
 DM_TIMEOUT = 900
 PREVIEW_TTL_SECONDS = 3600
+DRAFT_TTL_SECONDS = 86400
 _ACTIVE_GUILDS: dict[int, int] = {}
 _HISTORY_LOCK = threading.RLock()
 PRETTFY_PREVIEW_DIR = Path(PRETTFY_HISTORY_FILE).parent / "prettfy_previews"
@@ -208,6 +210,69 @@ def _normalise_channel_name(value: Any, kind: str) -> str:
     if kind not in VOICE_CHANNEL_KINDS:
         name = name.lower()
     return name[:100].strip("-")
+
+
+def _fallback_channel_row(item: dict[str, str], style: str) -> dict[str, str]:
+    """Build a conservative local suggestion when the free model omits a channel."""
+    kind = item.get("kind", "")
+    current = str(item.get("name", "channel"))
+    base = re.sub(r"^『[^』]{1,16}』", "", current).strip(" -_") or current
+    searchable = f"{base} {kind}".casefold()
+    icon = "#"
+    icon_keywords = (
+        (("announcement", "news", "shout"), "📢"),
+        (("rule", "guideline"), "📜"),
+        (("welcome", "start"), "👋"),
+        (("general", "chat"), "💬"),
+        (("help", "support", "ticket"), "🎫"),
+        (("forum", "discussion"), "💭"),
+        (("media", "photo", "image"), "📸"),
+        (("bot",), "🤖"),
+        (("moderator", "mod-", "staff"), "🛡️"),
+        (("log",), "📋"),
+        (("application",), "📝"),
+        (("partner",), "🤝"),
+        (("giveaway",), "🎉"),
+        (("role",), "🏷️"),
+        (("event",), "📅"),
+        (("music",), "🎵"),
+        (("game",), "🎮"),
+    )
+    if kind == "category":
+        icon = "📁"
+    elif kind in VOICE_CHANNEL_KINDS:
+        icon = "🔊"
+    else:
+        for keywords, candidate in icon_keywords:
+            if any(keyword in searchable for keyword in keywords):
+                icon = candidate
+                break
+    name = _normalise_channel_name(base, kind) or _normalise_channel_name(current, kind) or "channel"
+    styled = style.casefold()
+    if any(marker in styled for marker in ("decorative", "emoji", "unicode", "font", "symbol")):
+        name = _normalise_channel_name(f"『{icon}』{name}", kind)
+    return {
+        "id": str(item["id"]),
+        "new_name": name,
+        "reason": "Safe local fallback after OpenRouter omitted this channel",
+    }
+
+
+def _known_channel_rows(payload: dict[str, Any], inventory: list[dict[str, str]]) -> dict[str, dict[str, str]]:
+    expected = {str(item["id"]) for item in inventory}
+    rows: dict[str, dict[str, str]] = {}
+    for row in payload.get("renames", []):
+        if not isinstance(row, dict):
+            continue
+        item_id = str(row.get("id", ""))
+        new_name = _clean_name(row.get("new_name"))
+        if item_id in expected and item_id not in rows and new_name:
+            rows[item_id] = {
+                "id": item_id,
+                "new_name": new_name,
+                "reason": _clean_name(row.get("reason")) or "Generated naming plan",
+            }
+    return rows
 
 
 def validate_proposals(
@@ -534,8 +599,10 @@ def request_plan(
         "temperature": 0.35,
         "max_tokens": max(2048, min(12000, len(inventory) * 100)),
     }
-    last_format_error: MalformedPlanError | None = None
     repair_content = ""
+    recovered_rows: dict[str, dict[str, str]] = {}
+    recovered_notes: list[str] = []
+    permission_review = False
     for attempt in range(3):
         attempt_body = dict(body)
         attempt_body["messages"] = list(body["messages"])
@@ -574,24 +641,59 @@ def request_plan(
         except (urllib.error.URLError, TimeoutError) as exc:
             raise PrettfyError("OpenRouter did not respond in time. No Discord changes were made.") from exc
         except (json.JSONDecodeError, UnicodeDecodeError):
-            last_format_error = MalformedPlanError("OpenRouter returned an unreadable response.")
+            repair_content = ""
         else:
             try:
                 result = _response_plan(response)
                 if is_channel_plan:
-                    _require_channel_coverage(result, inventory)
+                    recovered_rows.update(_known_channel_rows(result, inventory))
+                    recovered_notes.extend(
+                        _clean_name(note) for note in result.get("permission_notes", []) if _clean_name(note)
+                    )
+                    permission_review = permission_review or bool(result.get("permission_review_recommended"))
+                    if len(recovered_rows) != len(inventory):
+                        missing_count = len(inventory) - len(recovered_rows)
+                        repair_content = _response_content(response)
+                        if attempt < 2 and retry_callback:
+                            retry_callback(
+                                f"OpenRouter covered {len(recovered_rows)}/{len(inventory)} channels. "
+                                f"Repairing the {missing_count} missing channel(s) (attempt {attempt + 2}/3)…"
+                            )
+                        continue
+                    result["renames"] = [recovered_rows[str(item["id"])] for item in inventory]
+                    result["permission_review_recommended"] = permission_review
+                    result["permission_notes"] = list(dict.fromkeys(recovered_notes))[:8]
                 return result
-            except MalformedPlanError as exc:
-                last_format_error = exc
+            except MalformedPlanError:
                 try:
                     repair_content = _response_content(response)
                 except MalformedPlanError:
                     repair_content = ""
         if attempt < 2 and retry_callback:
             retry_callback(f"Response {attempt + 1} was incomplete. Repairing the JSON plan (attempt {attempt + 2}/3)…")
-    raise PrettfyError(
-        "OpenRouter returned an incomplete naming plan three times. No changes were made. Please run `/prettfy` again."
-    ) from last_format_error
+    if is_channel_plan:
+        missing_items = [item for item in inventory if str(item["id"]) not in recovered_rows]
+        for item in missing_items:
+            recovered_rows[str(item["id"])] = _fallback_channel_row(item, style)
+        if retry_callback:
+            retry_callback(
+                f"OpenRouter could not finish {len(missing_items)} channel(s), so Rallybit added safe local "
+                "suggestions for them. Review every name before applying."
+            )
+        return {
+            "summary": "OpenRouter's partial plan was completed with safe local suggestions for review.",
+            "renames": [recovered_rows[str(item["id"])] for item in inventory],
+            "permission_review_recommended": permission_review,
+            "permission_notes": list(dict.fromkeys(recovered_notes))[:8],
+        }
+    if retry_callback:
+        retry_callback("OpenRouter could not return a valid role plan. Rallybit safely left every role unchanged.")
+    return {
+        "summary": "OpenRouter did not return a valid role plan, so no role changes were suggested.",
+        "renames": [],
+        "permission_review_recommended": False,
+        "permission_notes": [],
+    }
 
 
 def _history_data() -> dict[str, list[dict[str, Any]]]:
@@ -696,6 +798,62 @@ def _is_authorised(guild: discord.Guild, user_id: int) -> bool:
         return False
     entitlement = resolve_entitlement(user_id=user_id, guild_id=guild.id, guild_owner_id=guild.owner_id)
     return has_plan(entitlement, "pro")
+
+
+def _draft_key(guild_id: int, user_id: int) -> str:
+    return f"{guild_id}:{user_id}"
+
+
+def save_prettfy_draft(
+    guild_id: int,
+    user_id: int,
+    *,
+    brief: str,
+    style: str,
+    categories: bool,
+    role_style: str,
+    permission_review: bool,
+) -> None:
+    with _HISTORY_LOCK:
+        data = load_json(PRETTFY_DRAFTS_FILE) or {}
+        if not isinstance(data, dict):
+            data = {}
+        data[_draft_key(guild_id, user_id)] = {
+            "guild_id": str(guild_id),
+            "user_id": str(user_id),
+            "brief": brief[:1000],
+            "style": style[:300],
+            "categories": bool(categories),
+            "role_style": role_style[:300],
+            "permission_review": bool(permission_review),
+            "updated_at": _now_iso(),
+            "expires_at": time.time() + DRAFT_TTL_SECONDS,
+        }
+        if not save_json(PRETTFY_DRAFTS_FILE, data):
+            raise PrettfyError("Your Prettfy setup could not be saved, so the wizard stopped before changing anything.")
+
+
+def load_prettfy_draft(guild_id: int, user_id: int) -> dict[str, Any] | None:
+    with _HISTORY_LOCK:
+        data = load_json(PRETTFY_DRAFTS_FILE) or {}
+        if not isinstance(data, dict):
+            return None
+        key = _draft_key(guild_id, user_id)
+        draft = data.get(key)
+        if not isinstance(draft, dict):
+            return None
+        try:
+            expired = float(draft.get("expires_at", 0)) <= time.time()
+        except (TypeError, ValueError):
+            expired = True
+        if expired:
+            data.pop(key, None)
+            save_json(PRETTFY_DRAFTS_FILE, data)
+            return None
+        required = ("brief", "style", "role_style")
+        if any(not isinstance(draft.get(field), str) for field in required):
+            return None
+        return dict(draft)
 
 
 def _channel_inventory(guild: discord.Guild, include_categories: bool) -> list[dict[str, str]]:
@@ -861,9 +1019,9 @@ async def _generate_approved_plan(
             )
         loop = asyncio.get_running_loop()
 
-        def retry_notice(detail: str) -> None:
+        def retry_notice(detail: str, event_loop: asyncio.AbstractEventLoop = loop) -> None:
             if progress and generate_step:
-                future = asyncio.run_coroutine_threadsafe(progress.running(generate_step, detail), loop)
+                future = asyncio.run_coroutine_threadsafe(progress.running(generate_step, detail), event_loop)
                 try:
                     future.result(timeout=10)
                 except (TimeoutError, discord.HTTPException):
@@ -1126,7 +1284,55 @@ async def _undo(
     await user.send(embed=discord.Embed(title="Prettfy undo complete", description=result, color=SUCCESS))
 
 
-async def _wizard(client: discord.Client, guild: discord.Guild, user: discord.abc.User, undo_last: bool) -> None:
+class PrettfyRetryView(discord.ui.View):
+    def __init__(self, client: discord.Client, guild_id: int, user_id: int) -> None:
+        super().__init__(timeout=3600)
+        self.client = client
+        self.guild_id = guild_id
+        self.user_id = user_id
+
+    @discord.ui.button(label="Retry with saved setup", emoji="🔁", style=discord.ButtonStyle.primary)
+    async def retry(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("Only the person who started this Prettfy run can retry it.", ephemeral=True)
+            return
+        guild = self.client.get_guild(self.guild_id)
+        if guild is None:
+            await interaction.response.send_message("Rallybit can no longer access that server.", ephemeral=True)
+            return
+        if load_prettfy_draft(guild.id, interaction.user.id) is None:
+            await interaction.response.send_message(
+                "That saved setup has expired. Run `/prettfy` once to create a new one.", ephemeral=True
+            )
+            return
+        if not _is_authorised(guild, interaction.user.id):
+            await interaction.response.send_message(
+                "You no longer have the required Pro access and Manage Channels/Manage Roles permissions.", ephemeral=True
+            )
+            return
+        existing = _ACTIVE_GUILDS.get(guild.id)
+        if existing or interaction.user.id in _ACTIVE_GUILDS.values():
+            await interaction.response.send_message("A Prettfy wizard is already active for you or this server.", ephemeral=True)
+            return
+        _ACTIVE_GUILDS[guild.id] = interaction.user.id
+        button.disabled = True
+        await interaction.response.edit_message(view=self)
+        await interaction.followup.send(
+            "Retry started with your saved setup. Check this DM for the fresh scan and preview.", ephemeral=True
+        )
+        asyncio.create_task(
+            _wizard(self.client, guild, interaction.user, False, True),
+            name=f"rallybit:prettfy-retry:{guild.id}",
+        )
+
+
+async def _wizard(
+    client: discord.Client,
+    guild: discord.Guild,
+    user: discord.abc.User,
+    undo_last: bool,
+    retry_last: bool = False,
+) -> None:
     progress = PrettfyProgress(
         user,
         guild,
@@ -1142,41 +1348,67 @@ async def _wizard(client: discord.Client, guild: discord.Guild, user: discord.ab
             raise PrettfyError(
                 "Prettfy is installed but OpenRouter is not configured. Ask the Rallybit owner to add the API key to the bot's private environment."
             )
-        await progress.running("preferences", "Waiting for your server theme, tone, and naming brief.")
-        brief = (await _ask(
-            client,
-            user,
-            f"Welcome to **Prettfy** for **{guild.name}**. Describe the theme, tone, and naming style you want (maximum 1,000 characters).",
-        ))[:1000]
-        await progress.running("preferences", "Waiting for your channel visual-style choice.")
-        style_answer = await _ask(
-            client,
-            user,
-            "Choose a visual style: **1** clean symbols, **2** decorative brackets and emoji, **3** Unicode/Discord-font styling, or reply with your own style.",
-        )
-        style = {
-            "1": "Clean, restrained symbols with highly readable names",
-            "2": "Decorative brackets and relevant emoji, consistently applied",
-            "3": "Readable Unicode/Discord-font styling with consistent symbols",
-        }.get(style_answer, style_answer[:300])
-        await progress.running("preferences", "Waiting to learn whether category headings should be renamed.")
-        categories = (await _ask(client, user, "Rename category headings too? Reply **YES** or **NO**.")).upper() == "YES"
-        await progress.running("preferences", "Waiting for your preferred role-name style.")
-        role_style = (await _ask(
-            client,
-            user,
-            "How should roles look? Reply **READABLE**, **DECORATIVE**, **FONTS**, or describe a custom role style.",
-        ))[:300]
-        await progress.running("preferences", "Waiting to learn whether you want read-only permission observations.")
-        permission_review = (await _ask(
-            client,
-            user,
-            "Would you like read-only permission observations after naming? Reply **YES** or **NO**. Prettfy will never apply permission changes.",
-        )).upper() == "YES"
-        await progress.complete(
-            "preferences",
-            "All design choices are saved for this run. No Discord names have changed yet.",
-        )
+        if retry_last:
+            await progress.running("preferences", "Loading your most recent saved Prettfy setup…")
+            draft = load_prettfy_draft(guild.id, user.id)
+            if draft is None:
+                raise PrettfyError(
+                    "No saved Prettfy setup is available for this server. Saved setups expire after 24 hours; run `/prettfy` once to create one."
+                )
+            brief = str(draft["brief"])
+            style = str(draft["style"])
+            categories = bool(draft.get("categories"))
+            role_style = str(draft["role_style"])
+            permission_review = bool(draft.get("permission_review"))
+            await progress.complete(
+                "preferences",
+                "Reused your saved setup. Rallybit is rescanning the server so new channels and forums are included.",
+            )
+        else:
+            await progress.running("preferences", "Waiting for your server theme, tone, and naming brief.")
+            brief = (await _ask(
+                client,
+                user,
+                f"Welcome to **Prettfy** for **{guild.name}**. Describe the theme, tone, and naming style you want (maximum 1,000 characters).",
+            ))[:1000]
+            await progress.running("preferences", "Waiting for your channel visual-style choice.")
+            style_answer = await _ask(
+                client,
+                user,
+                "Choose a visual style: **1** clean symbols, **2** decorative brackets and emoji, **3** Unicode/Discord-font styling, or reply with your own style.",
+            )
+            style = {
+                "1": "Clean, restrained symbols with highly readable names",
+                "2": "Decorative brackets and relevant emoji, consistently applied",
+                "3": "Readable Unicode/Discord-font styling with consistent symbols",
+            }.get(style_answer, style_answer[:300])
+            await progress.running("preferences", "Waiting to learn whether category headings should be renamed.")
+            categories = (await _ask(client, user, "Rename category headings too? Reply **YES** or **NO**.")).upper() == "YES"
+            await progress.running("preferences", "Waiting for your preferred role-name style.")
+            role_style = (await _ask(
+                client,
+                user,
+                "How should roles look? Reply **READABLE**, **DECORATIVE**, **FONTS**, or describe a custom role style.",
+            ))[:300]
+            await progress.running("preferences", "Waiting to learn whether you want read-only permission observations.")
+            permission_review = (await _ask(
+                client,
+                user,
+                "Would you like read-only permission observations after naming? Reply **YES** or **NO**. Prettfy will never apply permission changes.",
+            )).upper() == "YES"
+            save_prettfy_draft(
+                guild.id,
+                user.id,
+                brief=brief,
+                style=style,
+                categories=categories,
+                role_style=role_style,
+                permission_review=permission_review,
+            )
+            await progress.complete(
+                "preferences",
+                "Design choices saved for 24 hours. No Discord names have changed yet.",
+            )
 
         await progress.running("channel_scan", "Reading the current channel and category names without changing them…")
         channel_inventory = _channel_inventory(guild, categories)
@@ -1319,22 +1551,42 @@ async def _wizard(client: discord.Client, guild: discord.Guild, user: discord.ab
         try:
             await progress.fail_current(str(exc))
             await progress.cancel_remaining(f"Prettfy stopped safely: {exc}")
-            await user.send(embed=discord.Embed(title="Prettfy stopped safely", description=str(exc), color=0xED6A6A))
+            view = PrettfyRetryView(client, guild.id, user.id) if load_prettfy_draft(guild.id, user.id) else None
+            await user.send(
+                embed=discord.Embed(
+                    title="Prettfy stopped safely",
+                    description=(
+                        f"{exc}\n\nYour setup is saved for 24 hours. Use the retry button below or "
+                        "`/prettfy retry_last:true` so you do not need to answer the questions again."
+                        if view else str(exc)
+                    ),
+                    color=0xED6A6A,
+                ),
+                view=view,
+            )
         except discord.HTTPException:
             pass
     except discord.HTTPException:
         # Most commonly the user closed DMs during the wizard.
         pass
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - keep the background wizard from failing silently
         print(f"[PRETTFY] Unexpected wizard failure for guild {guild.id}: {exc!r}")
         try:
             await progress.fail_current("Rallybit hit an unexpected error while working on this step.")
             await progress.cancel_remaining("Prettfy stopped safely after an unexpected error. No unapproved changes were made.")
-            await user.send(embed=discord.Embed(
-                title="Prettfy stopped safely",
-                description="Rallybit hit an unexpected error. No unapproved changes were made. Please try again.",
-                color=0xED6A6A,
-            ))
+            view = PrettfyRetryView(client, guild.id, user.id) if load_prettfy_draft(guild.id, user.id) else None
+            await user.send(
+                embed=discord.Embed(
+                    title="Prettfy stopped safely",
+                    description=(
+                        "Rallybit hit an unexpected error. No unapproved changes were made. Your setup is saved; use the "
+                        "retry button or `/prettfy retry_last:true`."
+                        if view else "Rallybit hit an unexpected error. No unapproved changes were made. Please try again."
+                    ),
+                    color=0xED6A6A,
+                ),
+                view=view,
+            )
         except discord.HTTPException:
             pass
     finally:
@@ -1346,9 +1598,27 @@ def setup_prettfy_command(tree: app_commands.CommandTree) -> None:
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(manage_channels=True, manage_roles=True)
     @premium_check("pro")
-    @app_commands.describe(undo_last="Restore names from the most recent Prettfy run")
-    async def prettfy(interaction: discord.Interaction, undo_last: bool = False) -> None:
+    @app_commands.describe(
+        undo_last="Restore names from the most recent Prettfy run",
+        retry_last="Retry with your saved setup without answering the DM questions again",
+    )
+    async def prettfy(
+        interaction: discord.Interaction,
+        undo_last: bool = False,
+        retry_last: bool = False,
+    ) -> None:
         assert interaction.guild is not None
+        if undo_last and retry_last:
+            await interaction.response.send_message(
+                "Choose either `undo_last` or `retry_last`, not both.", ephemeral=True
+            )
+            return
+        if retry_last and load_prettfy_draft(interaction.guild.id, interaction.user.id) is None:
+            await interaction.response.send_message(
+                "You do not have a saved Prettfy setup for this server. Run `/prettfy` once first; setups are retained for 24 hours.",
+                ephemeral=True,
+            )
+            return
         existing = _ACTIVE_GUILDS.get(interaction.guild.id)
         if existing:
             await interaction.response.send_message(
@@ -1364,8 +1634,9 @@ def setup_prettfy_command(tree: app_commands.CommandTree) -> None:
             )
             return
         try:
+            action = "an undo" if undo_last else "a saved-setup retry" if retry_last else "the design wizard"
             await interaction.user.send(
-                f"Starting {'an undo' if undo_last else 'the design wizard'} for **{interaction.guild.name}**…"
+                f"Starting {action} for **{interaction.guild.name}**…"
             )
         except discord.Forbidden:
             await interaction.response.send_message(
@@ -1377,6 +1648,12 @@ def setup_prettfy_command(tree: app_commands.CommandTree) -> None:
             "Check your DMs for the Prettfy wizard. Nothing changes until you approve a displayed preview.", ephemeral=True
         )
         asyncio.create_task(
-            _wizard(interaction.client, interaction.guild, interaction.user, bool(undo_last)),
+            _wizard(
+                interaction.client,
+                interaction.guild,
+                interaction.user,
+                bool(undo_last),
+                bool(retry_last),
+            ),
             name=f"rallybit:prettfy:{interaction.guild.id}",
         )

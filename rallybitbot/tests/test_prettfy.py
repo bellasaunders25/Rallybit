@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, patch
 import discord
 from discord import app_commands
 
-import commands.prettfy as prettfy
-import core.plan_branding as plan_branding
+from commands import prettfy
+from core import plan_branding
 from storage.json_store import load_json
 
 
@@ -34,12 +34,15 @@ class PrettfyTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         self.original_history = prettfy.PRETTFY_HISTORY_FILE
+        self.original_drafts = prettfy.PRETTFY_DRAFTS_FILE
         self.original_preview_dir = prettfy.PRETTFY_PREVIEW_DIR
         prettfy.PRETTFY_HISTORY_FILE = str(Path(self.temp_dir.name) / "prettfy.json")
+        prettfy.PRETTFY_DRAFTS_FILE = str(Path(self.temp_dir.name) / "prettfy_drafts.json")
         prettfy.PRETTFY_PREVIEW_DIR = Path(self.temp_dir.name) / "previews"
 
     def tearDown(self) -> None:
         prettfy.PRETTFY_HISTORY_FILE = self.original_history
+        prettfy.PRETTFY_DRAFTS_FILE = self.original_drafts
         prettfy.PRETTFY_PREVIEW_DIR = self.original_preview_dir
         self.temp_dir.cleanup()
 
@@ -73,6 +76,49 @@ class PrettfyTests(unittest.TestCase):
         self.assertIsNone(prettfy.latest_active_history(123))
         stored = load_json(prettfy.PRETTFY_HISTORY_FILE)
         self.assertEqual(stored["123"][0]["status"], "undone")
+
+    def test_saved_setup_can_be_reused_and_expires(self) -> None:
+        prettfy.save_prettfy_draft(
+            123,
+            456,
+            brief="Friendly gaming server",
+            style="Decorative brackets and emoji",
+            categories=True,
+            role_style="READABLE",
+            permission_review=False,
+        )
+        draft = prettfy.load_prettfy_draft(123, 456)
+        self.assertIsNotNone(draft)
+        self.assertEqual(draft["brief"], "Friendly gaming server")
+        self.assertTrue(draft["categories"])
+        stored = load_json(prettfy.PRETTFY_DRAFTS_FILE)
+        stored["123:456"]["expires_at"] = 0
+        self.assertTrue(prettfy.save_json(prettfy.PRETTFY_DRAFTS_FILE, stored))
+        self.assertIsNone(prettfy.load_prettfy_draft(123, 456))
+
+    def test_retry_wizard_reuses_setup_without_asking_questions(self) -> None:
+        prettfy.save_prettfy_draft(
+            123,
+            456,
+            brief="Friendly gaming server",
+            style="Clean symbols",
+            categories=False,
+            role_style="READABLE",
+            permission_review=False,
+        )
+        message = SimpleNamespace(edit=AsyncMock())
+        user = SimpleNamespace(id=456, send=AsyncMock(return_value=message))
+        guild = SimpleNamespace(id=123, name="Example", channels=[], forums=[])
+        with patch.object(prettfy, "OPENROUTER_API_KEY", "private-test-key"), patch.object(
+            prettfy, "_ask", new=AsyncMock()
+        ) as ask, patch.object(
+            prettfy, "_generate_approved_plan", new=AsyncMock(return_value=None)
+        ):
+            asyncio.run(prettfy._wizard(SimpleNamespace(), guild, user, False, True))
+        ask.assert_not_awaited()
+        self.assertTrue(any("Reused your saved setup" in call.kwargs["embed"].description
+                            for call in message.edit.await_args_list
+                            if "embed" in call.kwargs))
 
     def test_openrouter_request_uses_structured_output_without_exposing_key(self) -> None:
         content = {
@@ -259,12 +305,12 @@ class PrettfyTests(unittest.TestCase):
                 style="Clean",
                 retry_callback=progress.append,
             )
-        self.assertEqual(urlopen.call_count, 2)
+        self.assertEqual(urlopen.call_count, 3)
         self.assertEqual(len(result["renames"]), 51)
         self.assertEqual({row["id"] for row in result["renames"]}, {row["id"] for row in inventory})
-        self.assertTrue(any("batch 2/2" in message for message in progress))
+        self.assertTrue(any("batch 3/3" in message for message in progress))
 
-    def test_openrouter_reports_three_incomplete_plans_safely(self) -> None:
+    def test_openrouter_uses_safe_fallback_after_three_incomplete_plans(self) -> None:
         responses = [
             _Response({"choices": [{"message": {"content": "not json"}}]}),
             _Response({"choices": [{"message": {"content": "still not json"}}]}),
@@ -276,17 +322,60 @@ class PrettfyTests(unittest.TestCase):
             "urlopen",
             side_effect=responses,
         ) as urlopen:
-            with self.assertRaisesRegex(prettfy.PrettfyError, "incomplete naming plan three times") as raised:
-                prettfy.request_plan(
-                    item_type="channels",
-                    inventory=[{"id": "1", "name": "general", "kind": "text"}],
-                    brief="Modern",
-                    style="Clean",
-                    retry_callback=retries.append,
-                )
+            result = prettfy.request_plan(
+                item_type="channels",
+                inventory=[{"id": "1", "name": "General Chat", "kind": "text"}],
+                brief="Modern",
+                style="Decorative brackets and emoji",
+                retry_callback=retries.append,
+            )
         self.assertEqual(urlopen.call_count, 3)
-        self.assertEqual(len(retries), 2)
-        self.assertNotIn("private-test-key", str(raised.exception))
+        self.assertEqual(len(retries), 3)
+        self.assertEqual(result["renames"][0]["id"], "1")
+        self.assertEqual(result["renames"][0]["new_name"], "『💬』general-chat")
+        self.assertIn("safe local", result["renames"][0]["reason"].lower())
+        self.assertTrue(any("review every name" in message.lower() for message in retries))
+
+    def test_openrouter_merges_partial_channel_rows_across_attempts(self) -> None:
+        first = {"renames": [{"id": "1", "new_name": "one", "reason": "First"}]}
+        second = {"renames": [{"id": "2", "new_name": "two", "reason": "Second"}]}
+        third = {"renames": [{"id": "3", "new_name": "three", "reason": "Third"}]}
+        responses = [
+            _Response({"choices": [{"message": {"content": json.dumps(payload)}}]})
+            for payload in (first, second, third)
+        ]
+        with patch.object(prettfy, "OPENROUTER_API_KEY", "private-test-key"), patch.object(
+            prettfy.urllib.request, "urlopen", side_effect=responses
+        ) as urlopen:
+            result = prettfy.request_plan(
+                item_type="channels",
+                inventory=[
+                    {"id": "1", "name": "one", "kind": "text"},
+                    {"id": "2", "name": "two", "kind": "forum"},
+                    {"id": "3", "name": "three", "kind": "text"},
+                ],
+                brief="Modern",
+                style="Clean",
+            )
+        self.assertEqual(urlopen.call_count, 3)
+        self.assertEqual([row["id"] for row in result["renames"]], ["1", "2", "3"])
+
+    def test_openrouter_leaves_roles_unchanged_after_three_malformed_responses(self) -> None:
+        responses = [
+            _Response({"choices": [{"message": {"content": "not json"}}]})
+            for _index in range(3)
+        ]
+        with patch.object(prettfy, "OPENROUTER_API_KEY", "private-test-key"), patch.object(
+            prettfy.urllib.request, "urlopen", side_effect=responses
+        ):
+            result = prettfy.request_plan(
+                item_type="roles",
+                inventory=[{"id": "1", "name": "Moderator", "kind": "role"}],
+                brief="Modern",
+                style="Clean",
+            )
+        self.assertEqual(result["renames"], [])
+        self.assertIn("no role changes", result["summary"].lower())
 
     def test_openrouter_retries_unsupported_content_shape(self) -> None:
         valid = {
@@ -411,6 +500,13 @@ class PrettfyTests(unittest.TestCase):
         command = tree.get_command("prettfy")
         self.assertIsNotNone(command)
         self.assertEqual(command.name, "prettfy")
+        self.assertEqual({parameter.name for parameter in command.parameters}, {"undo_last", "retry_last"})
+
+    def test_retry_view_has_saved_setup_button(self) -> None:
+        view = prettfy.PrettfyRetryView(SimpleNamespace(), 123, 456)
+        self.assertEqual(len(view.children), 1)
+        self.assertEqual(view.children[0].label, "Retry with saved setup")
+        self.assertEqual(str(view.children[0].emoji), "🔁")
 
     def test_channel_apply_passes_only_name_and_audit_reason(self) -> None:
         channel = SimpleNamespace(id=7, name="announcements", edit=AsyncMock())
