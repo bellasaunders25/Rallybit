@@ -31,7 +31,7 @@ def setup_help_commands(tree):
         )
         embed.add_field(
             name="🛡️ Moderation",
-            value="`/mod panel` Interactive panel\n`/mod warn` Add a warning\n`/channel transcript` Archive a channel\n`/channel purge` Purge messages\n`/report user` Submit a report",
+            value="`/mod panel` Interactive panel\n`/mod warn` Add a warning\n`/role give` Manage roles\n`/role temp` Timed role countdown\n`/channel transcript` Archive a channel\n`/channel purge` Purge messages",
             inline=True,
         )
         embed.add_field(

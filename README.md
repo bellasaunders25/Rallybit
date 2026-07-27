@@ -169,6 +169,9 @@ python main.py
 /mod warnings
 /mod unwarn
 /mod unban
+/role give
+/role remove
+/role temp
 
 /channel transcript
 /channel purge
@@ -206,6 +209,10 @@ python main.py
 ```
 
 Use `/help` inside Discord for the complete command centre.
+
+### Safe role commands
+
+`/role give` and `/role remove` enforce the acting moderator's role hierarchy as well as Rallybit's. `/role temp` supports days, weeks, 30-day months, and 365-day years, persists timers across restarts, displays a compact live nickname countdown, and restores the member's original nickname after their final temporary role ends. A custom base nickname is optional and additionally requires Manage Nicknames.
 
 ### Prettfy AI naming wizard
 

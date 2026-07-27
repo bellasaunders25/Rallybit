@@ -112,6 +112,7 @@ class BotClient(discord.AutoShardedClient):
         from commands.reports import setup_report_commands
         from commands.reviews import setup_review_command
         from commands.moderation import setup_moderation_commands
+        from commands.manual_roles import setup_manual_role_commands
         from commands.community import setup_community_commands
         from commands.channel_archives import setup_channel_archive_commands
         from commands.roles import (
@@ -154,6 +155,7 @@ class BotClient(discord.AutoShardedClient):
         setup_level_commands(self.tree)
         setup_quiz_commands(self.tree)
         setup_moderation_commands(self.tree)
+        setup_manual_role_commands(self.tree)
         setup_report_commands(self.tree)
         setup_review_command(self.tree)
         setup_community_commands(self.tree)
@@ -270,6 +272,12 @@ class BotClient(discord.AutoShardedClient):
             self.loop.create_task(plan_avatar_sync_loop(self), name="rallybit:plan-avatars")
         except Exception as exc:
             print(f"[PLAN AVATARS] Unable to start plan branding: {exc!r}")
+
+        try:
+            from commands.manual_roles import temporary_role_sync_loop
+            self.loop.create_task(temporary_role_sync_loop(self), name="rallybit:temporary-roles")
+        except Exception as exc:
+            print(f"[TEMP ROLES] Unable to start temporary-role timers: {exc!r}")
 
         try:
             from commands.tickets import restore_ticket_views
