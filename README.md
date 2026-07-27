@@ -153,6 +153,10 @@ Start it with:
 python main.py
 ```
 
+## Command reply visibility
+
+Every slash command is public by default. Set its optional `private` choice to `True` when Rallybit's replies should only be visible to you. The choice applies to immediate replies, deferred replies, follow-ups, and command errors; buttons and modals retain their purpose-specific visibility.
+
 ## New command groups
 
 ```text

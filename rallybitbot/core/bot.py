@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections import defaultdict
 import urllib.request
+from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -12,8 +12,14 @@ from discord import app_commands
 
 from config.config import DATA_DIR, DISCORD_TOKEN, SHARD_COUNT, SUPPORT_SERVER_URL
 from core.bot_settings import get_branding, get_webhook
+from core.command_visibility import (
+    add_private_options,
+    begin_command_visibility,
+    force_command_visibility,
+    install_response_visibility,
+    reset_command_visibility,
+)
 from core.service_notice import get_service_notice
-
 
 NOTICE_SENT_KEY = "rallybit_service_notice_sent"
 
@@ -36,6 +42,7 @@ async def send_service_notice(interaction: discord.Interaction, notice: dict) ->
         return True
 
     embed = _service_notice_embed(notice)
+    visibility_token = force_command_visibility(True)
     try:
         if interaction.response.is_done():
             await interaction.followup.send(
@@ -52,6 +59,8 @@ async def send_service_notice(interaction: discord.Interaction, notice: dict) ->
     except discord.HTTPException as exc:
         print(f"[SERVICE NOTICE] Unable to acknowledge command: {exc!r}")
         return False
+    finally:
+        reset_command_visibility(visibility_token)
 
     if isinstance(extras, dict):
         extras[NOTICE_SENT_KEY] = True
@@ -59,6 +68,13 @@ async def send_service_notice(interaction: discord.Interaction, notice: dict) ->
 
 
 class RallybitCommandTree(app_commands.CommandTree):
+    async def _call(self, interaction: discord.Interaction) -> None:
+        token = begin_command_visibility(interaction)
+        try:
+            await super()._call(interaction)
+        finally:
+            reset_command_visibility(token)
+
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         notice = get_service_notice()
         if not notice["active"]:
@@ -100,23 +116,31 @@ class BotClient(discord.AutoShardedClient):
             )
 
     async def setup_hook(self):
-        from commands.afk import on_message as afk_on_message, setup_afk_commands
         from commands.activity import setup_activity_commands
         from commands.admin import setup_admin_commands
+        from commands.afk import on_message as afk_on_message
+        from commands.afk import setup_afk_commands
         from commands.analytics import setup_analytics_commands
         from commands.automation import setup_automation_commands
+        from commands.channel_archives import setup_channel_archive_commands
+        from commands.community import setup_community_commands
         from commands.giveaways import setup_giveaway_commands
         from commands.help import setup_help_commands
-        from commands.levels import on_message as levels_on_message, setup_level_commands
+        from commands.leaderboard import setup_leaderboard_command
+        from commands.levels import on_message as levels_on_message
+        from commands.levels import setup_level_commands
+        from commands.manual_roles import setup_manual_role_commands
+        from commands.moderation import setup_moderation_commands
+        from commands.premium import setup_premium_commands
+        from commands.prettfy import setup_prettfy_command
+        from commands.profile import setup_profile_command
         from commands.quizzes import setup_quiz_commands
         from commands.reports import setup_report_commands
         from commands.reviews import setup_review_command
-        from commands.moderation import setup_moderation_commands
-        from commands.manual_roles import setup_manual_role_commands
-        from commands.community import setup_community_commands
-        from commands.channel_archives import setup_channel_archive_commands
         from commands.roles import (
             on_member_join as roles_on_member_join,
+        )
+        from commands.roles import (
             on_raw_reaction_add,
             on_raw_reaction_remove,
             setup_role_commands,
@@ -125,16 +149,16 @@ class BotClient(discord.AutoShardedClient):
         from commands.snipes import on_message_delete as snipes_on_message_delete
         from commands.snipes import on_message_edit as snipes_on_message_edit
         from commands.snipes import setup_snipe_commands
-        from commands.leaderboard import setup_leaderboard_command
-        from commands.profile import setup_profile_command
-        from commands.premium import setup_premium_commands
-        from commands.prettfy import setup_prettfy_command
         from commands.support import setup_support_command
         from commands.tickets import setup_ticket_commands
         from commands.utility import setup_utility_commands
         from commands.welcomes import (
             on_member_join as welcome_on_member_join,
+        )
+        from commands.welcomes import (
             on_member_remove as welcome_on_member_remove,
+        )
+        from commands.welcomes import (
             setup_welcome_commands,
         )
 
@@ -164,6 +188,8 @@ class BotClient(discord.AutoShardedClient):
         setup_security_commands(self.tree)
         setup_snipe_commands(self.tree)
         setup_welcome_commands(self.tree)
+        add_private_options(self.tree)
+        install_response_visibility()
 
         self.add_listener(levels_on_message, "on_message")
         self.add_listener(afk_on_message, "on_message")
