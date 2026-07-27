@@ -93,6 +93,131 @@ class PrettfyTests(unittest.TestCase):
         self.assertTrue(captured["body"]["provider"]["require_parameters"])
         self.assertNotIn("private-test-key", json.dumps(captured["body"]))
 
+    def test_response_parser_accepts_fenced_and_mixed_json(self) -> None:
+        content = {
+            "summary": "Clean plan",
+            "renames": [{"id": "1", "new_name": "『📢』news", "reason": "Consistent"}],
+            "permission_review_recommended": False,
+            "permission_notes": [],
+        }
+        fenced = {"choices": [{"message": {"content": f"```json\n{json.dumps(content)}\n```"}}]}
+        mixed = {"choices": [{"message": {"content": f"Here is the plan:\n{json.dumps(content)}\nDone."}}]}
+        self.assertEqual(prettfy._response_plan(fenced), content)
+        self.assertEqual(prettfy._response_plan(mixed), content)
+
+    def test_response_parser_accepts_structured_content_blocks(self) -> None:
+        content = {
+            "renames": [],
+            "permission_notes": [],
+        }
+        response = {
+            "choices": [{
+                "message": {
+                    "content": [{"type": "text", "text": {"value": json.dumps(content)}}],
+                }
+            }]
+        }
+        parsed = prettfy._response_plan(response)
+        self.assertEqual(parsed["renames"], [])
+        self.assertEqual(parsed["summary"], "Naming plan ready.")
+        self.assertFalse(parsed["permission_review_recommended"])
+
+    def test_openrouter_retries_one_malformed_plan(self) -> None:
+        valid = {
+            "summary": "Retry worked",
+            "renames": [],
+            "permission_review_recommended": False,
+            "permission_notes": [],
+        }
+        responses = [
+            _Response({"choices": [{"message": {"content": "not valid json"}}]}),
+            _Response({"choices": [{"message": {"content": json.dumps(valid)}}]}),
+        ]
+        retries: list[str] = []
+        with patch.object(prettfy, "OPENROUTER_API_KEY", "private-test-key"), patch.object(
+            prettfy.urllib.request,
+            "urlopen",
+            side_effect=responses,
+        ) as urlopen:
+            result = prettfy.request_plan(
+                item_type="channels",
+                inventory=[{"id": "1", "name": "general", "kind": "text"}],
+                brief="Modern",
+                style="Clean",
+                retry_callback=retries.append,
+            )
+        self.assertEqual(result, valid)
+        self.assertEqual(urlopen.call_count, 2)
+        self.assertEqual(len(retries), 1)
+
+    def test_openrouter_reports_two_malformed_plans_safely(self) -> None:
+        responses = [
+            _Response({"choices": [{"message": {"content": "not json"}}]}),
+            _Response({"choices": [{"message": {"content": "still not json"}}]}),
+        ]
+        retries: list[str] = []
+        with patch.object(prettfy, "OPENROUTER_API_KEY", "private-test-key"), patch.object(
+            prettfy.urllib.request,
+            "urlopen",
+            side_effect=responses,
+        ) as urlopen:
+            with self.assertRaisesRegex(prettfy.PrettfyError, "malformed naming plan twice") as raised:
+                prettfy.request_plan(
+                    item_type="channels",
+                    inventory=[{"id": "1", "name": "general", "kind": "text"}],
+                    brief="Modern",
+                    style="Clean",
+                    retry_callback=retries.append,
+                )
+        self.assertEqual(urlopen.call_count, 2)
+        self.assertEqual(len(retries), 1)
+        self.assertNotIn("private-test-key", str(raised.exception))
+
+    def test_openrouter_retries_unsupported_content_shape(self) -> None:
+        valid = {
+            "summary": "Recovered",
+            "renames": [],
+            "permission_review_recommended": False,
+            "permission_notes": [],
+        }
+        responses = [
+            _Response({"choices": [{"message": {"content": 123}}]}),
+            _Response({"choices": [{"message": {"content": json.dumps(valid)}}]}),
+        ]
+        with patch.object(prettfy, "OPENROUTER_API_KEY", "private-test-key"), patch.object(
+            prettfy.urllib.request,
+            "urlopen",
+            side_effect=responses,
+        ) as urlopen:
+            result = prettfy.request_plan(
+                item_type="roles",
+                inventory=[{"id": "1", "name": "Moderator", "kind": "role"}],
+                brief="Modern",
+                style="Clean",
+            )
+        self.assertEqual(result, valid)
+        self.assertEqual(urlopen.call_count, 2)
+
+    def test_progress_tracker_uses_requested_status_icons(self) -> None:
+        message = SimpleNamespace(edit=AsyncMock())
+        user = SimpleNamespace(send=AsyncMock(return_value=message))
+        guild = SimpleNamespace(name="Example Server")
+        tracker = prettfy.PrettfyProgress(user, guild, prettfy.DESIGN_PROGRESS_STEPS)
+
+        async def run_tracker() -> None:
+            await tracker.start()
+            await tracker.running("preferences", "Waiting for your theme.")
+            await tracker.complete("preferences", "Preferences saved.")
+            await tracker.failed("channel_scan", "Channel scan failed.")
+
+        asyncio.run(run_tracker())
+        self.assertEqual(user.send.await_count, 1)
+        rendered = message.edit.await_args.kwargs["embed"]
+        checklist = rendered.fields[0].value
+        self.assertIn(prettfy.PROGRESS_COMPLETE, checklist)
+        self.assertIn(prettfy.PROGRESS_FAILED, checklist)
+        self.assertIn("Channel scan failed.", rendered.description)
+
     def test_command_registers_as_direct_pro_command(self) -> None:
         client = discord.Client(intents=discord.Intents.none())
         tree = app_commands.CommandTree(client)

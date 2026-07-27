@@ -225,7 +225,7 @@ The dashboard publisher also supports an optional header banner, thumbnail, main
 
 ### Prettfy AI naming wizard
 
-`/prettfy` is a Pro preview command for administrators with Manage Channels and Manage Roles. The bot collects the design brief in DMs, proposes channel names first, and changes only explicitly approved names. It then repeats the preview and approval process for roles. It never changes permission overwrites, role permissions, hierarchy, colours, topics, assignments, or channel types. Use `/prettfy undo_last:true` to preview and restore names from the latest active run.
+`/prettfy` is a Pro preview command for administrators with Manage Channels and Manage Roles. The bot collects the design brief in DMs, proposes channel names first, and changes only explicitly approved names. It then repeats the preview and approval process for roles. One live DM checklist shows the exact step that is waiting, running, complete, skipped, or failed, including generation retries and rename counts. OpenRouter responses are validated, common JSON wrappers are handled safely, and one malformed response is retried before the run stops without unapproved changes. Prettfy never changes permission overwrites, role permissions, hierarchy, colours, topics, assignments, or channel types. Use `/prettfy undo_last:true` to preview and restore names from the latest active run.
 
 Configure `OPENROUTER_API_KEY` only in the bot's private `.env` file. `OPENROUTER_MODEL` defaults to `openrouter/free` and can be pinned to another structured-output-compatible model. OpenRouter's free router is rate limited; the key must never be committed or entered through Discord.
 
