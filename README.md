@@ -172,6 +172,9 @@ python main.py
 /role give
 /role remove
 /role temp
+/ticket panel create
+/ticket panel add-option
+/ticket panel remove-option
 
 /channel transcript
 /channel purge
@@ -209,6 +212,12 @@ python main.py
 ```
 
 Use `/help` inside Discord for the complete command centre.
+
+### Dropdown ticket panels
+
+Ticket launchers use one persistent select menu instead of a separate message for every request type. A panel supports up to 25 options, and every option can have its own name, 100-character description, Unicode or custom server emoji, ticket category, and support role. Use `/ticket panel add-option` or `/ticket panel remove-option` to update the live message.
+
+The dashboard publisher also supports an optional header banner, thumbnail, main image, custom author, footer text and footer icon, accent colour, timestamp, workload, guidance, and in-embed option details. Media must use public HTTPS URLs. Older Rallybit button panels are read as one-option dropdowns and refreshed without discarding their saved routing.
 
 ### Safe role commands
 

@@ -9,6 +9,7 @@ import sys
 import time
 from copy import deepcopy
 from pathlib import Path
+from typing import Any
 
 import discord
 import psutil
@@ -424,7 +425,12 @@ async def _dashboard_action_async(payload):
 
         cfg = (load_json(TICKET_SETTINGS_FILE) or {}).get(str(guild.id), {})
         target = channel
-        category_id = params.get("category_id") or cfg.get("default_category_id")
+        configured_options = params.get("options")
+        first_option_category = None
+        if isinstance(configured_options, list):
+            first_option = next((row for row in configured_options if isinstance(row, dict) and row.get("category_id")), None)
+            first_option_category = first_option.get("category_id") if first_option else None
+        category_id = params.get("category_id") or cfg.get("default_category_id") or first_option_category
         category = guild.get_channel(int(category_id or 0))
         configured_roles = cfg.get("support_role_ids", []) if isinstance(cfg, dict) else []
         support_role_id = params.get("support_role_id") or (configured_roles[0] if configured_roles else None)
@@ -437,8 +443,62 @@ async def _dashboard_action_async(payload):
         permissions = target.permissions_for(bot_member) if bot_member else None
         if permissions is None or not permissions.send_messages or not permissions.embed_links:
             raise RuntimeError(f"Rallybit needs Send Messages and Embed Links in #{target.name}.")
-        panel_id = await create_ticket_panel(guild, target, category, str(params.get("name") or "Support"), str(params.get("title") or "How can we help?"), str(params.get("description") or "Open a private ticket to speak with the support team. Choose the button below when you are ready."), support_role, str(params.get("button_label") or "Open ticket"))
-        return {"message": f"Ticket panel {panel_id} published in #{target.name}.", "panel_id": panel_id}
+        panel_options: list[dict[str, Any]] = []
+        if isinstance(configured_options, list):
+            for raw_option in configured_options[:25]:
+                if not isinstance(raw_option, dict):
+                    continue
+                option_name = str(raw_option.get("name") or "").strip()
+                if not option_name:
+                    continue
+                option_category = guild.get_channel(int(raw_option.get("category_id") or category.id))
+                if not isinstance(option_category, discord.CategoryChannel):
+                    raise RuntimeError(f"Choose a valid category for the {option_name[:100]} ticket option.")
+                option_role_id = raw_option.get("support_role_id")
+                option_role = guild.get_role(int(option_role_id)) if option_role_id else support_role
+                if option_role_id and option_role is None:
+                    raise RuntimeError(f"Choose a valid support role for the {option_name[:100]} ticket option.")
+                panel_options.append({
+                    "name": option_name,
+                    "description": str(raw_option.get("description") or "Speak privately with the support team."),
+                    "emoji": str(raw_option.get("emoji") or ""),
+                    "category_id": option_category.id,
+                    "support_role_ids": [option_role.id] if option_role else [],
+                    "ticket_name": str(raw_option.get("ticket_name") or ""),
+                })
+        if not panel_options:
+            panel_options = [{
+                "name": str(params.get("name") or "Support"),
+                "description": str(params.get("option_description") or "Speak privately with the support team."),
+                "emoji": str(params.get("option_emoji") or "🎫"),
+                "category_id": category.id,
+                "support_role_ids": [support_role.id] if support_role else [],
+            }]
+        panel_id = await create_ticket_panel(
+            guild, target, category, str(params.get("name") or panel_options[0]["name"]),
+            str(params.get("title") or "How can we help?"),
+            str(params.get("description") or "Choose the ticket type that best matches what you need. Your conversation will be private."),
+            support_role, str(params.get("button_label") or "Open ticket"),
+            options=panel_options,
+            select_placeholder=str(params.get("select_placeholder") or "Select a ticket type…"),
+            color=str(params.get("color") or "#7C6CFF"),
+            author_name=str(params.get("author_name") or ""),
+            author_icon_url=str(params.get("author_icon_url") or ""),
+            header_image_url=str(params.get("header_image_url") or ""),
+            thumbnail_url=str(params.get("thumbnail_url") or ""),
+            image_url=str(params.get("image_url") or ""),
+            footer_text=str(params.get("footer_text") or ""),
+            footer_icon_url=str(params.get("footer_icon_url") or ""),
+            show_author=bool(params.get("show_author", True)),
+            show_option_details=bool(params.get("show_option_details", True)),
+            show_workload=bool(params.get("show_workload", True)),
+            show_guidance=bool(params.get("show_guidance", True)),
+            show_timestamp=bool(params.get("show_timestamp", True)),
+        )
+        return {
+            "message": f"Ticket dropdown {panel_id} with {len(panel_options)} option(s) published in #{target.name}.",
+            "panel_id": panel_id,
+        }
     if action == "reactionrole.add":
         from config.config import REACTION_ROLES_FILE
         from storage.json_store import load_json, save_json

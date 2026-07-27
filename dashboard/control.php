@@ -58,6 +58,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if ($operation === 'live_action') {
             $action = trim((string)($_POST['action'] ?? ''));
+            $ticketPanelOptions = [];
+            $optionNames = is_array($_POST['ticket_option_name'] ?? null) ? $_POST['ticket_option_name'] : [];
+            $optionDescriptions = is_array($_POST['ticket_option_description'] ?? null) ? $_POST['ticket_option_description'] : [];
+            $optionEmojis = is_array($_POST['ticket_option_emoji'] ?? null) ? $_POST['ticket_option_emoji'] : [];
+            $optionCategories = is_array($_POST['ticket_option_category_id'] ?? null) ? $_POST['ticket_option_category_id'] : [];
+            $optionRoles = is_array($_POST['ticket_option_support_role_id'] ?? null) ? $_POST['ticket_option_support_role_id'] : [];
+            foreach ($optionNames as $index => $rawName) {
+                $optionName = trim((string)$rawName);
+                if ($optionName === '') continue;
+                $ticketPanelOptions[] = [
+                    'name'=>function_exists('mb_substr') ? mb_substr($optionName,0,100) : substr($optionName,0,100),
+                    'description'=>function_exists('mb_substr') ? mb_substr(trim((string)($optionDescriptions[$index] ?? 'Speak privately with the support team.')),0,100) : substr(trim((string)($optionDescriptions[$index] ?? 'Speak privately with the support team.')),0,100),
+                    'emoji'=>function_exists('mb_substr') ? mb_substr(trim((string)($optionEmojis[$index] ?? '')),0,100) : substr(trim((string)($optionEmojis[$index] ?? '')),0,100),
+                    'category_id'=>clean_id($optionCategories[$index] ?? ''),
+                    'support_role_id'=>clean_id($optionRoles[$index] ?? ''),
+                ];
+            }
             $params = [
                 'channel_id'=>clean_id($_POST['channel_id'] ?? ''),
                 'ping_role_id'=>clean_id($_POST['ping_role_id'] ?? ''),
@@ -86,6 +103,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'title'=>trim((string)($_POST['title'] ?? '')),
                 'description'=>trim((string)($_POST['description'] ?? '')),
                 'button_label'=>trim((string)($_POST['button_label'] ?? '')),
+                'options'=>$ticketPanelOptions,
+                'select_placeholder'=>trim((string)($_POST['select_placeholder'] ?? 'Select a ticket type…')),
+                'color'=>trim((string)($_POST['panel_color'] ?? '#7C6CFF')),
+                'author_name'=>trim((string)($_POST['panel_author_name'] ?? '')),
+                'author_icon_url'=>trim((string)($_POST['panel_author_icon_url'] ?? '')),
+                'header_image_url'=>trim((string)($_POST['panel_header_image_url'] ?? '')),
+                'thumbnail_url'=>trim((string)($_POST['panel_thumbnail_url'] ?? '')),
+                'image_url'=>trim((string)($_POST['panel_image_url'] ?? '')),
+                'footer_text'=>trim((string)($_POST['panel_footer_text'] ?? '')),
+                'footer_icon_url'=>trim((string)($_POST['panel_footer_icon_url'] ?? '')),
+                'show_author'=>bool_post('panel_show_author'),
+                'show_option_details'=>bool_post('panel_show_option_details'),
+                'show_workload'=>bool_post('panel_show_workload'),
+                'show_guidance'=>bool_post('panel_show_guidance'),
+                'show_timestamp'=>bool_post('panel_show_timestamp'),
 
             ];
             $result = run_bot_action($guild_id, (string)$_SESSION['user_id'], $action, array_filter($params, static fn($v) => $v !== null && $v !== ''));
@@ -329,7 +361,7 @@ function role_label(array $roles, mixed $roleId): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard/style.css?v=5.6">
+<link rel="stylesheet" href="/dashboard/style.css?v=5.9">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body>
@@ -688,20 +720,64 @@ function role_label(array $roles, mixed $roleId): string {
 <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>">
 <input type="hidden" name="operation" value="live_action">
 <input type="hidden" name="action" value="ticket.panel">
-<h3>Publish a panel</h3>
-<p class="form-intro">This sends the panel immediately. The saved category and first support role are used unless you override them here.</p>
+<h3>Publish one ticket dropdown</h3>
+<p class="form-intro">Create one polished panel with multiple ticket types. Each choice can open in its own category and notify its own support role.</p>
 <div class="form-field"><span class="field-label">Send to channel</span><?=channel_picker($channels,null,'channel_id','ticket-publish-channel-picker',true)?></div>
-<div class="form-field"><span class="field-label">Ticket category</span><?=channel_picker($categories,$tickets['default_category_id'],'category_id','ticket-publish-category-picker',false,true)?></div>
-<div class="form-field"><span class="field-label">Support role</span><?=single_role_picker($roles,$tickets['support_role_ids'][0]??null,'support_role_id','ticket-publish-support-role-picker')?></div>
-<label>Panel name<input name="name" value="Support" maxlength="80" required>
-</label>
+<input type="hidden" name="category_id" value="<?=htmlspecialchars((string)($tickets['default_category_id']??''))?>">
 <label>Panel title<input name="title" value="How can we help?" maxlength="256" required>
 </label>
-<label>Description<textarea name="description" rows="4" required>Open a private ticket to speak with the support team. Choose the button below when you are ready.</textarea>
+<label>Introduction<textarea name="description" rows="4" required>Choose the ticket type that best matches what you need. Your conversation will be private.</textarea>
 </label>
-<label>Button label<input name="button_label" value="Open ticket" maxlength="80" required>
+<div class="field-grid">
+<label>Dropdown placeholder<input name="select_placeholder" value="Select a ticket type…" maxlength="150" required>
 </label>
-<button class="button primary full" type="submit">Publish ticket panel</button>
+<label>Accent colour<input name="panel_color" value="#7C6CFF" maxlength="7" pattern="#[0-9A-Fa-f]{6}">
+</label>
+</div>
+<div class="ticket-option-builder">
+<div class="section-heading"><div><h4>Dropdown options</h4><p>Fill the first option and any additional choices you need. You can add more later with <code>/ticket panel add-option</code>.</p></div></div>
+<?php for ($ticketOptionIndex = 0; $ticketOptionIndex < 6; $ticketOptionIndex++): $ticketOptionNumber = $ticketOptionIndex + 1; ?>
+<div class="ticket-option-card">
+<div class="ticket-option-heading"><strong>Option <?=$ticketOptionNumber?></strong><span><?=$ticketOptionIndex===0?'Required':'Optional'?></span></div>
+<div class="field-grid">
+<label>Name<input name="ticket_option_name[]" value="<?=$ticketOptionIndex===0?'General Support':''?>" maxlength="100" <?=$ticketOptionIndex===0?'required':''?> placeholder="e.g. Billing Support">
+</label>
+<label>Custom icon<input name="ticket_option_emoji[]" value="<?=$ticketOptionIndex===0?'🎫':''?>" maxlength="100" placeholder="Unicode or server emoji">
+</label>
+</div>
+<label>Description<input name="ticket_option_description[]" value="<?=$ticketOptionIndex===0?'General questions and assistance':''?>" maxlength="100" placeholder="Shown under the option name">
+</label>
+<div class="field-grid">
+<div class="form-field"><span class="field-label">Ticket category</span><?=channel_picker($categories,$tickets['default_category_id'],"ticket_option_category_id[]","ticket-option-category-{$ticketOptionNumber}",$ticketOptionIndex===0,true)?></div>
+<div class="form-field"><span class="field-label">Support role</span><?=single_role_picker($roles,$tickets['support_role_ids'][0]??null,"ticket_option_support_role_id[]","ticket-option-role-{$ticketOptionNumber}")?></div>
+</div>
+</div>
+<?php endfor; ?>
+</div>
+<div class="ticket-media-builder">
+<div class="section-heading"><div><h4>Panel media</h4><p>All media links must be public HTTPS URLs. Header image is displayed as a separate banner above the content; footer image is Discord's small footer icon.</p></div></div>
+<label>Header image URL<input type="url" name="panel_header_image_url" placeholder="https://example.com/header.png"></label>
+<div class="field-grid">
+<label>Thumbnail URL<input type="url" name="panel_thumbnail_url" placeholder="https://example.com/icon.png"></label>
+<label>Body image URL<input type="url" name="panel_image_url" placeholder="https://example.com/body.png"></label>
+</div>
+<div class="field-grid">
+<label>Author name<input name="panel_author_name" maxlength="256" placeholder="Defaults to server name • Support centre"></label>
+<label>Author icon URL<input type="url" name="panel_author_icon_url" placeholder="https://example.com/author.png"></label>
+</div>
+<div class="field-grid">
+<label>Footer text<input name="panel_footer_text" maxlength="2048" placeholder="Defaults to Rallybit Tickets and panel ID"></label>
+<label>Footer icon URL<input type="url" name="panel_footer_icon_url" placeholder="https://example.com/footer.png"></label>
+</div>
+</div>
+<div class="ticket-display-options">
+<label class="toggle-row"><input type="checkbox" name="panel_show_author" checked><span><strong>Show author</strong><small>Server branding or the custom author above.</small></span></label>
+<label class="toggle-row"><input type="checkbox" name="panel_show_option_details" checked><span><strong>Show option details</strong><small>List each dropdown choice inside the embed.</small></span></label>
+<label class="toggle-row"><input type="checkbox" name="panel_show_workload" checked><span><strong>Show workload</strong><small>Display the number of active tickets.</small></span></label>
+<label class="toggle-row"><input type="checkbox" name="panel_show_guidance" checked><span><strong>Show guidance</strong><small>Remind members what to include.</small></span></label>
+<label class="toggle-row"><input type="checkbox" name="panel_show_timestamp" checked><span><strong>Show timestamp</strong><small>Add the panel's latest refresh time.</small></span></label>
+</div>
+<button class="button primary full" type="submit">Publish dropdown panel</button>
 </form>
 </div>
 </section>

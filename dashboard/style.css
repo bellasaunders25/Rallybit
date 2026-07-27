@@ -425,6 +425,15 @@ code { padding: 2px 5px; }
 .ticket-workspace h3 { margin: 0 0 15px; font-size: 15px; }
 .publish-card { border-color: rgba(117, 103, 238, 0.38) !important; background: rgba(117, 103, 238, 0.06) !important; }
 .form-intro { margin: -6px 0 18px; color: var(--muted); font-size: 11px; }
+.ticket-option-builder, .ticket-media-builder { display: grid; gap: 12px; margin: 22px 0; padding-top: 20px; border-top: 1px solid var(--border); }
+.section-heading h4 { margin: 0; font-size: 13px; }
+.section-heading p { margin: 4px 0 0; color: var(--muted-2); font-size: 10px; line-height: 1.55; }
+.ticket-option-card { padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--input); }
+.ticket-option-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.ticket-option-heading strong { font-size: 11px; }
+.ticket-option-heading span { padding: 3px 7px; border-radius: 999px; background: var(--primary-soft); color: #b7afff; font-size: 8px; font-weight: 750; text-transform: uppercase; }
+.ticket-display-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+.ticket-display-options .toggle-row { margin: 0; }
 .toggle-row, .switch-row {
   display: flex;
   min-height: 50px;
@@ -647,6 +656,7 @@ code { padding: 2px 5px; }
   .admin-wide { grid-column: auto; }
   .entitlement-builders { grid-template-columns: 1fr; }
   .field-grid, .control-grid, .action-fields, .permission-grid { grid-template-columns: 1fr; }
+  .ticket-display-options { grid-template-columns: 1fr; }
   .wide { grid-column: auto; }
   .launcher-primary { grid-template-columns: 1fr; }
   .launcher-primary .button { width: 100%; }

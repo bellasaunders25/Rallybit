@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import io
 import re
+import unicodedata
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -10,7 +11,12 @@ from typing import Any
 import discord
 from discord import app_commands
 
-from config.config import OPEN_TICKETS_FILE, TICKET_HISTORY_FILE, TICKET_PANELS_FILE, TICKET_SETTINGS_FILE
+from config.config import (
+    OPEN_TICKETS_FILE,
+    TICKET_HISTORY_FILE,
+    TICKET_PANELS_FILE,
+    TICKET_SETTINGS_FILE,
+)
 from core.logging import log_server_event
 from storage.json_store import load_json, save_json
 
@@ -22,6 +28,9 @@ TICKET_PRIORITIES = ("Low", "Medium", "High", "Critical")
 LEGACY_WELCOME = "Thanks for opening a ticket, {user}. Please describe how the team can help."
 DEFAULT_WELCOME = "Thanks for reaching out, {user}. A team member will be with you shortly. Please explain what you need help with and include any useful context."
 _DELETE_TASKS: dict[int, asyncio.Task[None]] = {}
+MAX_PANEL_OPTIONS = 25
+DEFAULT_PANEL_DESCRIPTION = "Choose the ticket type that best matches what you need. Your conversation will be private."
+DEFAULT_OPTION_DESCRIPTION = "Speak privately with the support team."
 
 
 def _settings(guild_id: int) -> dict[str, Any]:
@@ -94,9 +103,12 @@ def _allowed_ticket_category_ids(guild_id: int) -> set[int]:
     panels = _panels().get(str(guild_id), {})
     if isinstance(panels, dict):
         for panel in panels.values():
-            category_id = panel.get("category_id") if isinstance(panel, dict) else None
-            if str(category_id).isdigit():
-                values.add(int(category_id))
+            if not isinstance(panel, dict):
+                continue
+            for option in _panel_options(panel):
+                category_id = option.get("category_id")
+                if str(category_id).isdigit():
+                    values.add(int(category_id))
     return values
 
 
@@ -120,6 +132,9 @@ def _ticket_support_role_ids(guild_id: int, record: dict[str, Any] | None) -> se
         panel = _panels().get(str(guild_id), {}).get(panel_id)
         if isinstance(panel, dict):
             values.extend(panel.get("support_role_ids", []))
+            option = _panel_option(panel, str(record.get("option_id") or ""))
+            if option:
+                values.extend(option.get("support_role_ids", []))
     role_ids: set[int] = set()
     for value in values:
         try:
@@ -168,34 +183,161 @@ def _panel_workload(guild_id: int, panel_id: str) -> int:
     )
 
 
-def _ticket_panel_embed(guild: discord.Guild, panel_id: str, panel: dict[str, Any]) -> discord.Embed:
-    category = guild.get_channel(int(panel.get("category_id") or 0))
-    category_name = category.name if isinstance(category, discord.CategoryChannel) else "Private support"
+def _safe_media_url(value: Any) -> str | None:
+    url = str(value or "").strip()
+    return url[:2048] if url.lower().startswith("https://") else None
+
+
+def _as_bool(value: Any, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _panel_colour(value: Any) -> int:
+    raw = str(value or "").strip().lower().removeprefix("#").removeprefix("0x")
+    if re.fullmatch(r"[0-9a-f]{6}", raw):
+        return int(raw, 16)
+    return BRAND
+
+
+def _normalise_panel_option(option: dict[str, Any], fallback_id: str) -> dict[str, Any]:
+    role_ids = option.get("support_role_ids", [])
+    if not isinstance(role_ids, list):
+        role_ids = [role_ids] if role_ids else []
+    option_id = re.sub(r"[^A-Z0-9_-]", "", str(option.get("option_id") or fallback_id).upper())[:32]
+    name = str(option.get("name") or "Support").strip()[:100] or "Support"
+    return {
+        "option_id": option_id or fallback_id,
+        "name": name,
+        "description": str(option.get("description") or DEFAULT_OPTION_DESCRIPTION).strip()[:100] or DEFAULT_OPTION_DESCRIPTION,
+        "emoji": str(option.get("emoji") or "").strip()[:100],
+        "category_id": option.get("category_id"),
+        "support_role_ids": list(dict.fromkeys(str(value) for value in role_ids if str(value).isdigit())),
+        "ticket_name": str(option.get("ticket_name") or "").strip()[:90],
+        "ticket_title": str(option.get("ticket_title") or f"{name} ticket").strip()[:256] or f"{name} ticket",
+        "welcome_message": str(option.get("welcome_message") or DEFAULT_WELCOME).strip()[:4000] or DEFAULT_WELCOME,
+    }
+
+
+def _panel_options(panel: dict[str, Any]) -> list[dict[str, Any]]:
+    configured = panel.get("options")
+    result: list[dict[str, Any]] = []
+    if isinstance(configured, list):
+        for index, option in enumerate(configured[:MAX_PANEL_OPTIONS], start=1):
+            if isinstance(option, dict):
+                result.append(_normalise_panel_option(option, f"OPTION-{index}"))
+    if result:
+        return result
+    legacy = {
+        "option_id": "DEFAULT",
+        "name": panel.get("name") or panel.get("button_label") or "Support",
+        "description": panel.get("option_description") or DEFAULT_OPTION_DESCRIPTION,
+        "emoji": panel.get("button_emoji") or "🎫",
+        "category_id": panel.get("category_id"),
+        "support_role_ids": panel.get("support_role_ids", []),
+        "ticket_name": panel.get("ticket_name") or "",
+        "ticket_title": panel.get("ticket_title") or "Support ticket",
+        "welcome_message": panel.get("welcome_message") or DEFAULT_WELCOME,
+    }
+    return [_normalise_panel_option(legacy, "DEFAULT")]
+
+
+def _panel_option(panel: dict[str, Any], option_id: str) -> dict[str, Any] | None:
+    options = _panel_options(panel)
+    if not option_id:
+        return options[0] if len(options) == 1 else None
+    target = option_id.upper()
+    return next((option for option in options if str(option.get("option_id", "")).upper() == target), None)
+
+
+def _effective_ticket_panel(panel: dict[str, Any], option_id: str | None) -> tuple[dict[str, Any], dict[str, Any]]:
+    option = _panel_option(panel, str(option_id or ""))
+    if not option:
+        raise RuntimeError("That ticket option no longer exists. Refresh the panel and try again.")
+    effective = dict(panel)
+    effective.update(option)
+    common_roles = panel.get("support_role_ids", []) if isinstance(panel.get("support_role_ids"), list) else []
+    effective["support_role_ids"] = list(dict.fromkeys([*common_roles, *option.get("support_role_ids", [])]))
+    return effective, option
+
+
+def _select_option_emoji(value: Any) -> discord.PartialEmoji | None:
+    raw = str(value or "").strip()
+    custom_emoji = re.fullmatch(r"<a?:[A-Za-z0-9_]+:\d+>", raw)
+    has_unicode_symbol = any(
+        unicodedata.category(character) == "So" or character == "\u20e3"
+        for character in raw
+    )
+    if not raw or (not custom_emoji and not has_unicode_symbol):
+        return None
+    try:
+        return discord.PartialEmoji.from_str(raw)
+    except (TypeError, ValueError):
+        return None
+
+
+def _ticket_panel_embeds(guild: discord.Guild, panel_id: str, panel: dict[str, Any]) -> list[discord.Embed]:
     active = _panel_workload(guild.id, panel_id)
     workload = "No tickets waiting" if active == 0 else f"{active} active ticket{'s' if active != 1 else ''}"
-    description = str(panel.get("description") or "Open a private ticket to speak with the team.").strip()[:4000]
+    description = str(panel.get("description") or DEFAULT_PANEL_DESCRIPTION).strip()[:1800]
+    if _as_bool(panel.get("show_workload"), True):
+        description += f"\n\n**Current workload**\n{workload}"
+    if _as_bool(panel.get("show_guidance"), True):
+        description += "\n\n**Before opening**\nChoose the closest option, include useful IDs or screenshots, and avoid duplicate tickets."
     embed = discord.Embed(
         title=str(panel.get("title") or "Support centre")[:256],
-        description=description,
-        color=BRAND,
-        timestamp=discord.utils.utcnow(),
+        description=description[:4096],
+        color=_panel_colour(panel.get("color")),
+        timestamp=discord.utils.utcnow() if _as_bool(panel.get("show_timestamp"), True) else None,
     )
-    icon_url = _set_guild_author(embed, guild, "Support centre")
-    embed.add_field(name="Ticket type", value=str(panel.get("name") or "Support")[:1024], inline=True)
-    embed.add_field(name="Category", value=category_name[:1024], inline=True)
-    embed.add_field(name="Current workload", value=workload, inline=True)
-    embed.add_field(
-        name="Before you open a ticket",
-        value="Describe what happened, include any useful IDs or screenshots, and avoid opening duplicate tickets.",
-        inline=False,
-    )
-    if icon_url:
-        embed.set_thumbnail(url=icon_url)
-    hero_image = guild.banner or guild.splash
-    if hero_image:
-        embed.set_image(url=str(hero_image.url))
-    embed.set_footer(text=f"Rallybit Tickets • Panel {panel_id}")
-    return embed
+    author_name = str(panel.get("author_name") or f"{guild.name} • Support centre").strip()[:256]
+    author_icon = _safe_media_url(panel.get("author_icon_url")) or _guild_icon_url(guild)
+    if _as_bool(panel.get("show_author"), True) and author_name:
+        if author_icon:
+            embed.set_author(name=author_name, icon_url=author_icon)
+        else:
+            embed.set_author(name=author_name)
+    footer_text = str(panel.get("footer_text") or f"Rallybit Tickets • Panel {panel_id}").strip()[:2048]
+    used_characters = len(embed.title or "") + len(embed.description or "")
+    used_characters += len(author_name) if _as_bool(panel.get("show_author"), True) else 0
+    used_characters += len(footer_text)
+    if _as_bool(panel.get("show_option_details"), True):
+        for option in _panel_options(panel):
+            emoji = str(option.get("emoji") or "").strip()
+            heading = f"{emoji} {option['name']}".strip()[:180]
+            field_value = str(option["description"])[:100]
+            if used_characters + len(heading) + len(field_value) > 5900:
+                break
+            embed.add_field(name=heading, value=field_value, inline=False)
+            used_characters += len(heading) + len(field_value)
+    thumbnail_url = _safe_media_url(panel.get("thumbnail_url"))
+    if thumbnail_url:
+        embed.set_thumbnail(url=thumbnail_url)
+    image_url = _safe_media_url(panel.get("image_url"))
+    if image_url:
+        embed.set_image(url=image_url)
+    footer_icon = _safe_media_url(panel.get("footer_icon_url"))
+    if footer_text:
+        if footer_icon:
+            embed.set_footer(text=footer_text, icon_url=footer_icon)
+        else:
+            embed.set_footer(text=footer_text)
+    embeds: list[discord.Embed] = []
+    header_image = _safe_media_url(panel.get("header_image_url"))
+    if header_image:
+        header = discord.Embed(color=_panel_colour(panel.get("color")))
+        header.set_image(url=header_image)
+        embeds.append(header)
+    embeds.append(embed)
+    return embeds
+
+
+def _ticket_panel_embed(guild: discord.Guild, panel_id: str, panel: dict[str, Any]) -> discord.Embed:
+    """Compatibility helper for callers that expect the content embed only."""
+    return _ticket_panel_embeds(guild, panel_id, panel)[-1]
 
 
 def _ticket_welcome_embed(
@@ -432,6 +574,7 @@ async def create_ticket(
     panel_id: str,
     category_override: discord.CategoryChannel | None = None,
     reason: str | None = None,
+    option_id: str | None = None,
 ) -> discord.TextChannel:
     panels = _panels(); panel = panels.get(str(guild.id), {}).get(panel_id)
     if not isinstance(panel, dict) and category_override is not None:
@@ -440,6 +583,10 @@ async def create_ticket(
             "ticket_title": "Support ticket", "support_role_ids": [],
         }
     if not isinstance(panel, dict): raise RuntimeError("That ticket panel no longer exists.")
+    if category_override is None:
+        panel, selected_option = _effective_ticket_panel(panel, option_id)
+    else:
+        selected_option = {"option_id": "DIRECT"}
     settings = _settings(guild.id)
     if settings.get("one_ticket_per_member"):
         existing = _member_open_ticket(guild.id, member.id)
@@ -466,7 +613,8 @@ async def create_ticket(
     channel = await guild.create_text_channel(channel_name, category=category, overwrites=overwrites, topic=f"Rallybit ticket owner={member.id} panel={panel_id}", reason=f"Ticket opened by {member}")
     case_id = f"T-{uuid.uuid4().hex[:8].upper()}"
     guild_open[str(channel.id)] = {
-        "owner_id": str(member.id), "panel_id": panel_id, "claimed_by": None,
+        "owner_id": str(member.id), "panel_id": panel_id,
+        "option_id": str(selected_option.get("option_id") or ""), "claimed_by": None,
         "status": "Open", "priority": "Medium", "reason": (reason or "").strip()[:1000],
         "case_id": case_id,
         "created_at": datetime.now(timezone.utc).isoformat(), "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -497,23 +645,47 @@ async def create_ticket(
     return channel
 
 
-class TicketPanelView(discord.ui.View):
-    def __init__(self, guild_id: int, panel_id: str, label: str = "Open ticket", emoji: str = "🎫") -> None:
-        super().__init__(timeout=None)
-        self.guild_id = guild_id; self.panel_id = panel_id
-        button = discord.ui.Button(label=label[:80], emoji=emoji, style=discord.ButtonStyle.primary, custom_id=f"rallybit:ticket:open:{guild_id}:{panel_id}")
-        button.callback = self.open_ticket  # type: ignore[assignment]
-        self.add_item(button)
+class TicketPanelSelect(discord.ui.Select):
+    def __init__(self, guild_id: int, panel_id: str, panel: dict[str, Any]) -> None:
+        self.guild_id = guild_id
+        self.panel_id = panel_id
+        select_options = []
+        for option in _panel_options(panel):
+            select_options.append(discord.SelectOption(
+                label=str(option["name"])[:100],
+                value=str(option["option_id"])[:100],
+                description=str(option["description"])[:100],
+                emoji=_select_option_emoji(option.get("emoji")),
+            ))
+        super().__init__(
+            placeholder=str(panel.get("select_placeholder") or "Select a ticket type…")[:150],
+            min_values=1,
+            max_values=1,
+            options=select_options,
+            custom_id=f"rallybit:ticket:select:{guild_id}:{panel_id}",
+        )
 
-    async def open_ticket(self, interaction: discord.Interaction) -> None:
+    async def callback(self, interaction: discord.Interaction) -> None:
         if not interaction.guild or interaction.guild.id != self.guild_id or not isinstance(interaction.user, discord.Member):
-            await interaction.response.send_message("This ticket panel is unavailable.", ephemeral=True); return
+            await interaction.response.send_message("This ticket panel is unavailable.", ephemeral=True)
+            return
         await interaction.response.defer(ephemeral=True)
         try:
-            channel = await create_ticket(interaction.guild, interaction.user, self.panel_id)
+            channel = await create_ticket(
+                interaction.guild,
+                interaction.user,
+                self.panel_id,
+                option_id=self.values[0],
+            )
             await interaction.followup.send(f"Your ticket is ready: {channel.mention}", ephemeral=True)
         except (RuntimeError, discord.HTTPException) as exc:
             await interaction.followup.send(str(exc), ephemeral=True)
+
+
+class TicketPanelView(discord.ui.View):
+    def __init__(self, guild_id: int, panel_id: str, panel: dict[str, Any]) -> None:
+        super().__init__(timeout=None)
+        self.add_item(TicketPanelSelect(guild_id, panel_id, panel))
 
 
 class TicketCloseReasonModal(discord.ui.Modal, title="Close ticket"):
@@ -666,7 +838,7 @@ async def _refresh_ticket_panel_message(
         return False
     try:
         message = await channel.fetch_message(int(panel["message_id"]))
-        await message.edit(embed=_ticket_panel_embed(guild, panel_id, panel), view=view)
+        await message.edit(content=None, embeds=_ticket_panel_embeds(guild, panel_id, panel), view=view)
         return True
     except (discord.Forbidden, discord.NotFound, discord.HTTPException):
         return False
@@ -676,17 +848,12 @@ async def _update_ticket_panel_message(guild: discord.Guild, panel_id: str) -> b
     panel = _panels().get(str(guild.id), {}).get(panel_id)
     if not isinstance(panel, dict):
         return False
-    view = TicketPanelView(
-        guild.id,
-        panel_id,
-        str(panel.get("button_label", "Open ticket")),
-        str(panel.get("button_emoji", "🎫")),
-    )
+    view = TicketPanelView(guild.id, panel_id, panel)
     return await _refresh_ticket_panel_message(guild, panel_id, panel, view)
 
 
 def _has_ticket_controls(message: discord.Message, channel_id: int) -> bool:
-    prefix = f"rallybit:ticket:"
+    prefix = "rallybit:ticket:"
     suffix = f":{channel_id}"
     return any(
         str(getattr(item, "custom_id", "")).startswith(prefix)
@@ -731,7 +898,7 @@ async def restore_ticket_views(bot: discord.Client) -> int:
         if not str(guild_id).isdigit() or not isinstance(guild_panels, dict): continue
         for panel_id, panel in guild_panels.items():
             if isinstance(panel, dict):
-                view = TicketPanelView(int(guild_id), panel_id, str(panel.get("button_label", "Open ticket")), str(panel.get("button_emoji", "🎫")))
+                view = TicketPanelView(int(guild_id), panel_id, panel)
                 bot.add_view(view)
                 guild = bot.get_guild(int(guild_id))
                 if guild:
@@ -770,23 +937,136 @@ async def create_ticket_panel(
     description: str = "Open a private ticket to speak with the support team. Choose the button below when you are ready.",
     support_role: discord.Role | None = None,
     button_label: str = "Open ticket",
+    *,
+    option_description: str = DEFAULT_OPTION_DESCRIPTION,
+    option_emoji: str = "🎫",
+    select_placeholder: str = "Select a ticket type…",
+    options: list[dict[str, Any]] | None = None,
+    color: str = "#7C6CFF",
+    author_name: str = "",
+    author_icon_url: str = "",
+    header_image_url: str = "",
+    thumbnail_url: str = "",
+    image_url: str = "",
+    footer_text: str = "",
+    footer_icon_url: str = "",
+    show_author: bool = True,
+    show_option_details: bool = True,
+    show_workload: bool = True,
+    show_guidance: bool = True,
+    show_timestamp: bool = True,
 ) -> str:
+    media_values = {
+        "author icon": author_icon_url,
+        "header image": header_image_url,
+        "thumbnail": thumbnail_url,
+        "body image": image_url,
+        "footer icon": footer_icon_url,
+    }
+    invalid_media = [label for label, value in media_values.items() if str(value or "").strip() and not _safe_media_url(value)]
+    if invalid_media:
+        raise RuntimeError(f"The {invalid_media[0]} must be a public HTTPS URL.")
     panel_id = uuid.uuid4().hex[:8].upper()
+    configured_options = options or [{
+        "name": name,
+        "description": option_description,
+        "emoji": option_emoji,
+        "category_id": category.id,
+        "support_role_ids": [support_role.id] if support_role else [],
+        "ticket_title": f"{name[:100]} ticket",
+        "welcome_message": DEFAULT_WELCOME,
+    }]
+    normalised_options: list[dict[str, Any]] = []
+    for index, option in enumerate(configured_options[:MAX_PANEL_OPTIONS], start=1):
+        if not isinstance(option, dict):
+            continue
+        candidate = dict(option)
+        candidate.setdefault("category_id", category.id)
+        candidate.setdefault("support_role_ids", [support_role.id] if support_role else [])
+        candidate.setdefault("option_id", uuid.uuid4().hex[:8].upper())
+        normalised_options.append(_normalise_panel_option(candidate, f"OPTION-{index}"))
+    if not normalised_options:
+        raise RuntimeError("Add at least one ticket option before publishing the panel.")
     panel = {
         "panel_id": panel_id, "name": name[:80], "channel_id": channel.id, "message_id": None,
         "category_id": category.id, "title": title[:256], "description": description[:4000],
-        "button_label": button_label[:80], "button_emoji": "🎫", "support_role_ids": [support_role.id] if support_role else [],
-        "ticket_title": f"{name[:80]} ticket",
-        "welcome_message": DEFAULT_WELCOME,
+        "button_label": button_label[:80], "button_emoji": option_emoji[:100],
+        "support_role_ids": [support_role.id] if support_role else [],
+        "ticket_title": f"{name[:80]} ticket", "welcome_message": DEFAULT_WELCOME,
+        "select_placeholder": select_placeholder.strip()[:150] or "Select a ticket type…",
+        "options": normalised_options,
+        "color": f"#{_panel_colour(color):06X}",
+        "author_name": author_name.strip()[:256],
+        "author_icon_url": _safe_media_url(author_icon_url),
+        "header_image_url": _safe_media_url(header_image_url),
+        "thumbnail_url": _safe_media_url(thumbnail_url),
+        "image_url": _safe_media_url(image_url),
+        "footer_text": footer_text.strip()[:2048],
+        "footer_icon_url": _safe_media_url(footer_icon_url),
+        "show_author": bool(show_author), "show_option_details": bool(show_option_details),
+        "show_workload": bool(show_workload), "show_guidance": bool(show_guidance),
+        "show_timestamp": bool(show_timestamp),
     }
-    view = TicketPanelView(guild.id, panel_id, panel["button_label"], panel["button_emoji"])
-    embed = _ticket_panel_embed(guild, panel_id, panel)
-    message = await channel.send(embed=embed, view=view)
+    view = TicketPanelView(guild.id, panel_id, panel)
+    message = await channel.send(embeds=_ticket_panel_embeds(guild, panel_id, panel), view=view)
     panel["message_id"] = message.id
     data = _panels(); data.setdefault(str(guild.id), {})[panel_id] = panel; _save_panels(data)
     from core.bot import client
     client.add_view(view)
     return panel_id
+
+
+async def add_ticket_panel_option(
+    guild: discord.Guild,
+    panel_id: str,
+    *,
+    name: str,
+    description: str,
+    emoji: str,
+    category: discord.CategoryChannel,
+    support_role: discord.Role | None = None,
+) -> str:
+    data = _panels()
+    panel = data.get(str(guild.id), {}).get(panel_id.upper())
+    if not isinstance(panel, dict):
+        raise RuntimeError("That ticket panel was not found.")
+    options = _panel_options(panel)
+    if len(options) >= MAX_PANEL_OPTIONS:
+        raise RuntimeError("A ticket dropdown can contain at most 25 options.")
+    option = _normalise_panel_option({
+        "option_id": uuid.uuid4().hex[:8].upper(),
+        "name": name,
+        "description": description,
+        "emoji": emoji,
+        "category_id": category.id,
+        "support_role_ids": [support_role.id] if support_role else [],
+        "ticket_title": f"{name[:100]} ticket",
+        "welcome_message": DEFAULT_WELCOME,
+    }, f"OPTION-{len(options) + 1}")
+    options.append(option)
+    panel["options"] = options
+    data[str(guild.id)][panel_id.upper()] = panel
+    _save_panels(data)
+    await _update_ticket_panel_message(guild, panel_id.upper())
+    return str(option["option_id"])
+
+
+async def remove_ticket_panel_option(guild: discord.Guild, panel_id: str, option_id: str) -> bool:
+    data = _panels()
+    panel = data.get(str(guild.id), {}).get(panel_id.upper())
+    if not isinstance(panel, dict):
+        raise RuntimeError("That ticket panel was not found.")
+    options = _panel_options(panel)
+    if len(options) <= 1:
+        raise RuntimeError("A ticket panel must keep at least one option.")
+    remaining = [option for option in options if str(option["option_id"]).upper() != option_id.upper()]
+    if len(remaining) == len(options):
+        return False
+    panel["options"] = remaining
+    data[str(guild.id)][panel_id.upper()] = panel
+    _save_panels(data)
+    await _update_ticket_panel_message(guild, panel_id.upper())
+    return True
 
 def setup_ticket_commands(tree: app_commands.CommandTree) -> None:
     group = app_commands.Group(name="ticket", description="Ticket Tool-style support tickets.")
@@ -840,20 +1120,100 @@ def setup_ticket_commands(tree: app_commands.CommandTree) -> None:
         channel: discord.TextChannel,
         category: discord.CategoryChannel,
         title: str = "How can we help?",
-        description: str = "Open a private ticket to speak with the support team. Choose the button below when you are ready.",
+        description: str = DEFAULT_PANEL_DESCRIPTION,
         support_role: discord.Role | None = None,
-        button_label: str = "Open ticket",
+        option_description: str = DEFAULT_OPTION_DESCRIPTION,
+        option_icon: str = "🎫",
+        placeholder: str = "Select a ticket type…",
+        header_image: str = "",
+        thumbnail: str = "",
+        image: str = "",
+        footer_text: str = "",
+        footer_icon: str = "",
+        show_option_details: bool = True,
+        show_workload: bool = True,
+        show_guidance: bool = True,
     ) -> None:
         if not interaction.guild:
             await interaction.response.send_message("Use this in a server.", ephemeral=True); return
-        panel_id = await create_ticket_panel(interaction.guild, channel, category, name, title, description, support_role, button_label)
-        await interaction.response.send_message(f"Ticket panel `{panel_id}` created in {channel.mention}.", ephemeral=True)
+        await interaction.response.defer(ephemeral=True)
+        try:
+            panel_id = await create_ticket_panel(
+                interaction.guild, channel, category, name, title, description, support_role,
+                option_description=option_description, option_emoji=option_icon,
+                select_placeholder=placeholder, header_image_url=header_image,
+                thumbnail_url=thumbnail, image_url=image, footer_text=footer_text,
+                footer_icon_url=footer_icon, show_option_details=show_option_details,
+                show_workload=show_workload, show_guidance=show_guidance,
+            )
+            await interaction.followup.send(
+                f"Dropdown ticket panel `{panel_id}` created in {channel.mention}. Add more choices with `/ticket panel add-option`.",
+                ephemeral=True,
+            )
+        except (RuntimeError, discord.HTTPException) as exc:
+            await interaction.followup.send(str(exc), ephemeral=True)
+
+    @panel_group.command(name="add-option", description="Add another category to an existing ticket dropdown.")
+    @app_commands.checks.has_permissions(manage_channels=True)
+    async def panel_add_option(
+        interaction: discord.Interaction,
+        panel_id: str,
+        name: str,
+        description: str,
+        category: discord.CategoryChannel,
+        icon: str = "🎫",
+        support_role: discord.Role | None = None,
+    ) -> None:
+        if not interaction.guild:
+            await interaction.response.send_message("Use this in a server.", ephemeral=True); return
+        await interaction.response.defer(ephemeral=True)
+        try:
+            option_id = await add_ticket_panel_option(
+                interaction.guild, panel_id, name=name, description=description,
+                emoji=icon, category=category, support_role=support_role,
+            )
+            await interaction.followup.send(
+                f"Added **{name[:100]}** (`{option_id}`) to panel `{panel_id.upper()}`.", ephemeral=True,
+            )
+        except (RuntimeError, discord.HTTPException) as exc:
+            await interaction.followup.send(str(exc), ephemeral=True)
+
+    @panel_group.command(name="remove-option", description="Remove a category from a ticket dropdown.")
+    @app_commands.checks.has_permissions(manage_channels=True)
+    async def panel_remove_option(interaction: discord.Interaction, panel_id: str, option_id: str) -> None:
+        if not interaction.guild:
+            await interaction.response.send_message("Use this in a server.", ephemeral=True); return
+        await interaction.response.defer(ephemeral=True)
+        try:
+            removed = await remove_ticket_panel_option(interaction.guild, panel_id, option_id)
+            await interaction.followup.send(
+                "Ticket option removed." if removed else "That option was not found.", ephemeral=True,
+            )
+        except (RuntimeError, discord.HTTPException) as exc:
+            await interaction.followup.send(str(exc), ephemeral=True)
 
     @panel_group.command(name="list", description="List ticket panels in this server.")
     async def panel_list(interaction: discord.Interaction) -> None:
         panels = _panels().get(str(interaction.guild.id), {}) if interaction.guild else {}
-        lines = [f"`{pid}` • **{p.get('name', 'Panel')}** • <#{p.get('channel_id')}>" for pid, p in panels.items()] if isinstance(panels, dict) else []
-        await interaction.response.send_message("\n".join(lines) if lines else "No ticket panels are configured.", ephemeral=True)
+        lines: list[str] = []
+        if isinstance(panels, dict):
+            for panel_id, panel in panels.items():
+                if not isinstance(panel, dict):
+                    continue
+                options = _panel_options(panel)
+                lines.append(
+                    f"`{panel_id}` • **{panel.get('title') or panel.get('name', 'Panel')}** • "
+                    f"{len(options)} option(s) • <#{panel.get('channel_id')}>"
+                )
+                lines.extend(f"↳ `{option['option_id']}` • {option['name']}" for option in options)
+        response = "\n".join(lines) if lines else "No ticket panels are configured."
+        if len(response) > 1950:
+            response = response[:1947].rsplit("\n", 1)[0] + "\n…"
+        await interaction.response.send_message(
+            response,
+            ephemeral=True,
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
 
     @panel_group.command(name="delete", description="Delete a ticket panel configuration.")
     @app_commands.checks.has_permissions(manage_channels=True)
