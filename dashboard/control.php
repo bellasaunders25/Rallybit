@@ -45,6 +45,7 @@ $automationsAll = load_json_data(AUTOMATION_SCHEDULES_FILE); $automations = is_a
 $message = '';
 $error = '';
 $embedEditor = null;
+$ticketPanelEditor = null;
 
 function clean_id(mixed $value): ?string {
     $id = preg_replace('/\D/', '', (string)$value);
@@ -71,6 +72,7 @@ function posted_embed_editor(): array {
         'embed_count'=>max(1,(int)($_POST['embed_count'] ?? 1)),
         'jump_url'=>trim((string)($_POST['embed_jump_url'] ?? '')),
         'channel_name'=>trim((string)($_POST['embed_channel_name'] ?? 'channel')),
+        'content'=>trim((string)($_POST['embed_content'] ?? '')),
         'title'=>trim((string)($_POST['embed_title'] ?? '')),
         'title_url'=>trim((string)($_POST['embed_title_url'] ?? '')),
         'description'=>trim((string)($_POST['embed_description'] ?? '')),
@@ -85,6 +87,53 @@ function posted_embed_editor(): array {
         'timestamp'=>trim((string)($_POST['embed_timestamp'] ?? '')),
         'show_timestamp'=>bool_post('embed_show_timestamp'),
         'fields'=>$fields,
+    ];
+}
+
+function posted_ticket_panel_editor(): array {
+    $optionIds = is_array($_POST['ticket_option_id'] ?? null) ? $_POST['ticket_option_id'] : [];
+    $optionNames = is_array($_POST['ticket_option_name'] ?? null) ? $_POST['ticket_option_name'] : [];
+    $optionDescriptions = is_array($_POST['ticket_option_description'] ?? null) ? $_POST['ticket_option_description'] : [];
+    $optionEmojis = is_array($_POST['ticket_option_emoji'] ?? null) ? $_POST['ticket_option_emoji'] : [];
+    $optionCategories = is_array($_POST['ticket_option_category_id'] ?? null) ? $_POST['ticket_option_category_id'] : [];
+    $optionRoles = is_array($_POST['ticket_option_support_role_id'] ?? null) ? $_POST['ticket_option_support_role_id'] : [];
+    $options = [];
+    foreach ($optionNames as $index => $rawName) {
+        $name = trim((string)$rawName);
+        if ($name === '') continue;
+        $options[] = [
+            'option_id'=>trim((string)($optionIds[$index] ?? '')),
+            'name'=>function_exists('mb_substr') ? mb_substr($name,0,100) : substr($name,0,100),
+            'description'=>function_exists('mb_substr') ? mb_substr(trim((string)($optionDescriptions[$index] ?? '')),0,100) : substr(trim((string)($optionDescriptions[$index] ?? '')),0,100),
+            'emoji'=>function_exists('mb_substr') ? mb_substr(trim((string)($optionEmojis[$index] ?? '')),0,100) : substr(trim((string)($optionEmojis[$index] ?? '')),0,100),
+            'category_id'=>clean_id($optionCategories[$index] ?? ''),
+            'support_role_id'=>clean_id($optionRoles[$index] ?? ''),
+        ];
+        if (count($options) >= 25) break;
+    }
+    return [
+        'panel_id'=>trim((string)($_POST['ticket_panel_id'] ?? '')),
+        'message_id'=>clean_id($_POST['ticket_panel_message_id'] ?? ''),
+        'channel_id'=>clean_id($_POST['ticket_panel_channel_id'] ?? ''),
+        'jump_url'=>trim((string)($_POST['ticket_panel_jump_url'] ?? '')),
+        'name'=>(string)($options[0]['name'] ?? 'Support'),
+        'title'=>trim((string)($_POST['title'] ?? '')),
+        'description'=>trim((string)($_POST['description'] ?? '')),
+        'select_placeholder'=>trim((string)($_POST['select_placeholder'] ?? 'Select a ticket type...')),
+        'color'=>trim((string)($_POST['panel_color'] ?? '#7C6CFF')),
+        'author_name'=>trim((string)($_POST['panel_author_name'] ?? '')),
+        'author_icon_url'=>trim((string)($_POST['panel_author_icon_url'] ?? '')),
+        'header_image_url'=>trim((string)($_POST['panel_header_image_url'] ?? '')),
+        'thumbnail_url'=>trim((string)($_POST['panel_thumbnail_url'] ?? '')),
+        'image_url'=>trim((string)($_POST['panel_image_url'] ?? '')),
+        'footer_text'=>trim((string)($_POST['panel_footer_text'] ?? '')),
+        'footer_icon_url'=>trim((string)($_POST['panel_footer_icon_url'] ?? '')),
+        'show_author'=>bool_post('panel_show_author'),
+        'show_option_details'=>bool_post('panel_show_option_details'),
+        'show_workload'=>bool_post('panel_show_workload'),
+        'show_guidance'=>bool_post('panel_show_guidance'),
+        'show_timestamp'=>bool_post('panel_show_timestamp'),
+        'options'=>$options,
     ];
 }
 
@@ -106,17 +155,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = (string)($result['error'] ?? 'The embed could not be loaded.');
             }
-        } elseif ($operation === 'update_embed') {
+        } elseif ($operation === 'send_embed' || $operation === 'update_embed') {
             $embedEditor = posted_embed_editor();
-            if (!$embedEditor['message_id']) throw new RuntimeException('The message ID is missing. Load the embed again.');
+            if ($operation === 'send_embed' && !$embedEditor['channel_id']) throw new RuntimeException('Choose a channel for the new embed message.');
+            if ($operation === 'update_embed' && !$embedEditor['message_id']) throw new RuntimeException('The message ID is missing. Load the embed again.');
             $params = $embedEditor;
             $params['show_timestamp'] = !empty($embedEditor['show_timestamp']);
-            $result = run_bot_action($guild_id, (string)$_SESSION['user_id'], 'embed.update', $params);
+            $result = run_bot_action($guild_id, (string)$_SESSION['user_id'], $operation === 'send_embed' ? 'embed.send' : 'embed.update', $params);
             if (!empty($result['ok'])) {
                 if (is_array($result['embed'] ?? null)) $embedEditor = $result['embed'];
                 $message = (string)($result['message'] ?? 'Embed updated.');
             } else {
                 $error = (string)($result['error'] ?? 'The embed could not be updated.');
+            }
+        } elseif ($operation === 'load_ticket_panel') {
+            $messageId = clean_id($_POST['ticket_panel_lookup_message_id'] ?? '');
+            if (!$messageId) throw new RuntimeException('Enter the Discord message ID for the ticket panel.');
+            $result = run_bot_action($guild_id, (string)$_SESSION['user_id'], 'ticket.panel.load', ['message_id'=>$messageId]);
+            if (!empty($result['ok']) && is_array($result['panel'] ?? null)) {
+                $ticketPanelEditor = $result['panel'];
+                $message = (string)($result['message'] ?? 'Ticket panel loaded.');
+            } else {
+                $error = (string)($result['error'] ?? 'The ticket panel could not be loaded.');
+            }
+        } elseif ($operation === 'save_ticket_panel') {
+            $ticketPanelEditor = posted_ticket_panel_editor();
+            if (!$ticketPanelEditor['options']) throw new RuntimeException('Add at least one ticket option.');
+            if (!$ticketPanelEditor['panel_id'] && !$ticketPanelEditor['channel_id']) throw new RuntimeException('Choose a channel for the new ticket panel.');
+            $action = $ticketPanelEditor['panel_id'] ? 'ticket.panel.update' : 'ticket.panel';
+            $result = run_bot_action($guild_id, (string)$_SESSION['user_id'], $action, $ticketPanelEditor);
+            if (!empty($result['ok'])) {
+                if (is_array($result['panel'] ?? null)) $ticketPanelEditor = $result['panel'];
+                $message = (string)($result['message'] ?? 'Ticket panel saved.');
+            } else {
+                $error = (string)($result['error'] ?? 'The ticket panel could not be saved.');
             }
         } elseif ($operation === 'live_action') {
             $action = trim((string)($_POST['action'] ?? ''));
@@ -304,6 +376,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (Throwable $e) { $error = $e->getMessage(); }
 }
 $csrf = get_csrf_token();
+if (!is_array($embedEditor)) {
+    $embedEditor = [
+        'channel_id'=>null,'channel_name'=>'channel','message_id'=>null,'embed_index'=>1,'embed_count'=>1,'jump_url'=>'',
+        'content'=>'','title'=>'','title_url'=>'','description'=>'','color'=>'#7C6CFF','author_name'=>'','author_url'=>'',
+        'author_icon_url'=>'','thumbnail_url'=>'','image_url'=>'','footer_text'=>'','footer_icon_url'=>'','timestamp'=>'',
+        'show_timestamp'=>true,'fields'=>[],
+    ];
+}
+if (!is_array($ticketPanelEditor)) {
+    $ticketPanelEditor = [
+        'panel_id'=>'','message_id'=>'','channel_id'=>null,'jump_url'=>'','name'=>'General Support',
+        'title'=>'How can we help?','description'=>'Choose the ticket type that best matches what you need. Your conversation will be private.',
+        'select_placeholder'=>'Select a ticket type...','color'=>'#7C6CFF','author_name'=>'','author_icon_url'=>'',
+        'header_image_url'=>'','thumbnail_url'=>'','image_url'=>'','footer_text'=>'','footer_icon_url'=>'',
+        'show_author'=>true,'show_option_details'=>true,'show_workload'=>true,'show_guidance'=>true,'show_timestamp'=>true,
+        'options'=>[['option_id'=>'','name'=>'General Support','description'=>'General questions and assistance','emoji'=>'🎫','category_id'=>$tickets['default_category_id']??null,'support_role_id'=>$tickets['support_role_ids'][0]??null]],
+    ];
+}
 $avatar = user_avatar_url(80);
 function channel_picker(array $items, mixed $selected, string $fieldName, string $pickerId, bool $required = false, bool $categories = false): string {
     $selectedId = (string)($selected ?? '');
@@ -423,7 +513,7 @@ function role_label(array $roles, mixed $roleId): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard/style.css?v=6.0">
+<link rel="stylesheet" href="/dashboard/style.css?v=6.1">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body>
@@ -748,7 +838,7 @@ function role_label(array $roles, mixed $roleId): string {
 <span><i class="bi bi-card-text"></i></span>
 <div>
 <h2>Embed editor</h2>
-<p>Load a Rallybit message, edit its embed, and update the same Discord message.</p>
+<p>Compose and send a new embed, or load a Rallybit message and update it in place.</p>
 </div>
 </div>
 <form method="post" action="#embeds" class="settings-stack embed-loader">
@@ -764,21 +854,26 @@ function role_label(array $roles, mixed $roleId): string {
 </form>
 
 <?php if(is_array($embedEditor)): $embedFields=is_array($embedEditor['fields']??null)?$embedEditor['fields']:[]; if(!$embedFields)$embedFields=[['name'=>'','value'=>'','inline'=>false]]; ?>
+<?php if(!empty($embedEditor['message_id'])):?>
 <div class="embed-loaded-bar">
 <div><span>Loaded from #<?=htmlspecialchars((string)($embedEditor['channel_name']??'channel'))?></span><strong>Message <?=htmlspecialchars((string)($embedEditor['message_id']??''))?> · Embed <?=htmlspecialchars((string)($embedEditor['embed_index']??1))?> of <?=htmlspecialchars((string)($embedEditor['embed_count']??1))?></strong></div>
-<?php if(!empty($embedEditor['jump_url'])):?><a class="button secondary" href="<?=htmlspecialchars((string)$embedEditor['jump_url'])?>" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right"></i> Open in Discord</a><?php endif;?>
+<div class="button-row"><a class="button secondary" href="?id=<?=urlencode($guild_id)?>#embeds"><i class="bi bi-plus-lg"></i> Compose new</a><?php if(!empty($embedEditor['jump_url'])):?><a class="button secondary" href="<?=htmlspecialchars((string)$embedEditor['jump_url'])?>" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right"></i> Open in Discord</a><?php endif;?></div>
 </div>
+<?php else:?>
+<div class="embed-loaded-bar compose"><div><span>New message</span><strong>Compose and send a new Rallybit embed</strong></div></div>
+<?php endif;?>
 <div class="embed-editor-workspace">
 <form method="post" action="#embeds" class="settings-stack embed-editor-form" data-embed-editor>
 <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>">
-<input type="hidden" name="operation" value="update_embed">
-<input type="hidden" name="embed_channel_id" value="<?=htmlspecialchars((string)($embedEditor['channel_id']??''))?>">
+<input type="hidden" name="operation" value="<?=!empty($embedEditor['message_id'])?'update_embed':'send_embed'?>">
+<?php if(empty($embedEditor['message_id'])):?><div class="form-field"><span class="field-label">Send to channel</span><?=channel_picker($channels,$embedEditor['channel_id']??null,'embed_channel_id','embed-send-channel-picker',true)?></div><?php else:?><input type="hidden" name="embed_channel_id" value="<?=htmlspecialchars((string)($embedEditor['channel_id']??''))?>"><?php endif;?>
 <input type="hidden" name="embed_message_id" value="<?=htmlspecialchars((string)($embedEditor['message_id']??''))?>">
 <input type="hidden" name="embed_index" value="<?=htmlspecialchars((string)($embedEditor['embed_index']??1))?>">
 <input type="hidden" name="embed_count" value="<?=htmlspecialchars((string)($embedEditor['embed_count']??1))?>">
 <input type="hidden" name="embed_jump_url" value="<?=htmlspecialchars((string)($embedEditor['jump_url']??''))?>">
 <input type="hidden" name="embed_channel_name" value="<?=htmlspecialchars((string)($embedEditor['channel_name']??'channel'))?>">
 <input type="hidden" name="embed_timestamp" value="<?=htmlspecialchars((string)($embedEditor['timestamp']??''))?>">
+<label>Message content <small>Optional</small><textarea name="embed_content" rows="3" maxlength="2000" placeholder="Text displayed above the embed. Mentions will not ping." data-embed-content><?=htmlspecialchars((string)($embedEditor['content']??''))?></textarea></label>
 <div class="field-grid">
 <label>Title<input name="embed_title" maxlength="256" value="<?=htmlspecialchars((string)($embedEditor['title']??''))?>" data-embed-title></label>
 <label>Title link<input type="url" name="embed_title_url" maxlength="2048" value="<?=htmlspecialchars((string)($embedEditor['title_url']??''))?>" placeholder="https://example.com" data-embed-title-url></label>
@@ -822,11 +917,12 @@ function role_label(array $roles, mixed $roleId): string {
 <label>Footer text<input name="embed_footer_text" maxlength="2048" value="<?=htmlspecialchars((string)($embedEditor['footer_text']??''))?>" data-embed-footer></label>
 <label>Footer icon<input type="url" name="embed_footer_icon_url" maxlength="2048" value="<?=htmlspecialchars((string)($embedEditor['footer_icon_url']??''))?>"></label>
 </div>
-<div class="permission-note"><i class="bi bi-shield-check"></i><p>Only the selected embed is replaced. Other embeds, message text, attachments, buttons, and dropdowns remain unchanged.</p></div>
-<button class="button primary full" type="submit"><i class="bi bi-check2"></i> Update Discord message</button>
+<div class="permission-note"><i class="bi bi-shield-check"></i><p><?=!empty($embedEditor['message_id'])?'The selected embed and loaded message content are updated. Other embeds, attachments, buttons, and dropdowns remain unchanged.':'Mentions are disabled for dashboard-sent messages, so message content cannot unexpectedly ping members or roles.'?></p></div>
+<button class="button primary full" type="submit"><i class="bi <?=!empty($embedEditor['message_id'])?'bi-check2':'bi-send'?>"></i> <?=!empty($embedEditor['message_id'])?'Update Discord message':'Send embed message'?></button>
 </form>
 <aside class="embed-preview-panel">
 <span class="kicker">Live preview</span>
+<p class="embed-message-content" data-preview-content <?=empty($embedEditor['content'])?'hidden':''?>><?=htmlspecialchars((string)($embedEditor['content']??''))?></p>
 <div class="discord-embed-preview" data-embed-preview style="--embed-colour:<?=htmlspecialchars((string)($embedEditor['color']??'#7C6CFF'))?>">
 <small data-preview-author><?=htmlspecialchars((string)($embedEditor['author_name']??''))?></small>
 <strong data-preview-title><?=htmlspecialchars((string)($embedEditor['title']??'Embed title'))?></strong>
@@ -847,9 +943,24 @@ function role_label(array $roles, mixed $roleId): string {
 <span><i class="bi bi-ticket-perforated"></i></span>
 <div>
 <h2>Tickets</h2>
-<p>Save the defaults, then publish a working panel to any text channel.</p>
+<p>Publish a new dropdown panel or load an existing Rallybit panel to correct and update it.</p>
 </div>
 </div>
+<form method="post" action="#tickets" class="settings-stack embed-loader ticket-panel-loader">
+<input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>">
+<input type="hidden" name="operation" value="load_ticket_panel">
+<div class="section-heading"><div><h3>Load an existing ticket panel</h3><p>Copy the panel message ID from Discord. Rallybit loads its complete saved setup into the form below.</p></div></div>
+<div class="field-grid ticket-panel-lookup-grid">
+<label>Message ID<input name="ticket_panel_lookup_message_id" inputmode="numeric" pattern="[0-9]{15,22}" required value="<?=htmlspecialchars((string)($ticketPanelEditor['message_id']??''))?>" placeholder="123456789012345678"></label>
+</div>
+<button class="button secondary" type="submit"><i class="bi bi-download"></i> Load ticket panel</button>
+</form>
+<?php if(!empty($ticketPanelEditor['panel_id'])):?>
+<div class="embed-loaded-bar">
+<div><span>Editing saved ticket panel</span><strong>Panel <?=htmlspecialchars((string)$ticketPanelEditor['panel_id'])?> · Message <?=htmlspecialchars((string)$ticketPanelEditor['message_id'])?></strong></div>
+<div class="button-row"><a class="button secondary" href="?id=<?=urlencode($guild_id)?>#tickets"><i class="bi bi-plus-lg"></i> New panel</a><?php if(!empty($ticketPanelEditor['jump_url'])):?><a class="button secondary" href="<?=htmlspecialchars((string)$ticketPanelEditor['jump_url'])?>" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right"></i> Open in Discord</a><?php endif;?></div>
+</div>
+<?php endif;?>
 <div class="ticket-workspace">
 <form method="post" class="settings-stack">
 <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>">
@@ -878,68 +989,72 @@ function role_label(array $roles, mixed $roleId): string {
 </label>
 <button class="button secondary" type="submit">Save defaults</button>
 </form>
-<form method="post" class="settings-stack publish-card">
+<form method="post" action="#tickets" class="settings-stack publish-card">
 <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>">
-<input type="hidden" name="operation" value="live_action">
-<input type="hidden" name="action" value="ticket.panel">
-<h3>Publish one ticket dropdown</h3>
-<p class="form-intro">Create one polished panel with multiple ticket types. Each choice can open in its own category and notify its own support role.</p>
-<div class="form-field"><span class="field-label">Send to channel</span><?=channel_picker($channels,null,'channel_id','ticket-publish-channel-picker',true)?></div>
+<input type="hidden" name="operation" value="save_ticket_panel">
+<input type="hidden" name="ticket_panel_id" value="<?=htmlspecialchars((string)($ticketPanelEditor['panel_id']??''))?>">
+<input type="hidden" name="ticket_panel_message_id" value="<?=htmlspecialchars((string)($ticketPanelEditor['message_id']??''))?>">
+<input type="hidden" name="ticket_panel_jump_url" value="<?=htmlspecialchars((string)($ticketPanelEditor['jump_url']??''))?>">
+<h3><?=!empty($ticketPanelEditor['panel_id'])?'Edit ticket dropdown':'Publish one ticket dropdown'?></h3>
+<p class="form-intro"><?=!empty($ticketPanelEditor['panel_id'])?'Saving updates the original Discord message and its working dropdown.':'Create one polished panel with multiple ticket types. Each choice can open in its own category and notify its own support role.'?></p>
+<div class="form-field"><span class="field-label"><?=!empty($ticketPanelEditor['panel_id'])?'Original message channel':'Send to channel'?></span><?=channel_picker($channels,$ticketPanelEditor['channel_id']??null,'ticket_panel_channel_id','ticket-publish-channel-picker',empty($ticketPanelEditor['panel_id']))?></div>
 <input type="hidden" name="category_id" value="<?=htmlspecialchars((string)($tickets['default_category_id']??''))?>">
-<label>Panel title<input name="title" value="How can we help?" maxlength="256" required>
+<label>Panel title<input name="title" value="<?=htmlspecialchars((string)($ticketPanelEditor['title']??'How can we help?'))?>" maxlength="256" required>
 </label>
-<label>Introduction<textarea name="description" rows="4" required>Choose the ticket type that best matches what you need. Your conversation will be private.</textarea>
+<label>Introduction<textarea name="description" rows="4" required><?=htmlspecialchars((string)($ticketPanelEditor['description']??''))?></textarea>
 </label>
 <div class="field-grid">
-<label>Dropdown placeholder<input name="select_placeholder" value="Select a ticket type…" maxlength="150" required>
+<label>Dropdown placeholder<input name="select_placeholder" value="<?=htmlspecialchars((string)($ticketPanelEditor['select_placeholder']??'Select a ticket type...'))?>" maxlength="150" required>
 </label>
-<label>Accent colour<input name="panel_color" value="#7C6CFF" maxlength="7" pattern="#[0-9A-Fa-f]{6}">
+<label>Accent colour<input name="panel_color" value="<?=htmlspecialchars((string)($ticketPanelEditor['color']??'#7C6CFF'))?>" maxlength="7" pattern="#[0-9A-Fa-f]{6}">
 </label>
 </div>
 <div class="ticket-option-builder">
-<div class="section-heading"><div><h4>Dropdown options</h4><p>Fill the first option and any additional choices you need. You can add more later with <code>/ticket panel add-option</code>.</p></div></div>
-<?php for ($ticketOptionIndex = 0; $ticketOptionIndex < 6; $ticketOptionIndex++): $ticketOptionNumber = $ticketOptionIndex + 1; ?>
+<div class="section-heading"><div><h4>Dropdown options</h4><p>Every saved option is loaded here, including its category, support role, custom icon, name, and description.</p></div></div>
+<?php $ticketOptions=is_array($ticketPanelEditor['options']??null)?$ticketPanelEditor['options']:[]; $ticketOptionSlots=min(25,max(6,count($ticketOptions))); ?>
+<?php for ($ticketOptionIndex = 0; $ticketOptionIndex < $ticketOptionSlots; $ticketOptionIndex++): $ticketOptionNumber = $ticketOptionIndex + 1; $ticketOption=$ticketOptions[$ticketOptionIndex]??[]; ?>
 <div class="ticket-option-card">
 <div class="ticket-option-heading"><strong>Option <?=$ticketOptionNumber?></strong><span><?=$ticketOptionIndex===0?'Required':'Optional'?></span></div>
+<input type="hidden" name="ticket_option_id[]" value="<?=htmlspecialchars((string)($ticketOption['option_id']??''))?>">
 <div class="field-grid">
-<label>Name<input name="ticket_option_name[]" value="<?=$ticketOptionIndex===0?'General Support':''?>" maxlength="100" <?=$ticketOptionIndex===0?'required':''?> placeholder="e.g. Billing Support">
+<label>Name<input name="ticket_option_name[]" value="<?=htmlspecialchars((string)($ticketOption['name']??''))?>" maxlength="100" <?=$ticketOptionIndex===0?'required':''?> placeholder="e.g. Billing Support">
 </label>
-<label>Custom icon<input name="ticket_option_emoji[]" value="<?=$ticketOptionIndex===0?'🎫':''?>" maxlength="100" placeholder="Unicode or server emoji">
+<label>Custom icon<input name="ticket_option_emoji[]" value="<?=htmlspecialchars((string)($ticketOption['emoji']??''))?>" maxlength="100" placeholder="Unicode or server emoji">
 </label>
 </div>
-<label>Description<input name="ticket_option_description[]" value="<?=$ticketOptionIndex===0?'General questions and assistance':''?>" maxlength="100" placeholder="Shown under the option name">
+<label>Description<input name="ticket_option_description[]" value="<?=htmlspecialchars((string)($ticketOption['description']??''))?>" maxlength="100" placeholder="Shown under the option name">
 </label>
 <div class="field-grid">
-<div class="form-field"><span class="field-label">Ticket category</span><?=channel_picker($categories,$tickets['default_category_id'],"ticket_option_category_id[]","ticket-option-category-{$ticketOptionNumber}",$ticketOptionIndex===0,true)?></div>
-<div class="form-field"><span class="field-label">Support role</span><?=single_role_picker($roles,$tickets['support_role_ids'][0]??null,"ticket_option_support_role_id[]","ticket-option-role-{$ticketOptionNumber}")?></div>
+<div class="form-field"><span class="field-label">Ticket category</span><?=channel_picker($categories,$ticketOption['category_id']??($tickets['default_category_id']??null),"ticket_option_category_id[]","ticket-option-category-{$ticketOptionNumber}",$ticketOptionIndex===0,true)?></div>
+<div class="form-field"><span class="field-label">Support role</span><?=single_role_picker($roles,$ticketOption['support_role_id']??($tickets['support_role_ids'][0]??null),"ticket_option_support_role_id[]","ticket-option-role-{$ticketOptionNumber}")?></div>
 </div>
 </div>
 <?php endfor; ?>
 </div>
 <div class="ticket-media-builder">
 <div class="section-heading"><div><h4>Panel media</h4><p>All media links must be public HTTPS URLs. Header image is displayed as a separate banner above the content; footer image is Discord's small footer icon.</p></div></div>
-<label>Header image URL<input type="url" name="panel_header_image_url" placeholder="https://example.com/header.png"></label>
+<label>Header image URL<input type="url" name="panel_header_image_url" value="<?=htmlspecialchars((string)($ticketPanelEditor['header_image_url']??''))?>" placeholder="https://example.com/header.png"></label>
 <div class="field-grid">
-<label>Thumbnail URL<input type="url" name="panel_thumbnail_url" placeholder="https://example.com/icon.png"></label>
-<label>Body image URL<input type="url" name="panel_image_url" placeholder="https://example.com/body.png"></label>
+<label>Thumbnail URL<input type="url" name="panel_thumbnail_url" value="<?=htmlspecialchars((string)($ticketPanelEditor['thumbnail_url']??''))?>" placeholder="https://example.com/icon.png"></label>
+<label>Body image URL<input type="url" name="panel_image_url" value="<?=htmlspecialchars((string)($ticketPanelEditor['image_url']??''))?>" placeholder="https://example.com/body.png"></label>
 </div>
 <div class="field-grid">
-<label>Author name<input name="panel_author_name" maxlength="256" placeholder="Defaults to server name • Support centre"></label>
-<label>Author icon URL<input type="url" name="panel_author_icon_url" placeholder="https://example.com/author.png"></label>
+<label>Author name<input name="panel_author_name" maxlength="256" value="<?=htmlspecialchars((string)($ticketPanelEditor['author_name']??''))?>" placeholder="Defaults to server name • Support centre"></label>
+<label>Author icon URL<input type="url" name="panel_author_icon_url" value="<?=htmlspecialchars((string)($ticketPanelEditor['author_icon_url']??''))?>" placeholder="https://example.com/author.png"></label>
 </div>
 <div class="field-grid">
-<label>Footer text<input name="panel_footer_text" maxlength="2048" placeholder="Defaults to Rallybit Tickets and panel ID"></label>
-<label>Footer icon URL<input type="url" name="panel_footer_icon_url" placeholder="https://example.com/footer.png"></label>
+<label>Footer text<input name="panel_footer_text" maxlength="2048" value="<?=htmlspecialchars((string)($ticketPanelEditor['footer_text']??''))?>" placeholder="Defaults to Rallybit Tickets and panel ID"></label>
+<label>Footer icon URL<input type="url" name="panel_footer_icon_url" value="<?=htmlspecialchars((string)($ticketPanelEditor['footer_icon_url']??''))?>" placeholder="https://example.com/footer.png"></label>
 </div>
 </div>
 <div class="ticket-display-options">
-<label class="toggle-row"><input type="checkbox" name="panel_show_author" checked><span><strong>Show author</strong><small>Server branding or the custom author above.</small></span></label>
-<label class="toggle-row"><input type="checkbox" name="panel_show_option_details" checked><span><strong>Show option details</strong><small>List each dropdown choice inside the embed.</small></span></label>
-<label class="toggle-row"><input type="checkbox" name="panel_show_workload" checked><span><strong>Show workload</strong><small>Display the number of active tickets.</small></span></label>
-<label class="toggle-row"><input type="checkbox" name="panel_show_guidance" checked><span><strong>Show guidance</strong><small>Remind members what to include.</small></span></label>
-<label class="toggle-row"><input type="checkbox" name="panel_show_timestamp" checked><span><strong>Show timestamp</strong><small>Add the panel's latest refresh time.</small></span></label>
+<label class="toggle-row"><input type="checkbox" name="panel_show_author" <?=!empty($ticketPanelEditor['show_author'])?'checked':''?>><span><strong>Show author</strong><small>Server branding or the custom author above.</small></span></label>
+<label class="toggle-row"><input type="checkbox" name="panel_show_option_details" <?=!empty($ticketPanelEditor['show_option_details'])?'checked':''?>><span><strong>Show option details</strong><small>List each dropdown choice inside the embed.</small></span></label>
+<label class="toggle-row"><input type="checkbox" name="panel_show_workload" <?=!empty($ticketPanelEditor['show_workload'])?'checked':''?>><span><strong>Show workload</strong><small>Display the number of active tickets.</small></span></label>
+<label class="toggle-row"><input type="checkbox" name="panel_show_guidance" <?=!empty($ticketPanelEditor['show_guidance'])?'checked':''?>><span><strong>Show guidance</strong><small>Remind members what to include.</small></span></label>
+<label class="toggle-row"><input type="checkbox" name="panel_show_timestamp" <?=!empty($ticketPanelEditor['show_timestamp'])?'checked':''?>><span><strong>Show timestamp</strong><small>Add the panel's latest refresh time.</small></span></label>
 </div>
-<button class="button primary full" type="submit">Publish dropdown panel</button>
+<button class="button primary full" type="submit"><i class="bi <?=!empty($ticketPanelEditor['panel_id'])?'bi-check2':'bi-send'?>"></i> <?=!empty($ticketPanelEditor['panel_id'])?'Update original ticket panel':'Publish dropdown panel'?></button>
 </form>
 </div>
 </section>
@@ -1240,11 +1355,13 @@ document.querySelectorAll('[data-embed-editor]').forEach(function(form){
   function render(){
     if(!preview)return;
     var title=form.querySelector('[data-embed-title]').value.trim();
+    var content=form.querySelector('[data-embed-content]').value.trim();
     var author=form.querySelector('[data-embed-author]').value.trim();
     var description=form.querySelector('[data-embed-description]').value.trim();
     var footer=form.querySelector('[data-embed-footer]').value.trim();
     var image=form.querySelector('[data-embed-image]').value.trim();
     preview.style.setProperty('--embed-colour',form.querySelector('[data-embed-colour]').value);
+    var contentPreview=document.querySelector('[data-preview-content]');contentPreview.textContent=content;contentPreview.hidden=!content;
     preview.querySelector('[data-preview-title]').textContent=title||'Embed title';
     preview.querySelector('[data-preview-author]').textContent=author;
     preview.querySelector('[data-preview-author]').hidden=!author;

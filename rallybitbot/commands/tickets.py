@@ -5,6 +5,7 @@ import io
 import re
 import unicodedata
 import uuid
+from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -60,6 +61,16 @@ def _panels() -> dict[str, Any]:
 
 def _save_panels(data: dict[str, Any]) -> None:
     save_json(TICKET_PANELS_FILE, data)
+
+
+def ticket_panel_by_message(guild_id: int, message_id: int) -> tuple[str, dict[str, Any]] | None:
+    guild_panels = _panels().get(str(guild_id), {})
+    if not isinstance(guild_panels, dict):
+        return None
+    for panel_id, panel in guild_panels.items():
+        if isinstance(panel, dict) and str(panel.get("message_id")) == str(message_id):
+            return str(panel_id), deepcopy(panel)
+    return None
 
 
 def _open() -> dict[str, Any]:
@@ -983,7 +994,8 @@ async def create_ticket_panel(
         candidate = dict(option)
         candidate.setdefault("category_id", category.id)
         candidate.setdefault("support_role_ids", [support_role.id] if support_role else [])
-        candidate.setdefault("option_id", uuid.uuid4().hex[:8].upper())
+        if not str(candidate.get("option_id") or "").strip():
+            candidate["option_id"] = uuid.uuid4().hex[:8].upper()
         normalised_options.append(_normalise_panel_option(candidate, f"OPTION-{index}"))
     if not normalised_options:
         raise RuntimeError("Add at least one ticket option before publishing the panel.")
@@ -1014,6 +1026,100 @@ async def create_ticket_panel(
     from core.bot import client
     client.add_view(view)
     return panel_id
+
+
+async def update_ticket_panel(
+    guild: discord.Guild,
+    panel_id: str,
+    *,
+    name: str,
+    title: str,
+    description: str,
+    options: list[dict[str, Any]],
+    select_placeholder: str,
+    color: str,
+    author_name: str = "",
+    author_icon_url: str = "",
+    header_image_url: str = "",
+    thumbnail_url: str = "",
+    image_url: str = "",
+    footer_text: str = "",
+    footer_icon_url: str = "",
+    show_author: bool = True,
+    show_option_details: bool = True,
+    show_workload: bool = True,
+    show_guidance: bool = True,
+    show_timestamp: bool = True,
+) -> dict[str, Any]:
+    panel_id = panel_id.upper()
+    data = _panels()
+    existing = data.get(str(guild.id), {}).get(panel_id)
+    if not isinstance(existing, dict):
+        raise RuntimeError("That ticket panel is no longer available.")
+    media_values = {
+        "author icon": author_icon_url,
+        "header image": header_image_url,
+        "thumbnail": thumbnail_url,
+        "body image": image_url,
+        "footer icon": footer_icon_url,
+    }
+    invalid_media = [
+        label
+        for label, value in media_values.items()
+        if str(value or "").strip() and not _safe_media_url(value)
+    ]
+    if invalid_media:
+        raise RuntimeError(f"The {invalid_media[0]} must be a public HTTPS URL.")
+    previous_options = {
+        str(option.get("option_id") or "").upper(): option
+        for option in _panel_options(existing)
+        if str(option.get("option_id") or "").strip()
+    }
+    normalised_options: list[dict[str, Any]] = []
+    for index, option in enumerate(options[:MAX_PANEL_OPTIONS], start=1):
+        if not isinstance(option, dict):
+            continue
+        option_id = str(option.get("option_id") or "").strip().upper()
+        candidate = {**previous_options.get(option_id, {}), **option}
+        if not str(candidate.get("option_id") or "").strip():
+            candidate["option_id"] = uuid.uuid4().hex[:8].upper()
+        normalised_options.append(_normalise_panel_option(candidate, f"OPTION-{index}"))
+    if not normalised_options:
+        raise RuntimeError("A ticket panel must contain at least one dropdown option.")
+    previous = deepcopy(existing)
+    first_option = normalised_options[0]
+    updated = deepcopy(existing)
+    updated.update({
+        "name": name.strip()[:80] or str(first_option["name"])[:80],
+        "category_id": first_option.get("category_id"),
+        "title": title.strip()[:256],
+        "description": description.strip()[:4000],
+        "support_role_ids": list(first_option.get("support_role_ids", [])),
+        "select_placeholder": select_placeholder.strip()[:150] or "Select a ticket type…",
+        "options": normalised_options,
+        "color": f"#{_panel_colour(color):06X}",
+        "author_name": author_name.strip()[:256],
+        "author_icon_url": _safe_media_url(author_icon_url),
+        "header_image_url": _safe_media_url(header_image_url),
+        "thumbnail_url": _safe_media_url(thumbnail_url),
+        "image_url": _safe_media_url(image_url),
+        "footer_text": footer_text.strip()[:2048],
+        "footer_icon_url": _safe_media_url(footer_icon_url),
+        "show_author": bool(show_author),
+        "show_option_details": bool(show_option_details),
+        "show_workload": bool(show_workload),
+        "show_guidance": bool(show_guidance),
+        "show_timestamp": bool(show_timestamp),
+    })
+    data.setdefault(str(guild.id), {})[panel_id] = updated
+    _save_panels(data)
+    view = TicketPanelView(guild.id, panel_id, updated)
+    if not await _refresh_ticket_panel_message(guild, panel_id, updated, view):
+        data[str(guild.id)][panel_id] = previous
+        _save_panels(data)
+        await _refresh_ticket_panel_message(guild, panel_id, previous, TicketPanelView(guild.id, panel_id, previous))
+        raise RuntimeError("Rallybit could not update the original ticket message, so the saved panel was restored.")
+    return updated
 
 
 async def add_ticket_panel_option(

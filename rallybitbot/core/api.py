@@ -144,6 +144,7 @@ def _dashboard_embed_payload(message: discord.Message, embed_index: int) -> dict
         "embed_index": embed_index + 1,
         "embed_count": len(message.embeds),
         "jump_url": message.jump_url,
+        "content": str(message.content or ""),
         "title": str(payload.get("title") or ""),
         "title_url": str(payload.get("url") or ""),
         "description": str(payload.get("description") or ""),
@@ -165,6 +166,54 @@ def _dashboard_embed_payload(message: discord.Message, embed_index: int) -> dict
             }
             for field in payload.get("fields", [])
             if isinstance(field, dict)
+        ],
+    }
+
+
+def _ticket_panel_dashboard_payload(
+    guild: discord.Guild,
+    panel_id: str,
+    panel: dict[str, Any],
+    options: list[dict[str, Any]],
+) -> dict[str, Any]:
+    channel_id = str(panel.get("channel_id") or "")
+    message_id = str(panel.get("message_id") or "")
+    return {
+        "panel_id": panel_id,
+        "message_id": message_id,
+        "channel_id": channel_id,
+        "jump_url": (
+            f"https://discord.com/channels/{guild.id}/{channel_id}/{message_id}"
+            if channel_id.isdigit() and message_id.isdigit()
+            else ""
+        ),
+        "name": str(panel.get("name") or "Support"),
+        "title": str(panel.get("title") or "How can we help?"),
+        "description": str(panel.get("description") or ""),
+        "select_placeholder": str(panel.get("select_placeholder") or "Select a ticket type…"),
+        "color": str(panel.get("color") or "#7C6CFF"),
+        "author_name": str(panel.get("author_name") or ""),
+        "author_icon_url": str(panel.get("author_icon_url") or ""),
+        "header_image_url": str(panel.get("header_image_url") or ""),
+        "thumbnail_url": str(panel.get("thumbnail_url") or ""),
+        "image_url": str(panel.get("image_url") or ""),
+        "footer_text": str(panel.get("footer_text") or ""),
+        "footer_icon_url": str(panel.get("footer_icon_url") or ""),
+        "show_author": bool(panel.get("show_author", True)),
+        "show_option_details": bool(panel.get("show_option_details", True)),
+        "show_workload": bool(panel.get("show_workload", True)),
+        "show_guidance": bool(panel.get("show_guidance", True)),
+        "show_timestamp": bool(panel.get("show_timestamp", True)),
+        "options": [
+            {
+                "option_id": str(option.get("option_id") or ""),
+                "name": str(option.get("name") or "Support"),
+                "description": str(option.get("description") or ""),
+                "emoji": str(option.get("emoji") or ""),
+                "category_id": str(option.get("category_id") or ""),
+                "support_role_id": str((option.get("support_role_ids") or [""])[0]),
+            }
+            for option in options
         ],
     }
 
@@ -417,9 +466,32 @@ async def _dashboard_action_async(payload):
     if not isinstance(actor, discord.Member):
         raise RuntimeError("You must still be a member of this server to run dashboard actions.")
 
-    if action in {"embed.load", "embed.update"}:
+    if action in {"embed.load", "embed.update", "embed.send"}:
         if not (actor.guild_permissions.manage_messages or actor.guild_permissions.administrator):
             raise RuntimeError("You need Manage Messages to use the embed editor.")
+        if action == "embed.send":
+            if not isinstance(channel, discord.TextChannel):
+                raise RuntimeError("Choose a text channel to send the embed to.")
+            bot_member = guild.me
+            permissions = channel.permissions_for(bot_member) if bot_member else None
+            if permissions is None or not permissions.send_messages or not permissions.embed_links:
+                raise RuntimeError(f"Rallybit needs Send Messages and Embed Links in #{channel.name}.")
+            embed = _dashboard_embed_from_params(params)
+            content = str(params.get("content") or "").strip()[:2000]
+            try:
+                message = await channel.send(
+                    content=content or None,
+                    embed=embed,
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
+            except discord.Forbidden as exc:
+                raise RuntimeError("Rallybit no longer has permission to send messages in that channel.") from exc
+            except discord.HTTPException as exc:
+                raise RuntimeError(f"Discord rejected the embed message: {exc}") from exc
+            return {
+                "message": f"Sent a new embed message in #{channel.name}.",
+                "embed": _dashboard_embed_payload(message, 0),
+            }
         try:
             message_id = int(params.get("message_id", 0))
             embed_index = int(params.get("embed_index", 1)) - 1
@@ -438,8 +510,13 @@ async def _dashboard_action_async(payload):
             replacement = _dashboard_embed_from_params(params)
             embeds = list(message.embeds)
             embeds[embed_index] = replacement
+            content = str(params.get("content") or "").strip()[:2000]
             try:
-                message = await message.edit(embeds=embeds)
+                message = await message.edit(
+                    content=content or None,
+                    embeds=embeds,
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
             except discord.Forbidden as exc:
                 raise RuntimeError("Rallybit no longer has permission to edit that message.") from exc
             except discord.HTTPException as exc:
@@ -587,19 +664,59 @@ async def _dashboard_action_async(payload):
         if not isinstance(target, discord.TextChannel) or role is None: raise RuntimeError("Configure a panel channel and verified role first.")
         message = await publish_verification_panel(guild, target, role, remove_role, str(params.get("title") or cfg.get("title") or "Verify your account"), str(params.get("description") or cfg.get("description") or "Press the button below to verify."), str(params.get("button_label") or cfg.get("button_label") or "Verify"))
         return {"message": f"Verification panel published in #{target.name}.", "message_id": str(message.id)}
-    if action == "ticket.panel":
-        from commands.tickets import create_ticket_panel
+    if action in {"ticket.panel", "ticket.panel.load", "ticket.panel.update"}:
+        from commands.tickets import (
+            _panel_options,
+            _panels,
+            create_ticket_panel,
+            ticket_panel_by_message,
+            update_ticket_panel,
+        )
         from config.config import TICKET_SETTINGS_FILE
         from storage.json_store import load_json
 
+        if not (actor.guild_permissions.manage_messages or actor.guild_permissions.administrator):
+            raise RuntimeError("You need Manage Messages to publish or edit ticket panels.")
+        if action == "ticket.panel.load":
+            try:
+                message_id = int(params.get("message_id") or 0)
+            except (TypeError, ValueError) as exc:
+                raise RuntimeError("Enter a valid Discord message ID.") from exc
+            found = ticket_panel_by_message(guild.id, message_id)
+            if found is None:
+                raise RuntimeError("That message is not a saved Rallybit ticket panel in this server.")
+            panel_id, panel = found
+            panel_channel = guild.get_channel(int(panel.get("channel_id") or 0))
+            if not isinstance(panel_channel, discord.TextChannel):
+                raise RuntimeError("The saved ticket panel channel is no longer available.")
+            try:
+                panel_message = await panel_channel.fetch_message(message_id)
+            except (discord.Forbidden, discord.NotFound, discord.HTTPException) as exc:
+                raise RuntimeError("Rallybit could not access that saved ticket panel message.") from exc
+            if guild.me is None or panel_message.author.id != guild.me.id:
+                raise RuntimeError("Rallybit can only edit ticket panels it originally sent.")
+            return {
+                "message": f"Loaded ticket panel {panel_id} from #{panel_channel.name}.",
+                "panel": _ticket_panel_dashboard_payload(guild, panel_id, panel, _panel_options(panel)),
+            }
+
         cfg = (load_json(TICKET_SETTINGS_FILE) or {}).get(str(guild.id), {})
-        target = channel
+        panel_id = str(params.get("panel_id") or "").strip().upper()
+        if action == "ticket.panel.update":
+            existing_panel = _panels().get(str(guild.id), {}).get(panel_id)
+            if not isinstance(existing_panel, dict):
+                raise RuntimeError("That ticket panel is no longer available. Load it again.")
+            if str(params.get("message_id") or "") != str(existing_panel.get("message_id") or ""):
+                raise RuntimeError("The loaded ticket message changed. Load the panel again before saving.")
+            target = guild.get_channel(int(existing_panel.get("channel_id") or 0))
+        else:
+            target = channel
         configured_options = params.get("options")
         first_option_category = None
         if isinstance(configured_options, list):
             first_option = next((row for row in configured_options if isinstance(row, dict) and row.get("category_id")), None)
             first_option_category = first_option.get("category_id") if first_option else None
-        category_id = params.get("category_id") or cfg.get("default_category_id") or first_option_category
+        category_id = params.get("category_id") or first_option_category or cfg.get("default_category_id")
         category = guild.get_channel(int(category_id or 0))
         configured_roles = cfg.get("support_role_ids", []) if isinstance(cfg, dict) else []
         support_role_id = params.get("support_role_id") or (configured_roles[0] if configured_roles else None)
@@ -627,14 +744,17 @@ async def _dashboard_action_async(payload):
                 option_role = guild.get_role(int(option_role_id)) if option_role_id else support_role
                 if option_role_id and option_role is None:
                     raise RuntimeError(f"Choose a valid support role for the {option_name[:100]} ticket option.")
-                panel_options.append({
+                panel_option = {
                     "name": option_name,
                     "description": str(raw_option.get("description") or "Speak privately with the support team."),
                     "emoji": str(raw_option.get("emoji") or ""),
                     "category_id": option_category.id,
                     "support_role_ids": [option_role.id] if option_role else [],
                     "ticket_name": str(raw_option.get("ticket_name") or ""),
-                })
+                }
+                if str(raw_option.get("option_id") or "").strip():
+                    panel_option["option_id"] = str(raw_option["option_id"]).strip()
+                panel_options.append(panel_option)
         if not panel_options:
             panel_options = [{
                 "name": str(params.get("name") or "Support"),
@@ -643,6 +763,35 @@ async def _dashboard_action_async(payload):
                 "category_id": category.id,
                 "support_role_ids": [support_role.id] if support_role else [],
             }]
+        if action == "ticket.panel.update":
+            saved_panel = await update_ticket_panel(
+                guild,
+                panel_id,
+                name=str(params.get("name") or panel_options[0]["name"]),
+                title=str(params.get("title") or "How can we help?"),
+                description=str(params.get("description") or "Choose the ticket type that best matches what you need. Your conversation will be private."),
+                options=panel_options,
+                select_placeholder=str(params.get("select_placeholder") or "Select a ticket type..."),
+                color=str(params.get("color") or "#7C6CFF"),
+                author_name=str(params.get("author_name") or ""),
+                author_icon_url=str(params.get("author_icon_url") or ""),
+                header_image_url=str(params.get("header_image_url") or ""),
+                thumbnail_url=str(params.get("thumbnail_url") or ""),
+                image_url=str(params.get("image_url") or ""),
+                footer_text=str(params.get("footer_text") or ""),
+                footer_icon_url=str(params.get("footer_icon_url") or ""),
+                show_author=bool(params.get("show_author", True)),
+                show_option_details=bool(params.get("show_option_details", True)),
+                show_workload=bool(params.get("show_workload", True)),
+                show_guidance=bool(params.get("show_guidance", True)),
+                show_timestamp=bool(params.get("show_timestamp", True)),
+            )
+            return {
+                "message": f"Ticket dropdown {panel_id} with {len(panel_options)} option(s) updated in #{target.name}.",
+                "panel_id": panel_id,
+                "panel": _ticket_panel_dashboard_payload(guild, panel_id, saved_panel, _panel_options(saved_panel)),
+            }
+
         panel_id = await create_ticket_panel(
             guild, target, category, str(params.get("name") or panel_options[0]["name"]),
             str(params.get("title") or "How can we help?"),
@@ -667,6 +816,12 @@ async def _dashboard_action_async(payload):
         return {
             "message": f"Ticket dropdown {panel_id} with {len(panel_options)} option(s) published in #{target.name}.",
             "panel_id": panel_id,
+            "panel": _ticket_panel_dashboard_payload(
+                guild,
+                panel_id,
+                _panels()[str(guild.id)][panel_id],
+                _panel_options(_panels()[str(guild.id)][panel_id]),
+            ),
         }
     if action == "reactionrole.add":
         from config.config import REACTION_ROLES_FILE

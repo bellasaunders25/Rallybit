@@ -60,12 +60,14 @@ class EmbedEditorTests(unittest.TestCase):
             channel=SimpleNamespace(id=456, name="updates"),
             embeds=[embed],
             jump_url="https://discord.com/channels/1/456/123",
+            content="Status details",
         )
         payload = api._dashboard_embed_payload(message, 0)
         self.assertEqual(payload["message_id"], "123")
         self.assertEqual(payload["channel_id"], "456")
         self.assertEqual(payload["title"], "Loaded")
         self.assertEqual(payload["color"], "#7567EE")
+        self.assertEqual(payload["content"], "Status details")
         self.assertEqual(payload["fields"], [{"name": "One", "value": "First", "inline": False}])
 
     def test_message_lookup_uses_selected_channel_or_scans_accessible_channels(self) -> None:

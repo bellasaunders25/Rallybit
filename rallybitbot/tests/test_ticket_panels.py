@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import discord
 from discord import app_commands
@@ -149,6 +149,95 @@ class TicketPanelTests(unittest.TestCase):
             {command.name for command in panel_group.commands},
             {"create", "add-option", "remove-option", "list", "delete"},
         )
+
+    def test_panel_can_be_found_from_its_discord_message_id(self) -> None:
+        saved = {
+            str(_Guild.id): {
+                "ABC12345": {"message_id": "987654321012345678", "title": "Support"},
+            }
+        }
+        with patch.object(tickets, "_panels", return_value=saved):
+            found = tickets.ticket_panel_by_message(_Guild.id, 987654321012345678)
+        self.assertIsNotNone(found)
+        panel_id, panel = found
+        self.assertEqual(panel_id, "ABC12345")
+        self.assertEqual(panel["title"], "Support")
+        panel["title"] = "Changed copy"
+        self.assertEqual(saved[str(_Guild.id)]["ABC12345"]["title"], "Support")
+
+    def test_ticket_panel_update_preserves_message_and_option_identity(self) -> None:
+        saved = {
+            str(_Guild.id): {
+                "ABC12345": {
+                    "panel_id": "ABC12345",
+                    "message_id": "987654321012345678",
+                    "channel_id": "111",
+                    "title": "Old title",
+                    "options": [{"option_id": "GENERAL", "name": "General", "welcome_message": "Saved welcome"}],
+                }
+            }
+        }
+        with (
+            patch.object(tickets, "_panels", return_value=saved),
+            patch.object(tickets, "_save_panels") as save_panels,
+            patch.object(tickets, "_refresh_ticket_panel_message", new=AsyncMock(return_value=True)) as refresh,
+        ):
+            updated = asyncio.run(tickets.update_ticket_panel(
+                _Guild(),
+                "ABC12345",
+                name="Help",
+                title="New title",
+                description="Choose a team.",
+                options=[{
+                    "option_id": "GENERAL",
+                    "name": "General Help",
+                    "description": "Questions",
+                    "category_id": "222",
+                    "support_role_ids": ["333"],
+                }],
+                select_placeholder="Choose support",
+                color="#287CFF",
+            ))
+        self.assertEqual(updated["message_id"], "987654321012345678")
+        self.assertEqual(updated["channel_id"], "111")
+        self.assertEqual(updated["options"][0]["option_id"], "GENERAL")
+        self.assertEqual(updated["options"][0]["welcome_message"], "Saved welcome")
+        self.assertEqual(updated["title"], "New title")
+        save_panels.assert_called_once()
+        refresh.assert_awaited_once()
+
+    def test_failed_ticket_panel_message_update_rolls_saved_configuration_back(self) -> None:
+        saved = {
+            str(_Guild.id): {
+                "ABC12345": {
+                    "panel_id": "ABC12345",
+                    "message_id": "987654321012345678",
+                    "channel_id": "111",
+                    "title": "Original title",
+                    "options": [{"option_id": "GENERAL", "name": "General"}],
+                }
+            }
+        }
+        refresh = AsyncMock(side_effect=[False, True])
+        with (
+            patch.object(tickets, "_panels", return_value=saved),
+            patch.object(tickets, "_save_panels") as save_panels,
+            patch.object(tickets, "_refresh_ticket_panel_message", new=refresh),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "saved panel was restored"):
+                asyncio.run(tickets.update_ticket_panel(
+                    _Guild(),
+                    "ABC12345",
+                    name="Help",
+                    title="Rejected title",
+                    description="Choose a team.",
+                    options=[{"option_id": "GENERAL", "name": "General"}],
+                    select_placeholder="Choose support",
+                    color="#287CFF",
+                ))
+        self.assertEqual(saved[str(_Guild.id)]["ABC12345"]["title"], "Original title")
+        self.assertEqual(save_panels.call_count, 2)
+        self.assertEqual(refresh.await_count, 2)
 
 
 if __name__ == "__main__":
