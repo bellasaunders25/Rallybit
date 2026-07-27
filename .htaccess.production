@@ -23,6 +23,10 @@ RewriteEngine On
 RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK) [NC]
 RewriteRule .* - [F]
 
+# Runtime bot data is private. Temporary Prettfy reviews are served only
+# through the token-validating PHP endpoint.
+RewriteRule ^rallybitbot/data(?:/|$) - [F,L,NC]
+
 RewriteRule ^id/([a-zA-Z0-9._-]+)/?$ dashboard/profile.php?u=$1 [L,QSA]
 RewriteRule ^profile/?$ dashboard/profile.php [L,QSA]
 
