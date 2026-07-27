@@ -131,6 +131,35 @@ class PrettfyTests(unittest.TestCase):
         self.assertEqual(parsed["summary"], "Naming plan ready.")
         self.assertFalse(parsed["permission_review_recommended"])
 
+    def test_response_parser_recovers_wrapped_aliases_and_json_arrays(self) -> None:
+        wrapped = {
+            "choices": [{
+                "message": {
+                    "content": json.dumps({
+                        "result": {
+                            "channels": [{
+                                "channel_id": "1",
+                                "proposed_name": "『📢』news",
+                                "explanation": "Consistent",
+                            }],
+                        },
+                    }),
+                },
+            }],
+        }
+        array = {
+            "choices": [{
+                "message": {
+                    "content": "```json\n" + json.dumps([{
+                        "id": "2",
+                        "suggested_name": "『💬』chat",
+                    }]) + "\n```",
+                },
+            }],
+        }
+        self.assertEqual(prettfy._response_plan(wrapped)["renames"][0]["id"], "1")
+        self.assertEqual(prettfy._response_plan(array)["renames"][0]["new_name"], "『💬』chat")
+
     def test_openrouter_retries_one_malformed_plan(self) -> None:
         valid = {
             "summary": "Retry worked",
@@ -235,10 +264,11 @@ class PrettfyTests(unittest.TestCase):
         self.assertEqual({row["id"] for row in result["renames"]}, {row["id"] for row in inventory})
         self.assertTrue(any("batch 2/2" in message for message in progress))
 
-    def test_openrouter_reports_two_malformed_plans_safely(self) -> None:
+    def test_openrouter_reports_three_incomplete_plans_safely(self) -> None:
         responses = [
             _Response({"choices": [{"message": {"content": "not json"}}]}),
             _Response({"choices": [{"message": {"content": "still not json"}}]}),
+            _Response({"choices": [{"message": {"content": "never became json"}}]}),
         ]
         retries: list[str] = []
         with patch.object(prettfy, "OPENROUTER_API_KEY", "private-test-key"), patch.object(
@@ -246,7 +276,7 @@ class PrettfyTests(unittest.TestCase):
             "urlopen",
             side_effect=responses,
         ) as urlopen:
-            with self.assertRaisesRegex(prettfy.PrettfyError, "malformed naming plan twice") as raised:
+            with self.assertRaisesRegex(prettfy.PrettfyError, "incomplete naming plan three times") as raised:
                 prettfy.request_plan(
                     item_type="channels",
                     inventory=[{"id": "1", "name": "general", "kind": "text"}],
@@ -254,8 +284,8 @@ class PrettfyTests(unittest.TestCase):
                     style="Clean",
                     retry_callback=retries.append,
                 )
-        self.assertEqual(urlopen.call_count, 2)
-        self.assertEqual(len(retries), 1)
+        self.assertEqual(urlopen.call_count, 3)
+        self.assertEqual(len(retries), 2)
         self.assertNotIn("private-test-key", str(raised.exception))
 
     def test_openrouter_retries_unsupported_content_shape(self) -> None:

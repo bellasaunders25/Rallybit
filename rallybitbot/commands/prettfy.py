@@ -302,28 +302,115 @@ def _response_content(response: dict[str, Any]) -> str:
     raise MalformedPlanError("OpenRouter returned an unsupported response format.")
 
 
-def _decode_json_object(content: str) -> dict[str, Any]:
+def _decode_json_values(content: str) -> list[Any]:
     text = content.strip().lstrip("\ufeff")
     fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", text, flags=re.IGNORECASE | re.DOTALL)
     if fenced:
         text = fenced.group(1).strip()
     candidates = [text]
-    candidates.extend(text[index:] for index, character in enumerate(text) if character == "{")
+    candidates.extend(text[index:] for index, character in enumerate(text) if character in "{[")
     decoder = json.JSONDecoder()
+    decoded: list[Any] = []
     for candidate in candidates:
         try:
             payload, _end = decoder.raw_decode(candidate.lstrip())
         except json.JSONDecodeError:
             continue
-        if isinstance(payload, dict):
-            return payload
+        if isinstance(payload, (dict, list)) and payload not in decoded:
+            decoded.append(payload)
+    if decoded:
+        return decoded
     raise MalformedPlanError("No JSON object was found in the model response.")
 
 
+def _coerce_rename_rows(rows: Any) -> list[dict[str, str]] | None:
+    if isinstance(rows, dict) and rows and all(str(key).isdigit() for key in rows):
+        rows = [
+            {
+                "id": str(item_id),
+                "new_name": value if not isinstance(value, dict) else value.get("new_name", value.get("name")),
+                "reason": "Generated naming plan" if not isinstance(value, dict) else value.get("reason", "Generated naming plan"),
+            }
+            for item_id, value in rows.items()
+        ]
+    if not isinstance(rows, list):
+        return None
+    if not rows:
+        return []
+    converted: list[dict[str, str]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            return None
+        item_id = row.get(
+            "id",
+            row.get("channel_id", row.get("channelId", row.get("role_id", row.get("roleId")))),
+        )
+        new_name = row.get(
+            "new_name",
+            row.get(
+                "newName",
+                row.get("new", row.get("proposed_name", row.get("suggested_name", row.get("name")))),
+            ),
+        )
+        if item_id is None or new_name is None:
+            return None
+        converted.append({
+            "id": str(item_id),
+            "new_name": str(new_name),
+            "reason": str(row.get("reason", row.get("explanation", "Generated naming plan"))),
+        })
+    return converted
+
+
+def _find_plan_payload(payload: Any, depth: int = 0) -> dict[str, Any] | None:
+    if depth > 4:
+        return None
+    if isinstance(payload, list):
+        rows = _coerce_rename_rows(payload)
+        return {"renames": rows} if rows is not None else None
+    if isinstance(payload, str):
+        try:
+            decoded = json.loads(payload)
+        except json.JSONDecodeError:
+            return None
+        return _find_plan_payload(decoded, depth + 1)
+    if not isinstance(payload, dict):
+        return None
+    rows = _coerce_rename_rows(payload)
+    if rows is not None:
+        return {"renames": rows}
+    rows = _coerce_rename_rows(payload.get("renames"))
+    if rows is not None:
+        result = dict(payload)
+        result["renames"] = rows
+        return result
+    for key in ("channels", "channel_renames", "roles", "role_renames", "changes", "items"):
+        rows = _coerce_rename_rows(payload.get(key))
+        if rows is not None:
+            result = dict(payload)
+            result["renames"] = rows
+            return result
+    for key in ("plan", "naming_plan", "result", "data", "output", "response"):
+        if key in payload:
+            nested = _find_plan_payload(payload[key], depth + 1)
+            if nested is not None:
+                for metadata_key in ("summary", "permission_review_recommended", "permission_notes"):
+                    if metadata_key in payload and metadata_key not in nested:
+                        nested[metadata_key] = payload[metadata_key]
+                return nested
+    for value in payload.values():
+        if isinstance(value, (dict, list, str)):
+            nested = _find_plan_payload(value, depth + 1)
+            if nested is not None:
+                return nested
+    return None
+
+
 def _normalise_plan_payload(payload: Any) -> dict[str, Any]:
-    if not isinstance(payload, dict) or not isinstance(payload.get("renames"), list):
+    located = _find_plan_payload(payload)
+    if located is None:
         raise MalformedPlanError("The model response did not contain a rename list.")
-    result = dict(payload)
+    result = dict(located)
     result["summary"] = str(result.get("summary") or "Naming plan ready.")[:500]
     result["permission_review_recommended"] = bool(result.get("permission_review_recommended", False))
     notes = result.get("permission_notes", [])
@@ -346,7 +433,18 @@ def _response_plan(response: dict[str, Any]) -> dict[str, Any]:
     content = message.get("content")
     if isinstance(content, dict):
         return _normalise_plan_payload(content)
-    return _normalise_plan_payload(_decode_json_object(_response_content(response)))
+    if isinstance(content, list):
+        try:
+            return _normalise_plan_payload(content)
+        except MalformedPlanError:
+            pass
+    last_error: MalformedPlanError | None = None
+    for payload in _decode_json_values(_response_content(response)):
+        try:
+            return _normalise_plan_payload(payload)
+        except MalformedPlanError as exc:
+            last_error = exc
+    raise last_error or MalformedPlanError("The model response did not contain a naming plan.")
 
 
 def _require_channel_coverage(payload: dict[str, Any], inventory: list[dict[str, str]]) -> None:
@@ -437,15 +535,18 @@ def request_plan(
         "max_tokens": max(2048, min(12000, len(inventory) * 100)),
     }
     last_format_error: MalformedPlanError | None = None
-    for attempt in range(2):
+    repair_content = ""
+    for attempt in range(3):
         attempt_body = dict(body)
         attempt_body["messages"] = list(body["messages"])
         if attempt:
+            if repair_content:
+                attempt_body["messages"].append({"role": "assistant", "content": repair_content[:12000]})
             attempt_body["messages"].append({
                 "role": "user",
                 "content": (
-                    "Return the requested naming plan now as one complete JSON object only. Do not use markdown fences or "
-                    "explanatory text. Include every inventory ID exactly once."
+                    "Repair the previous response. Return one complete JSON object matching the requested schema only. Do not "
+                    "use markdown fences or explanatory text. Include every inventory ID exactly once."
                 ),
             })
         request = urllib.request.Request(
@@ -482,10 +583,14 @@ def request_plan(
                 return result
             except MalformedPlanError as exc:
                 last_format_error = exc
-        if attempt == 0 and retry_callback:
-            retry_callback("The first response was malformed. Retrying once with stricter JSON instructions…")
+                try:
+                    repair_content = _response_content(response)
+                except MalformedPlanError:
+                    repair_content = ""
+        if attempt < 2 and retry_callback:
+            retry_callback(f"Response {attempt + 1} was incomplete. Repairing the JSON plan (attempt {attempt + 2}/3)…")
     raise PrettfyError(
-        "OpenRouter returned a malformed naming plan twice. No changes were made. Please run `/prettfy` again."
+        "OpenRouter returned an incomplete naming plan three times. No changes were made. Please run `/prettfy` again."
     ) from last_format_error
 
 
