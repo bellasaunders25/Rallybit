@@ -44,6 +44,7 @@ $reviews = load_guild_file_settings(REVIEW_SETTINGS_FILE, $guild_id, $reviewDefa
 $automationsAll = load_json_data(AUTOMATION_SCHEDULES_FILE); $automations = is_array($automationsAll[$guild_id] ?? null) ? $automationsAll[$guild_id] : [];
 $message = '';
 $error = '';
+$embedEditor = null;
 
 function clean_id(mixed $value): ?string {
     $id = preg_replace('/\D/', '', (string)$value);
@@ -51,12 +52,73 @@ function clean_id(mixed $value): ?string {
 }
 function bool_post(string $key): bool { return isset($_POST[$key]); }
 function selected_value(mixed $a, mixed $b): string { return (string)$a === (string)$b ? ' selected' : ''; }
+function posted_embed_editor(): array {
+    $fieldNames = is_array($_POST['embed_field_name'] ?? null) ? $_POST['embed_field_name'] : [];
+    $fieldValues = is_array($_POST['embed_field_value'] ?? null) ? $_POST['embed_field_value'] : [];
+    $fieldInline = is_array($_POST['embed_field_inline'] ?? null) ? $_POST['embed_field_inline'] : [];
+    $fields = [];
+    foreach ($fieldNames as $index => $rawName) {
+        $name = trim((string)$rawName);
+        $value = trim((string)($fieldValues[$index] ?? ''));
+        if ($name === '' && $value === '') continue;
+        $fields[] = ['name'=>$name,'value'=>$value,'inline'=>isset($fieldInline[$index])];
+        if (count($fields) >= 25) break;
+    }
+    return [
+        'channel_id'=>clean_id($_POST['embed_channel_id'] ?? ''),
+        'message_id'=>clean_id($_POST['embed_message_id'] ?? ''),
+        'embed_index'=>max(1,min(10,(int)($_POST['embed_index'] ?? 1))),
+        'embed_count'=>max(1,(int)($_POST['embed_count'] ?? 1)),
+        'jump_url'=>trim((string)($_POST['embed_jump_url'] ?? '')),
+        'channel_name'=>trim((string)($_POST['embed_channel_name'] ?? 'channel')),
+        'title'=>trim((string)($_POST['embed_title'] ?? '')),
+        'title_url'=>trim((string)($_POST['embed_title_url'] ?? '')),
+        'description'=>trim((string)($_POST['embed_description'] ?? '')),
+        'color'=>trim((string)($_POST['embed_color'] ?? '#7C6CFF')),
+        'author_name'=>trim((string)($_POST['embed_author_name'] ?? '')),
+        'author_url'=>trim((string)($_POST['embed_author_url'] ?? '')),
+        'author_icon_url'=>trim((string)($_POST['embed_author_icon_url'] ?? '')),
+        'thumbnail_url'=>trim((string)($_POST['embed_thumbnail_url'] ?? '')),
+        'image_url'=>trim((string)($_POST['embed_image_url'] ?? '')),
+        'footer_text'=>trim((string)($_POST['embed_footer_text'] ?? '')),
+        'footer_icon_url'=>trim((string)($_POST['embed_footer_icon_url'] ?? '')),
+        'timestamp'=>trim((string)($_POST['embed_timestamp'] ?? '')),
+        'show_timestamp'=>bool_post('embed_show_timestamp'),
+        'fields'=>$fields,
+    ];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     validate_csrf_token($_POST['csrf_token'] ?? '');
     $operation = (string)($_POST['operation'] ?? '');
     try {
-        if ($operation === 'live_action') {
+        if ($operation === 'load_embed') {
+            $params = [
+                'channel_id'=>clean_id($_POST['embed_lookup_channel_id'] ?? ''),
+                'message_id'=>clean_id($_POST['embed_lookup_message_id'] ?? ''),
+                'embed_index'=>max(1,min(10,(int)($_POST['embed_lookup_index'] ?? 1))),
+            ];
+            if (!$params['message_id']) throw new RuntimeException('Enter the Discord message ID you want to edit.');
+            $result = run_bot_action($guild_id, (string)$_SESSION['user_id'], 'embed.load', array_filter($params, static fn($v) => $v !== null && $v !== ''));
+            if (!empty($result['ok']) && is_array($result['embed'] ?? null)) {
+                $embedEditor = $result['embed'];
+                $message = (string)($result['message'] ?? 'Embed loaded.');
+            } else {
+                $error = (string)($result['error'] ?? 'The embed could not be loaded.');
+            }
+        } elseif ($operation === 'update_embed') {
+            $embedEditor = posted_embed_editor();
+            if (!$embedEditor['message_id']) throw new RuntimeException('The message ID is missing. Load the embed again.');
+            $params = $embedEditor;
+            $params['show_timestamp'] = !empty($embedEditor['show_timestamp']);
+            $result = run_bot_action($guild_id, (string)$_SESSION['user_id'], 'embed.update', $params);
+            if (!empty($result['ok'])) {
+                if (is_array($result['embed'] ?? null)) $embedEditor = $result['embed'];
+                $message = (string)($result['message'] ?? 'Embed updated.');
+            } else {
+                $error = (string)($result['error'] ?? 'The embed could not be updated.');
+            }
+        } elseif ($operation === 'live_action') {
             $action = trim((string)($_POST['action'] ?? ''));
             $ticketPanelOptions = [];
             $optionNames = is_array($_POST['ticket_option_name'] ?? null) ? $_POST['ticket_option_name'] : [];
@@ -361,7 +423,7 @@ function role_label(array $roles, mixed $roleId): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard/style.css?v=5.9">
+<link rel="stylesheet" href="/dashboard/style.css?v=6.0">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body>
@@ -397,6 +459,7 @@ function role_label(array $roles, mixed $roleId): string {
 <button type="button" data-module-target="levels"><i class="bi bi-bar-chart"></i><span>Levels</span></button>
 <button type="button" data-module-target="autoroles"><i class="bi bi-people"></i><span>Autoroles</span></button>
 <button type="button" data-module-target="verification"><i class="bi bi-patch-check"></i><span>Verification</span></button>
+<button type="button" data-module-target="embeds"><i class="bi bi-card-text"></i><span>Embeds</span></button>
 <button type="button" data-module-target="tickets"><i class="bi bi-ticket-perforated"></i><span>Tickets</span></button>
 <button type="button" data-module-target="reviews"><i class="bi bi-star"></i><span>Reviews</span></button>
 <button type="button" data-module-target="moderation"><i class="bi bi-shield-exclamation"></i><span>Moderation</span></button>
@@ -678,6 +741,105 @@ function role_label(array $roles, mixed $roleId): string {
 </label>
 <button class="button primary" type="submit">Save verification</button>
 </form>
+</section>
+
+<section class="panel embed-panel" data-module-view="embeds" hidden>
+<div class="panel-heading">
+<span><i class="bi bi-card-text"></i></span>
+<div>
+<h2>Embed editor</h2>
+<p>Load a Rallybit message, edit its embed, and update the same Discord message.</p>
+</div>
+</div>
+<form method="post" action="#embeds" class="settings-stack embed-loader">
+<input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>">
+<input type="hidden" name="operation" value="load_embed">
+<div class="section-heading"><div><h3>Load an existing embed</h3><p>The message ID works by itself. Choosing its channel makes the lookup faster.</p></div></div>
+<div class="field-grid embed-lookup-grid">
+<div class="form-field"><span class="field-label">Channel <small>Optional</small></span><?=channel_picker($channels,$embedEditor['channel_id']??null,'embed_lookup_channel_id','embed-lookup-channel-picker')?></div>
+<label>Message ID<input name="embed_lookup_message_id" inputmode="numeric" pattern="[0-9]{15,22}" required value="<?=htmlspecialchars((string)($embedEditor['message_id']??''))?>" placeholder="123456789012345678"></label>
+<label>Embed number<input type="number" name="embed_lookup_index" min="1" max="10" value="<?=htmlspecialchars((string)($embedEditor['embed_index']??1))?>"><small>Most messages use embed 1.</small></label>
+</div>
+<button class="button secondary" type="submit"><i class="bi bi-download"></i> Load embed</button>
+</form>
+
+<?php if(is_array($embedEditor)): $embedFields=is_array($embedEditor['fields']??null)?$embedEditor['fields']:[]; if(!$embedFields)$embedFields=[['name'=>'','value'=>'','inline'=>false]]; ?>
+<div class="embed-loaded-bar">
+<div><span>Loaded from #<?=htmlspecialchars((string)($embedEditor['channel_name']??'channel'))?></span><strong>Message <?=htmlspecialchars((string)($embedEditor['message_id']??''))?> · Embed <?=htmlspecialchars((string)($embedEditor['embed_index']??1))?> of <?=htmlspecialchars((string)($embedEditor['embed_count']??1))?></strong></div>
+<?php if(!empty($embedEditor['jump_url'])):?><a class="button secondary" href="<?=htmlspecialchars((string)$embedEditor['jump_url'])?>" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right"></i> Open in Discord</a><?php endif;?>
+</div>
+<div class="embed-editor-workspace">
+<form method="post" action="#embeds" class="settings-stack embed-editor-form" data-embed-editor>
+<input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>">
+<input type="hidden" name="operation" value="update_embed">
+<input type="hidden" name="embed_channel_id" value="<?=htmlspecialchars((string)($embedEditor['channel_id']??''))?>">
+<input type="hidden" name="embed_message_id" value="<?=htmlspecialchars((string)($embedEditor['message_id']??''))?>">
+<input type="hidden" name="embed_index" value="<?=htmlspecialchars((string)($embedEditor['embed_index']??1))?>">
+<input type="hidden" name="embed_count" value="<?=htmlspecialchars((string)($embedEditor['embed_count']??1))?>">
+<input type="hidden" name="embed_jump_url" value="<?=htmlspecialchars((string)($embedEditor['jump_url']??''))?>">
+<input type="hidden" name="embed_channel_name" value="<?=htmlspecialchars((string)($embedEditor['channel_name']??'channel'))?>">
+<input type="hidden" name="embed_timestamp" value="<?=htmlspecialchars((string)($embedEditor['timestamp']??''))?>">
+<div class="field-grid">
+<label>Title<input name="embed_title" maxlength="256" value="<?=htmlspecialchars((string)($embedEditor['title']??''))?>" data-embed-title></label>
+<label>Title link<input type="url" name="embed_title_url" maxlength="2048" value="<?=htmlspecialchars((string)($embedEditor['title_url']??''))?>" placeholder="https://example.com" data-embed-title-url></label>
+</div>
+<label>Description<textarea name="embed_description" rows="6" maxlength="4096" data-embed-description><?=htmlspecialchars((string)($embedEditor['description']??''))?></textarea></label>
+<div class="field-grid">
+<label>Colour<input type="color" name="embed_color" value="<?=htmlspecialchars((string)($embedEditor['color']??'#7C6CFF'))?>" data-embed-colour></label>
+<label class="toggle-row embed-timestamp-toggle"><input type="checkbox" name="embed_show_timestamp" <?=!empty($embedEditor['show_timestamp'])?'checked':''?>><span><strong>Show timestamp</strong><small>Keeps the original timestamp, or adds the current time.</small></span></label>
+</div>
+<div class="embed-form-group">
+<div class="section-heading"><div><h4>Author</h4><p>The author name is required when using its icon or link.</p></div></div>
+<label>Author name<input name="embed_author_name" maxlength="256" value="<?=htmlspecialchars((string)($embedEditor['author_name']??''))?>" data-embed-author></label>
+<div class="field-grid">
+<label>Author link<input type="url" name="embed_author_url" maxlength="2048" value="<?=htmlspecialchars((string)($embedEditor['author_url']??''))?>"></label>
+<label>Author icon<input type="url" name="embed_author_icon_url" maxlength="2048" value="<?=htmlspecialchars((string)($embedEditor['author_icon_url']??''))?>"></label>
+</div>
+</div>
+<div class="embed-form-group">
+<div class="section-heading"><div><h4>Images</h4><p>Use public HTTPS image links.</p></div></div>
+<div class="field-grid">
+<label>Thumbnail URL<input type="url" name="embed_thumbnail_url" maxlength="2048" value="<?=htmlspecialchars((string)($embedEditor['thumbnail_url']??''))?>"></label>
+<label>Main image URL<input type="url" name="embed_image_url" maxlength="2048" value="<?=htmlspecialchars((string)($embedEditor['image_url']??''))?>" data-embed-image></label>
+</div>
+</div>
+<div class="embed-form-group">
+<div class="section-heading"><div><h4>Fields</h4><p>Add up to 25 labelled sections.</p></div><button type="button" class="button secondary compact" data-add-embed-field><i class="bi bi-plus-lg"></i> Add field</button></div>
+<div class="embed-fields" data-embed-fields>
+<?php foreach($embedFields as $fieldIndex=>$field):?>
+<div class="embed-field-row" data-embed-field>
+<div class="embed-field-heading"><strong>Field <span data-embed-field-number><?=($fieldIndex+1)?></span></strong><button type="button" class="icon-button danger" data-remove-embed-field aria-label="Remove field"><i class="bi bi-trash3"></i></button></div>
+<input name="embed_field_name[<?=$fieldIndex?>]" maxlength="256" value="<?=htmlspecialchars((string)($field['name']??''))?>" placeholder="Field name">
+<textarea name="embed_field_value[<?=$fieldIndex?>]" maxlength="1024" rows="3" placeholder="Field value"><?=htmlspecialchars((string)($field['value']??''))?></textarea>
+<label class="embed-inline-check"><input type="checkbox" name="embed_field_inline[<?=$fieldIndex?>]" value="1" <?=!empty($field['inline'])?'checked':''?>> Display inline</label>
+</div>
+<?php endforeach;?>
+</div>
+<template data-embed-field-template><div class="embed-field-row" data-embed-field><div class="embed-field-heading"><strong>Field <span data-embed-field-number>1</span></strong><button type="button" class="icon-button danger" data-remove-embed-field aria-label="Remove field"><i class="bi bi-trash3"></i></button></div><input name="embed_field_name[__INDEX__]" maxlength="256" placeholder="Field name"><textarea name="embed_field_value[__INDEX__]" maxlength="1024" rows="3" placeholder="Field value"></textarea><label class="embed-inline-check"><input type="checkbox" name="embed_field_inline[__INDEX__]" value="1"> Display inline</label></div></template>
+</div>
+<div class="embed-form-group">
+<div class="section-heading"><div><h4>Footer</h4><p>Footer text is required when using a footer icon.</p></div></div>
+<label>Footer text<input name="embed_footer_text" maxlength="2048" value="<?=htmlspecialchars((string)($embedEditor['footer_text']??''))?>" data-embed-footer></label>
+<label>Footer icon<input type="url" name="embed_footer_icon_url" maxlength="2048" value="<?=htmlspecialchars((string)($embedEditor['footer_icon_url']??''))?>"></label>
+</div>
+<div class="permission-note"><i class="bi bi-shield-check"></i><p>Only the selected embed is replaced. Other embeds, message text, attachments, buttons, and dropdowns remain unchanged.</p></div>
+<button class="button primary full" type="submit"><i class="bi bi-check2"></i> Update Discord message</button>
+</form>
+<aside class="embed-preview-panel">
+<span class="kicker">Live preview</span>
+<div class="discord-embed-preview" data-embed-preview style="--embed-colour:<?=htmlspecialchars((string)($embedEditor['color']??'#7C6CFF'))?>">
+<small data-preview-author><?=htmlspecialchars((string)($embedEditor['author_name']??''))?></small>
+<strong data-preview-title><?=htmlspecialchars((string)($embedEditor['title']??'Embed title'))?></strong>
+<p data-preview-description><?=nl2br(htmlspecialchars((string)($embedEditor['description']??'Your embed description will appear here.')))?></p>
+<div data-preview-fields></div>
+<img src="<?=htmlspecialchars((string)($embedEditor['image_url']??''))?>" alt="" data-preview-image <?=empty($embedEditor['image_url'])?'hidden':''?>>
+<small data-preview-footer><?=htmlspecialchars((string)($embedEditor['footer_text']??''))?></small>
+</div>
+</aside>
+</div>
+<?php else:?>
+<div class="embed-empty-state"><i class="bi bi-inbox"></i><div><strong>No embed loaded</strong><p>Paste a message ID above. Rallybit will bring the embed into the editor without changing Discord.</p></div></div>
+<?php endif;?>
 </section>
 
 <section class="panel ticket-panel" data-module-view="tickets" hidden>
@@ -1054,6 +1216,61 @@ document.querySelectorAll('[data-role-picker]').forEach(function(picker){
   picker.addEventListener('keydown',function(event){if(event.key==='Escape'){close();trigger.focus();}});
   document.addEventListener('click',function(event){if(!picker.contains(event.target))close();});
   update();
+});
+document.querySelectorAll('[data-embed-editor]').forEach(function(form){
+  var fields=form.querySelector('[data-embed-fields]');
+  var template=form.querySelector('[data-embed-field-template]');
+  var addButton=form.querySelector('[data-add-embed-field]');
+  var preview=document.querySelector('[data-embed-preview]');
+  function rows(){return Array.from(fields.querySelectorAll('[data-embed-field]'));}
+  function reindex(){
+    rows().forEach(function(row,index){
+      row.querySelector('[data-embed-field-number]').textContent=index+1;
+      row.querySelectorAll('input,textarea').forEach(function(input){input.name=input.name.replace(/\[\d+\]/,'['+index+']');});
+    });
+    addButton.disabled=rows().length>=25;
+  }
+  function bindRow(row){
+    row.querySelector('[data-remove-embed-field]').addEventListener('click',function(){
+      if(rows().length===1){row.querySelectorAll('input,textarea').forEach(function(input){if(input.type==='checkbox')input.checked=false;else input.value='';});}
+      else row.remove();
+      reindex();render();
+    });
+  }
+  function render(){
+    if(!preview)return;
+    var title=form.querySelector('[data-embed-title]').value.trim();
+    var author=form.querySelector('[data-embed-author]').value.trim();
+    var description=form.querySelector('[data-embed-description]').value.trim();
+    var footer=form.querySelector('[data-embed-footer]').value.trim();
+    var image=form.querySelector('[data-embed-image]').value.trim();
+    preview.style.setProperty('--embed-colour',form.querySelector('[data-embed-colour]').value);
+    preview.querySelector('[data-preview-title]').textContent=title||'Embed title';
+    preview.querySelector('[data-preview-author]').textContent=author;
+    preview.querySelector('[data-preview-author]').hidden=!author;
+    preview.querySelector('[data-preview-description]').textContent=description||'Your embed description will appear here.';
+    preview.querySelector('[data-preview-footer]').textContent=footer;
+    preview.querySelector('[data-preview-footer]').hidden=!footer;
+    var imageElement=preview.querySelector('[data-preview-image]');
+    imageElement.hidden=!image;if(image)imageElement.src=image;
+    var fieldPreview=preview.querySelector('[data-preview-fields]');fieldPreview.textContent='';
+    rows().forEach(function(row){
+      var inputs=row.querySelectorAll('input,textarea');
+      var name=inputs[0].value.trim();var value=inputs[1].value.trim();
+      if(!name&&!value)return;
+      var item=document.createElement('div');if(inputs[2]&&inputs[2].checked)item.classList.add('inline');
+      var strong=document.createElement('strong');strong.textContent=name||'Field name';
+      var paragraph=document.createElement('p');paragraph.textContent=value||'Field value';
+      item.append(strong,paragraph);fieldPreview.appendChild(item);
+    });
+  }
+  rows().forEach(bindRow);
+  addButton.addEventListener('click',function(){
+    if(rows().length>=25)return;
+    var wrapper=document.createElement('div');wrapper.innerHTML=template.innerHTML.replaceAll('__INDEX__',String(rows().length)).trim();
+    var row=wrapper.firstElementChild;fields.appendChild(row);bindRow(row);reindex();render();row.querySelector('input').focus();
+  });
+  form.addEventListener('input',render);form.addEventListener('change',render);reindex();render();
 });
 </script>
 </body>

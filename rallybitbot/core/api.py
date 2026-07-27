@@ -5,11 +5,13 @@ import hmac
 import json
 import os
 import platform
+import re
 import sys
 import time
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import discord
 import psutil
@@ -61,6 +63,137 @@ def _guild_from_payload(payload):
         return discord_bot.get_guild(int(payload.get("guild_id", 0)))
     except (TypeError, ValueError):
         return None
+
+
+def _dashboard_https_url(value: Any, label: str) -> str:
+    url = str(value or "").strip()
+    if not url:
+        return ""
+    parsed = urlsplit(url)
+    if parsed.scheme != "https" or not parsed.netloc or len(url) > 2048:
+        raise RuntimeError(f"{label} must be a valid public HTTPS URL.")
+    return url
+
+
+def _dashboard_embed_from_params(params: dict[str, Any]) -> discord.Embed:
+    title = str(params.get("title") or "").strip()[:256]
+    description = str(params.get("description") or "").strip()[:4096]
+    colour_text = str(params.get("color") or "#7C6CFF").strip().lstrip("#")
+    if not re.fullmatch(r"[0-9a-fA-F]{6}", colour_text):
+        raise RuntimeError("Embed colour must be a six-digit hex colour such as #7C6CFF.")
+    title_url = _dashboard_https_url(params.get("title_url"), "Title link")
+    embed = discord.Embed(
+        title=title or None,
+        url=title_url or None,
+        description=description or None,
+        colour=int(colour_text, 16),
+    )
+    author_name = str(params.get("author_name") or "").strip()[:256]
+    author_url = _dashboard_https_url(params.get("author_url"), "Author link")
+    author_icon = _dashboard_https_url(params.get("author_icon_url"), "Author icon")
+    if author_name:
+        embed.set_author(name=author_name, url=author_url or None, icon_url=author_icon or None)
+    elif author_url or author_icon:
+        raise RuntimeError("Enter an author name before adding an author link or icon.")
+    thumbnail = _dashboard_https_url(params.get("thumbnail_url"), "Thumbnail")
+    image = _dashboard_https_url(params.get("image_url"), "Image")
+    if thumbnail:
+        embed.set_thumbnail(url=thumbnail)
+    if image:
+        embed.set_image(url=image)
+    footer_text = str(params.get("footer_text") or "").strip()[:2048]
+    footer_icon = _dashboard_https_url(params.get("footer_icon_url"), "Footer icon")
+    if footer_text:
+        embed.set_footer(text=footer_text, icon_url=footer_icon or None)
+    elif footer_icon:
+        raise RuntimeError("Enter footer text before adding a footer icon.")
+    fields = params.get("fields")
+    if isinstance(fields, list):
+        for raw_field in fields[:25]:
+            if not isinstance(raw_field, dict):
+                continue
+            name = str(raw_field.get("name") or "").strip()[:256]
+            value = str(raw_field.get("value") or "").strip()[:1024]
+            if not name and not value:
+                continue
+            if not name or not value:
+                raise RuntimeError("Every embed field needs both a name and a value.")
+            embed.add_field(name=name, value=value, inline=bool(raw_field.get("inline")))
+    if params.get("show_timestamp"):
+        timestamp_text = str(params.get("timestamp") or "").strip()
+        timestamp = discord.utils.parse_time(timestamp_text) if timestamp_text else None
+        embed.timestamp = timestamp or discord.utils.utcnow()
+    character_count = len(embed.title or "") + len(embed.description or "")
+    character_count += len(embed.author.name or "") + len(embed.footer.text or "")
+    character_count += sum(len(field.name) + len(field.value) for field in embed.fields)
+    if character_count > 6000:
+        raise RuntimeError("This embed exceeds Discord's 6,000-character total limit.")
+    if not any((embed.title, embed.description, embed.fields, embed.image.url, embed.thumbnail.url, embed.footer.text)):
+        raise RuntimeError("The embed cannot be empty.")
+    return embed
+
+
+def _dashboard_embed_payload(message: discord.Message, embed_index: int) -> dict[str, Any]:
+    embed = message.embeds[embed_index]
+    payload = embed.to_dict()
+    colour = embed.colour.value if embed.colour else 0x7C6CFF
+    return {
+        "channel_id": str(message.channel.id),
+        "channel_name": str(getattr(message.channel, "name", "channel")),
+        "message_id": str(message.id),
+        "embed_index": embed_index + 1,
+        "embed_count": len(message.embeds),
+        "jump_url": message.jump_url,
+        "title": str(payload.get("title") or ""),
+        "title_url": str(payload.get("url") or ""),
+        "description": str(payload.get("description") or ""),
+        "color": f"#{colour:06X}",
+        "author_name": str((payload.get("author") or {}).get("name") or ""),
+        "author_url": str((payload.get("author") or {}).get("url") or ""),
+        "author_icon_url": str((payload.get("author") or {}).get("icon_url") or ""),
+        "thumbnail_url": str((payload.get("thumbnail") or {}).get("url") or ""),
+        "image_url": str((payload.get("image") or {}).get("url") or ""),
+        "footer_text": str((payload.get("footer") or {}).get("text") or ""),
+        "footer_icon_url": str((payload.get("footer") or {}).get("icon_url") or ""),
+        "timestamp": str(payload.get("timestamp") or ""),
+        "show_timestamp": bool(payload.get("timestamp")),
+        "fields": [
+            {
+                "name": str(field.get("name") or ""),
+                "value": str(field.get("value") or ""),
+                "inline": bool(field.get("inline")),
+            }
+            for field in payload.get("fields", [])
+            if isinstance(field, dict)
+        ],
+    }
+
+
+async def _find_dashboard_message(
+    guild: discord.Guild,
+    message_id: int,
+    preferred_channel: Any = None,
+) -> discord.Message:
+    candidates: list[Any] = []
+    if preferred_channel is not None and hasattr(preferred_channel, "fetch_message"):
+        candidates.append(preferred_channel)
+    else:
+        candidates.extend(guild.text_channels)
+        candidates.extend(getattr(guild, "threads", []))
+    seen: set[int] = set()
+    for candidate in candidates:
+        if candidate.id in seen:
+            continue
+        seen.add(candidate.id)
+        try:
+            return await candidate.fetch_message(message_id)
+        except (discord.NotFound, discord.Forbidden):
+            continue
+        except discord.HTTPException:
+            continue
+    if preferred_channel is not None:
+        raise RuntimeError("That message was not found in the selected channel.")
+    raise RuntimeError("That message ID was not found in any accessible text channel or active thread.")
 
 def auth(req) -> bool:
     return bool(API_SECRET) and hmac.compare_digest(req.headers.get("X-Api-Key", "").strip(), API_SECRET)
@@ -283,6 +416,42 @@ async def _dashboard_action_async(payload):
     actor = guild.get_member(actor_id)
     if not isinstance(actor, discord.Member):
         raise RuntimeError("You must still be a member of this server to run dashboard actions.")
+
+    if action in {"embed.load", "embed.update"}:
+        if not (actor.guild_permissions.manage_messages or actor.guild_permissions.administrator):
+            raise RuntimeError("You need Manage Messages to use the embed editor.")
+        try:
+            message_id = int(params.get("message_id", 0))
+            embed_index = int(params.get("embed_index", 1)) - 1
+        except (TypeError, ValueError) as exc:
+            raise RuntimeError("Enter a valid Discord message ID and embed number.") from exc
+        if message_id <= 0 or embed_index < 0 or embed_index > 9:
+            raise RuntimeError("Enter a valid Discord message ID and an embed number from 1 to 10.")
+        message = await _find_dashboard_message(guild, message_id, channel)
+        if guild.me is None or message.author.id != guild.me.id:
+            raise RuntimeError("Rallybit can only edit embeds on messages it originally sent.")
+        if not message.embeds:
+            raise RuntimeError("That Rallybit message does not contain an embed.")
+        if embed_index >= len(message.embeds):
+            raise RuntimeError(f"That message contains {len(message.embeds)} embed(s). Choose an available embed number.")
+        if action == "embed.update":
+            replacement = _dashboard_embed_from_params(params)
+            embeds = list(message.embeds)
+            embeds[embed_index] = replacement
+            try:
+                message = await message.edit(embeds=embeds)
+            except discord.Forbidden as exc:
+                raise RuntimeError("Rallybit no longer has permission to edit that message.") from exc
+            except discord.HTTPException as exc:
+                raise RuntimeError(f"Discord rejected the embed update: {exc}") from exc
+            return {
+                "message": f"Updated embed {embed_index + 1} on message {message.id} in #{getattr(message.channel, 'name', 'channel')}.",
+                "embed": _dashboard_embed_payload(message, embed_index),
+            }
+        return {
+            "message": f"Loaded embed {embed_index + 1} from #{getattr(message.channel, 'name', 'channel')}.",
+            "embed": _dashboard_embed_payload(message, embed_index),
+        }
 
     if action == "activity.start":
         from commands.activity import get_guild_settings, launch_activity_check

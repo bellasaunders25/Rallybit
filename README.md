@@ -223,6 +223,8 @@ Ticket launchers use one persistent select menu instead of a separate message fo
 
 The dashboard publisher also supports an optional header banner, thumbnail, main image, custom author, footer text and footer icon, accent colour, timestamp, workload, guidance, and in-embed option details. Media must use public HTTPS URLs. Older Rallybit button panels are read as one-option dropdowns and refreshed without discarding their saved routing.
 
+The dashboard **Embeds** module can load an existing Rallybit-authored Discord message using its message ID. A channel can be selected to speed up lookup, but is optional. Administrators can edit any rich-embed slot on that message, including its title, link, description, colour, author, HTTPS images, fields, footer, and timestamp. Updating replaces only the selected embed and preserves the message content, attachments, components, and other embeds. Messages authored by members, webhooks, or other bots cannot be edited.
+
 ### Safe role commands
 
 `/role give` and `/role remove` enforce the acting moderator's role hierarchy as well as Rallybit's. `/role temp` supports days, weeks, 30-day months, and 365-day years, persists timers across restarts, displays a compact live nickname countdown, and restores the member's original nickname after their final temporary role ends. A custom base nickname is optional and additionally requires Manage Nicknames.
