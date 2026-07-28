@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from storage.json_store import load_json, save_json
+
 from config.config import (
     BOT_PRESENCE_STATUS,
     BOT_PROFILE_AVATAR_URL,
@@ -10,6 +10,7 @@ from config.config import (
     DASHBOARD_URL,
     SUPPORT_SERVER_URL,
 )
+from storage.json_store import load_json, save_json
 
 DEFAULT_BOT_SETTINGS = {
     "activitycheck": {"active": True, "is_unlimited": True},
@@ -19,7 +20,7 @@ DEFAULT_BOT_SETTINGS = {
     "global": {
         "support_server": SUPPORT_SERVER_URL,
         "dashboard_url": DASHBOARD_URL,
-        "version": "7.2.1",
+        "version": "8.1",
         "max_winners": 100,
         "max_duration": 1440,
         "presence_status": BOT_PRESENCE_STATUS if BOT_PRESENCE_STATUS in {"online", "idle", "dnd", "offline"} else "online",
@@ -51,6 +52,7 @@ def get_bot_settings() -> dict:
     # values (especially an old localhost development URL) override them.
     global_settings["dashboard_url"] = DASHBOARD_URL
     global_settings["support_server"] = SUPPORT_SERVER_URL
+    global_settings["version"] = "8.1"
     for key in list(global_settings):
         if any(word in key.lower() for word in ("premium", "price", "payment", "coupon", "trial", "billing")):
             global_settings.pop(key, None)
@@ -63,7 +65,7 @@ def save_bot_settings(settings: dict) -> None:
 
 
 def get_branding() -> tuple[str, str]:
-    version = get_bot_settings().get("global", {}).get("version", "7.2.1")
+    version = get_bot_settings().get("global", {}).get("version", "8.1")
     return "Rallybit", f"Build {version}"
 
 
