@@ -1,0 +1,17 @@
+services:
+  rallybit:
+    build: .
+    container_name: rallybit
+    restart: unless-stopped
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      # Flask must listen on the container interface. The published port below
+      # remains restricted to the Docker host, where the PHP dashboard runs.
+      API_HOST: 0.0.0.0
+      API_PORT: 8080
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - .:/app

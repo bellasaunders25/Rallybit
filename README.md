@@ -283,7 +283,9 @@ For a separately branded or self-hosted instance, create a separate Discord appl
 
 Point the web root at the `Rallybit` directory. Keep `rallybitbot/` blocked from public web access; the included `.htaccess` files deny direct access on Apache.
 
-For production, run the bot under a service manager such as systemd, Docker, or a managed process host. Keep the bot API bound to localhost where the website and bot share a server.
+For production, run the bot under a service manager such as systemd, Docker, or a managed process host. Keep the bot API private where the website and bot share a server.
+
+The included `rallybitbot/compose.yaml` exposes the bot API only on the Docker host's loopback address (`127.0.0.1:8080`). Inside the container it overrides `API_HOST` to `0.0.0.0`, which is required for Docker's loopback port mapping to reach Flask. The dashboard can therefore keep `BOT_API_URL=http://127.0.0.1:8080` without exposing the API to the network. Start or refresh it from `rallybitbot/` with `docker-compose up -d --build` (or `docker compose up -d --build` on Compose v2).
 
 ## Live recovery data
 
