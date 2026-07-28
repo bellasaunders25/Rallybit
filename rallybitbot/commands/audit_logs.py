@@ -82,6 +82,21 @@ async def on_message_edit(before: discord.Message, after: discord.Message) -> No
     )
 
 
+async def on_bulk_message_delete(messages: list[discord.Message]) -> None:
+    visible = [message for message in messages if message.guild is not None and not message.author.bot]
+    if not visible:
+        return
+    first = visible[0]
+    await emit_audit_event(
+        first.guild,
+        "messages",
+        "Messages bulk deleted",
+        f"**{len(visible)}** cached messages were removed in one bulk action.",
+        target=f"Messages in #{getattr(first.channel, 'name', 'unknown')}",
+        channel=first.channel,
+    )
+
+
 async def on_member_join(member: discord.Member) -> None:
     await emit_audit_event(
         member.guild,
@@ -187,6 +202,103 @@ async def on_guild_channel_update(before: discord.abc.GuildChannel, after: disco
         actor, reason = await _recent_audit_actor(after.guild, discord.AuditLogAction.channel_update, after.id)
         fields.extend(_reason_field(reason))
         await emit_audit_event(after.guild, "channels", "Channel updated", f"Changes were detected for {after.mention}.", actor=actor, target=f"{after.name} (`{after.id}`)", channel=after, fields=fields)
+
+
+async def on_thread_create(thread: discord.Thread) -> None:
+    actor, reason = await _recent_audit_actor(thread.guild, discord.AuditLogAction.thread_create, thread.id)
+    await emit_audit_event(thread.guild, "channels", "Thread created", f"{thread.mention} was created.", actor=actor, target=f"{thread.name} (`{thread.id}`)", channel=thread, fields=_reason_field(reason))
+
+
+async def on_thread_delete(thread: discord.Thread) -> None:
+    actor, reason = await _recent_audit_actor(thread.guild, discord.AuditLogAction.thread_delete, thread.id)
+    await emit_audit_event(thread.guild, "channels", "Thread deleted", f"**{thread.name}** was deleted.", actor=actor, target=f"{thread.name} (`{thread.id}`)", fields=_reason_field(reason))
+
+
+async def on_thread_update(before: discord.Thread, after: discord.Thread) -> None:
+    fields = []
+    for attribute, label in (("name", "Name"), ("archived", "Archived"), ("locked", "Locked"), ("slowmode_delay", "Slowmode")):
+        if _changed(before, after, attribute):
+            fields.append((label, f"`{getattr(before, attribute, None)}` → `{getattr(after, attribute, None)}`", False))
+    if not fields:
+        return
+    actor, reason = await _recent_audit_actor(after.guild, discord.AuditLogAction.thread_update, after.id)
+    fields.extend(_reason_field(reason))
+    await emit_audit_event(after.guild, "channels", "Thread updated", f"Changes were detected for {after.mention}.", actor=actor, target=f"{after.name} (`{after.id}`)", channel=after, fields=fields)
+
+
+def _inventory_changes(before: Any, after: Any) -> tuple[str, str]:
+    before_by_id = {int(item.id): item for item in before}
+    after_by_id = {int(item.id): item for item in after}
+    added = [str(item.name) for item_id, item in after_by_id.items() if item_id not in before_by_id]
+    removed = [str(item.name) for item_id, item in before_by_id.items() if item_id not in after_by_id]
+    renamed = [f"{before_by_id[item_id].name} → {item.name}" for item_id, item in after_by_id.items() if item_id in before_by_id and before_by_id[item_id].name != item.name]
+    summary = []
+    if added:
+        summary.append(f"Added: {', '.join(added[:20])}")
+    if removed:
+        summary.append(f"Removed: {', '.join(removed[:20])}")
+    if renamed:
+        summary.append(f"Renamed: {', '.join(renamed[:20])}")
+    return "\n".join(summary), "added" if added and not removed and not renamed else "removed" if removed and not added and not renamed else "updated"
+
+
+async def on_guild_emojis_update(guild: discord.Guild, before: Any, after: Any) -> None:
+    summary, action = _inventory_changes(before, after)
+    if summary:
+        await emit_audit_event(guild, "configuration", "Emoji inventory updated", summary, target=f"Server emojis ({action})")
+
+
+async def on_guild_stickers_update(guild: discord.Guild, before: Any, after: Any) -> None:
+    summary, action = _inventory_changes(before, after)
+    if summary:
+        await emit_audit_event(guild, "configuration", "Sticker inventory updated", summary, target=f"Server stickers ({action})")
+
+
+async def on_invite_create(invite: discord.Invite) -> None:
+    guild = invite.guild
+    if not isinstance(guild, discord.Guild):
+        return
+    await emit_audit_event(guild, "security", "Invite created", f"Invite `{invite.code}` was created.", actor=invite.inviter, target=f"discord.gg/{invite.code}", channel=invite.channel)
+
+
+async def on_invite_delete(invite: discord.Invite) -> None:
+    guild = invite.guild
+    if not isinstance(guild, discord.Guild):
+        return
+    await emit_audit_event(guild, "security", "Invite deleted", f"Invite `{invite.code}` was deleted or expired.", target=f"discord.gg/{invite.code}", channel=invite.channel)
+
+
+async def on_webhooks_update(channel: discord.abc.GuildChannel) -> None:
+    await emit_audit_event(channel.guild, "configuration", "Webhooks updated", f"A webhook was created, changed or deleted in {channel.mention}.", target=f"#{channel.name}", channel=channel)
+
+
+async def on_guild_update(before: discord.Guild, after: discord.Guild) -> None:
+    fields = []
+    for attribute, label in (("name", "Name"), ("description", "Description"), ("verification_level", "Verification level"), ("default_notifications", "Default notifications"), ("explicit_content_filter", "Content filter")):
+        if _changed(before, after, attribute):
+            fields.append((label, f"`{getattr(before, attribute, None)}` → `{getattr(after, attribute, None)}`", False))
+    if not fields:
+        return
+    actor, reason = await _recent_audit_actor(after, discord.AuditLogAction.guild_update, after.id)
+    fields.extend(_reason_field(reason))
+    await emit_audit_event(after, "configuration", "Server settings updated", "The Discord server profile or safety settings changed.", actor=actor, target=f"{after.name} (`{after.id}`)", fields=fields)
+
+
+async def on_scheduled_event_create(event: discord.ScheduledEvent) -> None:
+    await emit_audit_event(event.guild, "configuration", "Scheduled event created", f"**{event.name}** was created.", target=f"{event.name} (`{event.id}`)")
+
+
+async def on_scheduled_event_delete(event: discord.ScheduledEvent) -> None:
+    await emit_audit_event(event.guild, "configuration", "Scheduled event deleted", f"**{event.name}** was deleted.", target=f"{event.name} (`{event.id}`)")
+
+
+async def on_scheduled_event_update(before: discord.ScheduledEvent, after: discord.ScheduledEvent) -> None:
+    fields = []
+    for attribute, label in (("name", "Name"), ("status", "Status"), ("start_time", "Start"), ("end_time", "End"), ("channel_id", "Channel")):
+        if _changed(before, after, attribute):
+            fields.append((label, f"`{getattr(before, attribute, None)}` → `{getattr(after, attribute, None)}`", False))
+    if fields:
+        await emit_audit_event(after.guild, "configuration", "Scheduled event updated", f"Changes were detected for **{after.name}**.", target=f"{after.name} (`{after.id}`)", fields=fields)
 
 
 async def on_voice_state_update(member: discord.Member, before: discord.VoiceState, after: discord.VoiceState) -> None:

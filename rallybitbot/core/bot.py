@@ -129,6 +129,9 @@ class BotClient(discord.AutoShardedClient):
         from commands.afk import setup_afk_commands
         from commands.analytics import setup_analytics_commands
         from commands.audit_logs import (
+            on_bulk_message_delete as audit_on_bulk_message_delete,
+        )
+        from commands.audit_logs import (
             on_guild_channel_create as audit_on_guild_channel_create,
         )
         from commands.audit_logs import (
@@ -136,6 +139,9 @@ class BotClient(discord.AutoShardedClient):
         )
         from commands.audit_logs import (
             on_guild_channel_update as audit_on_guild_channel_update,
+        )
+        from commands.audit_logs import (
+            on_guild_emojis_update as audit_on_guild_emojis_update,
         )
         from commands.audit_logs import (
             on_guild_role_create as audit_on_guild_role_create,
@@ -146,6 +152,12 @@ class BotClient(discord.AutoShardedClient):
         from commands.audit_logs import (
             on_guild_role_update as audit_on_guild_role_update,
         )
+        from commands.audit_logs import (
+            on_guild_stickers_update as audit_on_guild_stickers_update,
+        )
+        from commands.audit_logs import on_guild_update as audit_on_guild_update
+        from commands.audit_logs import on_invite_create as audit_on_invite_create
+        from commands.audit_logs import on_invite_delete as audit_on_invite_delete
         from commands.audit_logs import on_member_ban as audit_on_member_ban
         from commands.audit_logs import on_member_join as audit_on_member_join
         from commands.audit_logs import on_member_remove as audit_on_member_remove
@@ -154,8 +166,21 @@ class BotClient(discord.AutoShardedClient):
         from commands.audit_logs import on_message_delete as audit_on_message_delete
         from commands.audit_logs import on_message_edit as audit_on_message_edit
         from commands.audit_logs import (
+            on_scheduled_event_create as audit_on_scheduled_event_create,
+        )
+        from commands.audit_logs import (
+            on_scheduled_event_delete as audit_on_scheduled_event_delete,
+        )
+        from commands.audit_logs import (
+            on_scheduled_event_update as audit_on_scheduled_event_update,
+        )
+        from commands.audit_logs import on_thread_create as audit_on_thread_create
+        from commands.audit_logs import on_thread_delete as audit_on_thread_delete
+        from commands.audit_logs import on_thread_update as audit_on_thread_update
+        from commands.audit_logs import (
             on_voice_state_update as audit_on_voice_state_update,
         )
+        from commands.audit_logs import on_webhooks_update as audit_on_webhooks_update
         from commands.audit_logs import setup_audit_log_commands
         from commands.automation import setup_automation_commands
         from commands.channel_archives import setup_channel_archive_commands
@@ -241,6 +266,7 @@ class BotClient(discord.AutoShardedClient):
         self.add_listener(welcome_on_member_remove, "on_member_remove")
         self.add_listener(audit_on_message_delete, "on_message_delete")
         self.add_listener(audit_on_message_edit, "on_message_edit")
+        self.add_listener(audit_on_bulk_message_delete, "on_bulk_message_delete")
         self.add_listener(audit_on_member_join, "on_member_join")
         self.add_listener(audit_on_member_remove, "on_member_remove")
         self.add_listener(audit_on_member_update, "on_member_update")
@@ -253,6 +279,18 @@ class BotClient(discord.AutoShardedClient):
         self.add_listener(audit_on_guild_channel_delete, "on_guild_channel_delete")
         self.add_listener(audit_on_guild_channel_update, "on_guild_channel_update")
         self.add_listener(audit_on_voice_state_update, "on_voice_state_update")
+        self.add_listener(audit_on_thread_create, "on_thread_create")
+        self.add_listener(audit_on_thread_delete, "on_thread_delete")
+        self.add_listener(audit_on_thread_update, "on_thread_update")
+        self.add_listener(audit_on_guild_emojis_update, "on_guild_emojis_update")
+        self.add_listener(audit_on_guild_stickers_update, "on_guild_stickers_update")
+        self.add_listener(audit_on_invite_create, "on_invite_create")
+        self.add_listener(audit_on_invite_delete, "on_invite_delete")
+        self.add_listener(audit_on_webhooks_update, "on_webhooks_update")
+        self.add_listener(audit_on_guild_update, "on_guild_update")
+        self.add_listener(audit_on_scheduled_event_create, "on_scheduled_event_create")
+        self.add_listener(audit_on_scheduled_event_delete, "on_scheduled_event_delete")
+        self.add_listener(audit_on_scheduled_event_update, "on_scheduled_event_update")
 
     def send_webhook(self, url: str | None, payload: dict) -> bool:
         if not url:
