@@ -1,20 +1,72 @@
 from __future__ import annotations
 
 import asyncio
+import os
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import discord
 from discord import app_commands
 
 from config.config import INVITE_TRACKING_FILE, WELCOME_SETTINGS_FILE
-from core.logging import log_server_event
 from storage.json_store import load_json, save_json
 
 BRAND = 0x5865F2
 invite_cache: dict[int, dict[str, int]] = {}
 vanity_cache: dict[int, tuple[str, int]] = {}
+delivery_guard: dict[tuple[str, int, int], float] = {}
+DELIVERY_GUARD_SECONDS = 30.0
+_last_marker_cleanup = 0.0
+
+
+def _claim_delivery(kind: str, guild_id: int, member_id: int) -> bool:
+    global _last_marker_cleanup
+    now = time.monotonic()
+    stale = [key for key, timestamp in delivery_guard.items() if now - timestamp > DELIVERY_GUARD_SECONDS]
+    for key in stale:
+        delivery_guard.pop(key, None)
+    key = (kind, guild_id, member_id)
+    previous = delivery_guard.get(key)
+    if previous is not None and now - previous <= DELIVERY_GUARD_SECONDS:
+        return False
+
+    # The disk marker also protects against duplicate Discord gateway events when
+    # two Rallybit processes briefly overlap during a deployment or migration.
+    marker_dir = Path(WELCOME_SETTINGS_FILE).parent / ".welcome-delivery"
+    wall_time = time.time()
+    try:
+        marker_dir.mkdir(parents=True, exist_ok=True)
+        if wall_time - _last_marker_cleanup > 300:
+            for marker in marker_dir.glob("*.lock"):
+                try:
+                    if wall_time - marker.stat().st_mtime > 300:
+                        marker.unlink(missing_ok=True)
+                except OSError:
+                    continue
+            _last_marker_cleanup = wall_time
+        marker_path = marker_dir / f"{kind}-{guild_id}-{member_id}.lock"
+        try:
+            descriptor = os.open(marker_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            try:
+                if wall_time - marker_path.stat().st_mtime <= DELIVERY_GUARD_SECONDS:
+                    return False
+                marker_path.unlink(missing_ok=True)
+                descriptor = os.open(marker_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except (FileExistsError, OSError):
+                return False
+        try:
+            os.write(descriptor, str(wall_time).encode("ascii"))
+        finally:
+            os.close(descriptor)
+    except OSError:
+        # In-memory protection still works if the data directory is read-only.
+        pass
+    delivery_guard[key] = now
+    return True
 
 
 @dataclass(frozen=True)
@@ -207,6 +259,8 @@ async def _send_goodbye(member: discord.Member, inviter: discord.User | discord.
 
 
 async def on_member_join(member: discord.Member) -> None:
+    if not _claim_delivery("join", member.guild.id, member.id):
+        return
     # Give security age-gate/anti-bot listeners a moment to reject unsafe joins.
     await asyncio.sleep(2)
     if member.guild.get_member(member.id) is None:
@@ -238,6 +292,8 @@ async def on_member_join(member: discord.Member) -> None:
 
 
 async def on_member_remove(member: discord.Member) -> None:
+    if not _claim_delivery("leave", member.guild.id, member.id):
+        return
     data = _invite_data()
     guild_data = data.get(str(member.guild.id), {}) if isinstance(data.get(str(member.guild.id), {}), dict) else {}
     record = guild_data.get("members", {}).get(str(member.id), {}) if isinstance(guild_data.get("members", {}), dict) else {}

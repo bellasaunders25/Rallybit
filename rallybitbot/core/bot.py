@@ -73,6 +73,13 @@ class RallybitCommandTree(app_commands.CommandTree):
         try:
             await super()._call(interaction)
         finally:
+            if interaction.guild is not None and interaction.command is not None and not get_service_notice()["active"]:
+                try:
+                    from core.audit import audit_command_interaction
+
+                    await audit_command_interaction(interaction)
+                except Exception as exc:
+                    print(f"[AUDIT] Unable to log command use: {exc!r}")
             reset_command_visibility(token)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -121,6 +128,35 @@ class BotClient(discord.AutoShardedClient):
         from commands.afk import on_message as afk_on_message
         from commands.afk import setup_afk_commands
         from commands.analytics import setup_analytics_commands
+        from commands.audit_logs import (
+            on_guild_channel_create as audit_on_guild_channel_create,
+        )
+        from commands.audit_logs import (
+            on_guild_channel_delete as audit_on_guild_channel_delete,
+        )
+        from commands.audit_logs import (
+            on_guild_channel_update as audit_on_guild_channel_update,
+        )
+        from commands.audit_logs import (
+            on_guild_role_create as audit_on_guild_role_create,
+        )
+        from commands.audit_logs import (
+            on_guild_role_delete as audit_on_guild_role_delete,
+        )
+        from commands.audit_logs import (
+            on_guild_role_update as audit_on_guild_role_update,
+        )
+        from commands.audit_logs import on_member_ban as audit_on_member_ban
+        from commands.audit_logs import on_member_join as audit_on_member_join
+        from commands.audit_logs import on_member_remove as audit_on_member_remove
+        from commands.audit_logs import on_member_unban as audit_on_member_unban
+        from commands.audit_logs import on_member_update as audit_on_member_update
+        from commands.audit_logs import on_message_delete as audit_on_message_delete
+        from commands.audit_logs import on_message_edit as audit_on_message_edit
+        from commands.audit_logs import (
+            on_voice_state_update as audit_on_voice_state_update,
+        )
+        from commands.audit_logs import setup_audit_log_commands
         from commands.automation import setup_automation_commands
         from commands.channel_archives import setup_channel_archive_commands
         from commands.community import setup_community_commands
@@ -161,8 +197,10 @@ class BotClient(discord.AutoShardedClient):
         from commands.welcomes import (
             setup_welcome_commands,
         )
+        from commands.workforce import setup_workforce_commands
 
         setup_activity_commands(self.tree)
+        setup_audit_log_commands(self.tree)
         setup_afk_commands(self.tree)
         setup_leaderboard_command(self.tree)
         setup_profile_command(self.tree)
@@ -188,6 +226,7 @@ class BotClient(discord.AutoShardedClient):
         setup_security_commands(self.tree)
         setup_snipe_commands(self.tree)
         setup_welcome_commands(self.tree)
+        setup_workforce_commands(self.tree)
         add_private_options(self.tree)
         install_response_visibility()
 
@@ -200,6 +239,20 @@ class BotClient(discord.AutoShardedClient):
         self.add_listener(snipes_on_message_edit, "on_message_edit")
         self.add_listener(welcome_on_member_join, "on_member_join")
         self.add_listener(welcome_on_member_remove, "on_member_remove")
+        self.add_listener(audit_on_message_delete, "on_message_delete")
+        self.add_listener(audit_on_message_edit, "on_message_edit")
+        self.add_listener(audit_on_member_join, "on_member_join")
+        self.add_listener(audit_on_member_remove, "on_member_remove")
+        self.add_listener(audit_on_member_update, "on_member_update")
+        self.add_listener(audit_on_member_ban, "on_member_ban")
+        self.add_listener(audit_on_member_unban, "on_member_unban")
+        self.add_listener(audit_on_guild_role_create, "on_guild_role_create")
+        self.add_listener(audit_on_guild_role_delete, "on_guild_role_delete")
+        self.add_listener(audit_on_guild_role_update, "on_guild_role_update")
+        self.add_listener(audit_on_guild_channel_create, "on_guild_channel_create")
+        self.add_listener(audit_on_guild_channel_delete, "on_guild_channel_delete")
+        self.add_listener(audit_on_guild_channel_update, "on_guild_channel_update")
+        self.add_listener(audit_on_voice_state_update, "on_voice_state_update")
 
     def send_webhook(self, url: str | None, payload: dict) -> bool:
         if not url:

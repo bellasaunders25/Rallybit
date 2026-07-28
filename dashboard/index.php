@@ -164,7 +164,7 @@ function dashboard_time_ago(int $timestamp, string $fallback): string {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/dashboard/style.css?v=5.8">
+  <link rel="stylesheet" href="/dashboard/style.css?v=6.2">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-icon-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/brand/rallybit-icon-192.png">

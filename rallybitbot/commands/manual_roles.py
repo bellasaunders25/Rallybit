@@ -74,8 +74,8 @@ def _countdown_label(expires_at: datetime, now: datetime | None = None) -> str:
     return f"{seconds}s"
 
 
-def _countdown_nick(base_name: str, expires_at: datetime) -> str:
-    suffix = f" | {_countdown_label(expires_at)}"
+def _countdown_nick(base_name: str, expires_at: datetime, now: datetime | None = None) -> str:
+    suffix = f" | {_countdown_label(expires_at, now)}"
     base = " ".join(str(base_name).split()).strip() or "Member"
     return f"{base[: max(1, 32 - len(suffix))]}{suffix}"[:32]
 

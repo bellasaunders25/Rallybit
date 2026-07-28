@@ -67,7 +67,7 @@ class ManualRoleTests(unittest.TestCase):
         now = datetime(2026, 7, 27, tzinfo=timezone.utc)
         self.assertEqual(manual_roles._countdown_label(now + timedelta(days=8), now), "8d")
         self.assertEqual(manual_roles._countdown_label(now + timedelta(minutes=61), now), "2h")
-        nickname = manual_roles._countdown_nick("A very long member nickname that must be trimmed", now + timedelta(days=8))
+        nickname = manual_roles._countdown_nick("A very long member nickname that must be trimmed", now + timedelta(days=8), now)
         self.assertLessEqual(len(nickname), 32)
         self.assertTrue(nickname.endswith(" | 8d"))
 

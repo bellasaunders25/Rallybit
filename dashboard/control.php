@@ -31,6 +31,9 @@ $securityDefaults = ['agegate'=>['enabled'=>false,'minimum_days'=>7,'dm_member'=
 $moderationDefaults = ['warn_role_ids'=>[],'timeout_role_ids'=>[],'kick_role_ids'=>[],'ban_role_ids'=>[]];
 $reportDefaults = ['channel_id'=>null];
 $reviewDefaults = ['staff_channel_id'=>null,'member_channel_id'=>null];
+$workforceDefaults = ['staff_role_ids'=>[],'hr_role_ids'=>[],'request_channel_id'=>null,'history_channel_id'=>null,'shift_log_channel_id'=>null,'max_loa_days'=>90,'max_roa_days'=>30];
+$auditEventLabels = ['commands'=>'Commands','configuration'=>'Configuration','moderation'=>'Moderation','members'=>'Members','messages'=>'Messages','roles'=>'Roles','channels'=>'Channels','voice'=>'Voice','tickets'=>'Tickets','reports'=>'Reports','staff'=>'Staff operations','security'=>'Security'];
+$auditDefaults = ['enabled'=>true,'default_channel_id'=>null,'channel_ids'=>[],'enabled_events'=>array_fill_keys(array_keys($auditEventLabels),true)];
 
 $welcome = load_guild_file_settings(WELCOME_SETTINGS_FILE, $guild_id, $welcomeDefaults);
 $levels = load_guild_file_settings(LEVEL_SETTINGS_FILE, $guild_id, $levelDefaults);
@@ -41,6 +44,8 @@ $security = load_guild_file_settings(SECURITY_SETTINGS_FILE, $guild_id, $securit
 $moderation = load_guild_file_settings(MODERATION_PERMISSIONS_FILE, $guild_id, $moderationDefaults);
 $reports = load_guild_file_settings(REPORT_SETTINGS_FILE, $guild_id, $reportDefaults);
 $reviews = load_guild_file_settings(REVIEW_SETTINGS_FILE, $guild_id, $reviewDefaults);
+$workforce = load_guild_file_settings(WORKFORCE_SETTINGS_FILE, $guild_id, $workforceDefaults);
+$auditSettings = load_guild_file_settings(AUDIT_SETTINGS_FILE, $guild_id, $auditDefaults);
 $automationsAll = load_json_data(AUTOMATION_SCHEDULES_FILE); $automations = is_array($automationsAll[$guild_id] ?? null) ? $automationsAll[$guild_id] : [];
 $message = '';
 $error = '';
@@ -338,6 +343,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $moderationSaved = save_guild_file_settings(MODERATION_PERMISSIONS_FILE, $guild_id, $moderation);
             $reportsSaved = save_guild_file_settings(REPORT_SETTINGS_FILE, $guild_id, $reports);
             $message = $moderationSaved && $reportsSaved ? 'Moderation permissions and report settings saved.' : 'Could not save moderation settings.';
+        } elseif ($operation === 'save_workforce') {
+            $guildRoleIds = array_map(static fn($role) => (string)$role['id'], $guildRoles);
+            $availableChannelIds = array_map(static fn($channel) => (string)$channel['id'], $channels);
+            $submittedStaffRoles = array_values(array_unique(array_filter(array_map('clean_id', $_POST['workforce_staff_role_ids'] ?? []))));
+            $submittedHrRoles = array_values(array_unique(array_filter(array_map('clean_id', $_POST['workforce_hr_role_ids'] ?? []))));
+            $workforce = [
+                'staff_role_ids'=>array_values(array_intersect($submittedStaffRoles,$guildRoleIds)),
+                'hr_role_ids'=>array_values(array_intersect($submittedHrRoles,$guildRoleIds)),
+                'request_channel_id'=>clean_id($_POST['workforce_request_channel_id'] ?? ''),
+                'history_channel_id'=>clean_id($_POST['workforce_history_channel_id'] ?? ''),
+                'shift_log_channel_id'=>clean_id($_POST['workforce_shift_log_channel_id'] ?? ''),
+                'max_loa_days'=>max(1,min(365,(int)($_POST['workforce_max_loa_days'] ?? 90))),
+                'max_roa_days'=>max(1,min(365,(int)($_POST['workforce_max_roa_days'] ?? 30))),
+            ];
+            $invalidChannel = false;
+            foreach (['request_channel_id','history_channel_id','shift_log_channel_id'] as $channelKey) {
+                if ($workforce[$channelKey] && !in_array($workforce[$channelKey],$availableChannelIds,true)) $invalidChannel = true;
+            }
+            if (!$workforce['staff_role_ids'] || !$workforce['hr_role_ids']) {
+                $error = 'Choose at least one staff role and one HR role.';
+            } elseif (!$workforce['request_channel_id'] || !$workforce['history_channel_id'] || !$workforce['shift_log_channel_id'] || $invalidChannel) {
+                $error = 'Choose valid request, history, and shift log channels.';
+            } else {
+                $message = save_guild_file_settings(WORKFORCE_SETTINGS_FILE,$guild_id,$workforce) ? 'Staff operations, HR access, and logging settings saved.' : 'Could not save staff operations settings.';
+            }
+        } elseif ($operation === 'save_audit_logging') {
+            $availableChannelIds = array_map(static fn($channel) => (string)$channel['id'], $channels);
+            $defaultAuditChannel = clean_id($_POST['audit_default_channel_id'] ?? '');
+            $auditSettings['enabled'] = bool_post('audit_enabled');
+            $auditSettings['default_channel_id'] = $defaultAuditChannel && in_array($defaultAuditChannel,$availableChannelIds,true) ? $defaultAuditChannel : null;
+            $auditSettings['channel_ids'] = [];
+            $auditSettings['enabled_events'] = [];
+            foreach ($auditEventLabels as $eventKey=>$eventLabel) {
+                $eventChannel = clean_id($_POST["audit_channel_{$eventKey}"] ?? '');
+                if ($eventChannel && in_array($eventChannel,$availableChannelIds,true)) $auditSettings['channel_ids'][$eventKey] = $eventChannel;
+                $auditSettings['enabled_events'][$eventKey] = isset($_POST["audit_event_{$eventKey}"]);
+            }
+            $message = save_guild_file_settings(AUDIT_SETTINGS_FILE,$guild_id,$auditSettings) ? 'Complete server logging settings saved.' : 'Could not save logging settings.';
         } elseif ($operation === 'save_reviews') {
             $availableChannelIds = array_map(static fn($channel) => (string)$channel['id'], $channels);
             $staffReviewChannel = clean_id($_POST['staff_review_channel_id'] ?? '');
@@ -374,6 +417,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = save_json_data(AUTOMATION_SCHEDULES_FILE, $automationsAll) ? 'Automation removed.' : 'Could not update automations.';
         }
     } catch (Throwable $e) { $error = $e->getMessage(); }
+    if ($message !== '' && $error === '' && ($operation === 'save_workforce' || $operation === 'save_audit_logging' || (str_starts_with($operation,'save_') && !in_array($operation,['save_ticket_panel'],true)) || in_array($operation,['add_automation','remove_automation','remove_level_reward'],true))) {
+        run_bot_action($guild_id,(string)$_SESSION['user_id'],'logging.dashboard',['message'=>$message,'operation'=>$operation]);
+    }
 }
 $csrf = get_csrf_token();
 if (!is_array($embedEditor)) {
@@ -513,7 +559,7 @@ function role_label(array $roles, mixed $roleId): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard/style.css?v=6.1">
+<link rel="stylesheet" href="/dashboard/style.css?v=6.2">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body>
@@ -551,6 +597,8 @@ function role_label(array $roles, mixed $roleId): string {
 <button type="button" data-module-target="verification"><i class="bi bi-patch-check"></i><span>Verification</span></button>
 <button type="button" data-module-target="embeds"><i class="bi bi-card-text"></i><span>Embeds</span></button>
 <button type="button" data-module-target="tickets"><i class="bi bi-ticket-perforated"></i><span>Tickets</span></button>
+<button type="button" data-module-target="workforce"><i class="bi bi-person-workspace"></i><span>Staff operations</span></button>
+<button type="button" data-module-target="logging"><i class="bi bi-journal-text"></i><span>Logging</span></button>
 <button type="button" data-module-target="reviews"><i class="bi bi-star"></i><span>Reviews</span></button>
 <button type="button" data-module-target="moderation"><i class="bi bi-shield-exclamation"></i><span>Moderation</span></button>
 <button type="button" data-module-target="security"><i class="bi bi-shield-check"></i><span>Security</span></button>
@@ -1057,6 +1105,59 @@ function role_label(array $roles, mixed $roleId): string {
 <button class="button primary full" type="submit"><i class="bi <?=!empty($ticketPanelEditor['panel_id'])?'bi-check2':'bi-send'?>"></i> <?=!empty($ticketPanelEditor['panel_id'])?'Update original ticket panel':'Publish dropdown panel'?></button>
 </form>
 </div>
+</section>
+
+<section class="panel" data-module-view="workforce" hidden>
+<div class="panel-heading">
+<span><i class="bi bi-person-workspace"></i></span>
+<div>
+<h2>Staff operations</h2>
+<p>Manage shift tracking, leave requests, HR access and staff history from one place.</p>
+</div>
+</div>
+<form method="post" class="settings-stack">
+<input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>">
+<input type="hidden" name="operation" value="save_workforce">
+<div class="form-field"><span class="field-label">Staff roles</span><?=role_picker($roles,$workforce['staff_role_ids']??[],'workforce_staff_role_ids','workforce-staff-role-picker')?><small>These roles can clock in, use breaks, view their timesheet and submit LOA or ROA requests.</small></div>
+<div class="form-field"><span class="field-label">HR roles</span><?=role_picker($roles,$workforce['hr_role_ids']??[],'workforce_hr_role_ids','workforce-hr-role-picker')?><small>HR roles can approve requests, configure leave settings, inspect staff hours and force clock-outs.</small></div>
+<div class="field-grid">
+<div class="form-field"><span class="field-label">Request channel</span><?=channel_picker($channels,$workforce['request_channel_id']??null,'workforce_request_channel_id','workforce-request-channel-picker',true)?><small>New LOA and ROA requests are posted here and HR roles are notified.</small></div>
+<div class="form-field"><span class="field-label">History channel</span><?=channel_picker($channels,$workforce['history_channel_id']??null,'workforce_history_channel_id','workforce-history-channel-picker',true)?><small>All request decisions, cancellations and early endings are recorded here.</small></div>
+<div class="form-field"><span class="field-label">Shift log channel</span><?=channel_picker($channels,$workforce['shift_log_channel_id']??null,'workforce_shift_log_channel_id','workforce-shift-channel-picker',true)?><small>Clock-ins, breaks, clock-outs and forced clock-outs are recorded here.</small></div>
+</div>
+<div class="field-grid">
+<label>Maximum LOA length<input type="number" name="workforce_max_loa_days" min="1" max="365" value="<?=htmlspecialchars((string)($workforce['max_loa_days']??90))?>"><small>Days</small></label>
+<label>Maximum ROA length<input type="number" name="workforce_max_roa_days" min="1" max="365" value="<?=htmlspecialchars((string)($workforce['max_roa_days']??30))?>"><small>Days</small></label>
+</div>
+<div class="permission-note"><i class="bi bi-shield-lock"></i><p>HR-only commands are hidden behind the configured access check: <code>/staffhours</code>, <code>/forceclockout</code>, <code>/loa setstatus</code>, <code>/loa settings</code>, <code>/roa setstatus</code> and <code>/roa settings</code>.</p></div>
+<button class="button primary" type="submit"><i class="bi bi-check2"></i> Save staff operations</button>
+</form>
+</section>
+
+<section class="panel" data-module-view="logging" hidden>
+<div class="panel-heading">
+<span><i class="bi bi-journal-text"></i></span>
+<div>
+<h2>Action logging</h2>
+<p>Record server changes and route each type of event to the right Discord channel.</p>
+</div>
+</div>
+<form method="post" class="settings-stack">
+<input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>">
+<input type="hidden" name="operation" value="save_audit_logging">
+<label class="toggle-row"><input type="checkbox" name="audit_enabled" <?=!empty($auditSettings['enabled'])?'checked':''?>><span><strong>Enable action logging</strong><small>One master switch for every event below.</small></span></label>
+<div class="form-field"><span class="field-label">Default log channel</span><?=channel_picker($channels,$auditSettings['default_channel_id']??null,'audit_default_channel_id','audit-default-channel-picker',true)?><small>Events without their own channel are sent here.</small></div>
+<div class="logging-event-grid">
+<?php foreach($auditEventLabels as $eventKey=>$eventLabel): $eventEnabled=($auditSettings['enabled_events'][$eventKey]??true)!==false; $eventChannel=$auditSettings['channel_ids'][$eventKey]??null; ?>
+<article class="logging-event-card">
+<label class="toggle-row"><input type="checkbox" name="audit_event_<?=htmlspecialchars($eventKey)?>" <?=$eventEnabled?'checked':''?>><span><strong><?=htmlspecialchars($eventLabel)?></strong><small>Capture <?=htmlspecialchars(strtolower($eventLabel))?> events.</small></span></label>
+<div class="form-field"><span class="field-label">Channel override</span><?=channel_picker($channels,$eventChannel,'audit_channel_'.$eventKey,'audit-'.$eventKey.'-channel-picker')?></div>
+</article>
+<?php endforeach;?>
+</div>
+<div class="permission-note"><i class="bi bi-info-circle"></i><p>Rallybit keeps a bounded local history for the website as well as posting Discord embeds. Use <code>/logs overview</code>, <code>/logs test</code>, <code>/logs channel</code> and <code>/logs toggle</code> from Discord.</p></div>
+<button class="button primary" type="submit"><i class="bi bi-check2"></i> Save logging</button>
+</form>
 </section>
 
 <section class="panel" data-module-view="reviews" hidden>

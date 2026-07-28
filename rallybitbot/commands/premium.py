@@ -19,7 +19,6 @@ from config.config import (
 from core.premium import premium_check, resolve_entitlement
 from storage.json_store import load_json, save_json
 
-
 BRAND = 0x7567EE
 SUCCESS = 0x45C486
 MAX_SHIFT_HISTORY = 200
@@ -310,7 +309,7 @@ def setup_premium_commands(tree: app_commands.CommandTree) -> None:
             await interaction.response.send_message("You already have an active staff shift.", ephemeral=True)
             return
         started = _now()
-        record["active"] = {"started_at": started.isoformat(), "note": str(note or "")}
+        record["active"] = {"started_at": started.isoformat(), "note": str(note or ""), "break_seconds": 0, "break_started_at": None}
         record["display_name"] = getattr(interaction.user, "display_name", str(interaction.user))
         if not save_json(STAFF_SHIFTS_FILE, data):
             await interaction.response.send_message("The staff shift could not be saved.", ephemeral=True)
@@ -334,11 +333,15 @@ def setup_premium_commands(tree: app_commands.CommandTree) -> None:
             await interaction.response.send_message("You do not have an active staff shift.", ephemeral=True)
             return
         ended = _now()
-        seconds = max(0, int((ended - started).total_seconds()))
+        from commands.workforce import _active_seconds
+
+        seconds = _active_seconds(active, ended)
+        break_seconds = max(0, int((ended - started).total_seconds()) - seconds)
         record["history"].append({
             "started_at": started.isoformat(),
             "ended_at": ended.isoformat(),
             "seconds": seconds,
+            "break_seconds": break_seconds,
             "note": str(active.get("note") or "")[:300],
         })
         record["history"] = record["history"][-MAX_SHIFT_HISTORY:]
@@ -367,8 +370,10 @@ def setup_premium_commands(tree: app_commands.CommandTree) -> None:
         total = sum(max(0, int(row.get("seconds", 0) or 0)) for row in record["history"] if isinstance(row, dict))
         embed = discord.Embed(title=f"Staff status · {getattr(target, 'display_name', target)}", color=BRAND)
         if started:
+            from commands.workforce import _active_seconds
+
             embed.description = f"Currently clocked in since {discord.utils.format_dt(started, 'R')}."
-            embed.add_field(name="Current shift", value=_format_duration((_now() - started).total_seconds()), inline=True)
+            embed.add_field(name="Current shift", value=_format_duration(_active_seconds(active)), inline=True)
         else:
             embed.description = "Not currently clocked in."
         embed.add_field(name="Recorded total", value=_format_duration(total), inline=True)

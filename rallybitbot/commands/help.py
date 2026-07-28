@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime
+
 import discord
 
-from core.checks import bot_can_run
-from core.bot_settings import get_bot_settings, get_branding
 from config.config import DASHBOARD_URL, SUPPORT_SERVER_URL
+from core.bot_settings import get_bot_settings, get_branding
+from core.checks import bot_can_run
 
 
 def setup_help_commands(tree):
@@ -51,7 +52,17 @@ def setup_help_commands(tree):
         )
         embed.add_field(
             name="🔁 Automation & logs",
-            value="`/setauto` Check schedule\n`/startauto` Resume checks\n`/stopauto` Pause checks\n`/setlogs` Log channel\n`/settings` Server setup\n`/dashboard` Dashboard link",
+            value="`/setauto` Check schedule\n`/startauto` Resume checks\n`/stopauto` Pause checks\n`/logs overview` Action logging\n`/logs channel` Log destinations\n`/dashboard` Dashboard link",
+            inline=True,
+        )
+        embed.add_field(
+            name="Staff operations",
+            value="`/loa request` Leave request\n`/roa request` Activity release\n`/clockin` Start shift\n`/break start` Pause timer\n`/timesheet` Weekly hours\n`/duty` On-duty staff",
+            inline=True,
+        )
+        embed.add_field(
+            name="Tickets & reports",
+            value="`/ticket create` Open ticket\n`/ticket status` Ticket progress\n`/report user` Report member\n`/report status` Report progress\n`/review` Submit review\n`/settings` Server setup",
             inline=True,
         )
         embed.add_field(
@@ -59,7 +70,7 @@ def setup_help_commands(tree):
             value="`/prettfy` Preview server styling\n`/case member` Search case files\n`/case stats` Staff workload\n`/backup create` Save configuration\n`/network overview` Owned servers\n`/premium plans` Compare previews",
             inline=True,
         )
-        embed.set_footer(text="Rallybit 7.2.2 • Core commands remain free")
+        embed.set_footer(text="Rallybit 8.1 • Core commands remain free")
         view = discord.ui.View()
         view.add_item(discord.ui.Button(label="Dashboard", url=dashboard, emoji="🌐"))
         view.add_item(discord.ui.Button(label="Support", url=support, emoji="💬"))

@@ -44,7 +44,8 @@ ALLOWED_FILES = {
     "verification_settings.json", "ticket_settings.json", "ticket_panels.json", "open_tickets.json",
     "ticket_history.json", "automation_schedules.json", "afk_status.json",
     "report_settings.json", "reports.json", "review_settings.json",
-    "premium_entitlements.json", "staff_shifts.json"
+    "premium_entitlements.json", "staff_shifts.json", "workforce_settings.json", "staff_requests.json",
+    "audit_settings.json", "audit_events.json"
 }
 
 
@@ -466,6 +467,11 @@ async def _dashboard_action_async(payload):
     if not isinstance(actor, discord.Member):
         raise RuntimeError("You must still be a member of this server to run dashboard actions.")
 
+    if action == "logging.dashboard":
+        if not (actor.guild_permissions.manage_guild or actor.guild_permissions.administrator):
+            raise RuntimeError("You need Manage Server to record dashboard configuration changes.")
+        return {"message": str(params.get("message") or "Dashboard configuration updated.")[:500]}
+
     if action in {"embed.load", "embed.update", "embed.send"}:
         if not (actor.guild_permissions.manage_messages or actor.guild_permissions.administrator):
             raise RuntimeError("You need Manage Messages to use the embed editor.")
@@ -856,12 +862,40 @@ async def _dashboard_action_async(payload):
     raise RuntimeError("That dashboard action is not supported by this build.")
 
 
+async def _dashboard_action_with_audit(payload: dict[str, Any]) -> dict[str, Any]:
+    result = await _dashboard_action_async(payload)
+    guild = _guild_from_payload(payload)
+    if guild is None:
+        return result
+    actor = guild.get_member(int(payload.get("actor_id", 0) or 0))
+    action = str(payload.get("action") or "dashboard action").strip().lower()
+    event_type = (
+        "moderation" if action.startswith("moderation.") else
+        "tickets" if action.startswith("ticket.") else
+        "security" if action.startswith("security.") else
+        "configuration"
+    )
+    try:
+        from core.audit import emit_audit_event
+
+        await emit_audit_event(
+            guild,
+            event_type,
+            "Dashboard action completed",
+            f"`{action}` completed through the Rallybit dashboard.\n{str(result.get('message') or '')[:1000]}",
+            actor=actor,
+        )
+    except Exception as exc:
+        print(f"[AUDIT] Dashboard action could not be recorded: {exc!r}")
+    return result
+
+
 @app.post("/api/dashboard/action")
 def dashboard_action():
     if not auth(request): return jsonify({"error": "unauthorized"}), 401
     payload = request.get_json(silent=True) or {}
     try:
-        result = _run_bot_coro(_dashboard_action_async(payload), timeout=45)
+        result = _run_bot_coro(_dashboard_action_with_audit(payload), timeout=45)
         return jsonify({"ok": True, **(result or {})})
     except Exception as exc:
         return jsonify({"error": str(exc)}), 400

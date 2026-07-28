@@ -13,6 +13,18 @@ Rallybit is a Discord community toolkit for activity checks, recurring community
 
 Use `/premium plans` and `/premium status` in Discord to view available tiers and effective access.
 
+## Build 8.1 highlights
+
+### Staff operations and complete action logging
+
+- Added free LOA and ROA request workflows with configured staff roles, HR-only review controls, HR request pings, maximum durations and a complete history channel.
+- Added free `/clockin`, `/clockout`, `/break start`, `/break end`, `/shift`, `/timesheet`, `/staffhours`, `/duty` and `/forceclockout` commands. Breaks are excluded from worked hours and shift state survives restarts.
+- `/leaderboard` can now display either activity check-ins or staff hours.
+- Added configurable logging for commands, dashboard changes, moderation, member lifecycle, message edits/deletions, roles, channels, voice, tickets, reports, staff and security. Event-specific Discord destinations can override one default channel.
+- Added a searchable dashboard action log with event filters and retained event statistics.
+- Welcome and goodbye delivery now uses process-safe idempotency markers, preventing duplicate posts during Discord event replays or a brief deployment overlap.
+- Refreshed the public site, documentation and dashboard with one consistent Rallybit navy/violet visual system and a clearer server workspace sidebar.
+
 ## Build 7.2.2 highlights
 
 ### Restart-safe live sessions
@@ -182,6 +194,32 @@ Every slash command is public by default. Set its optional `private` choice to `
 
 /channel transcript
 /channel purge
+
+/loa request
+/loa status
+/loa cancel
+/loa setstatus
+/loa end
+/loa settings
+/roa request
+/roa status
+/roa cancel
+/roa setstatus
+/roa end
+/roa settings
+/clockin
+/clockout
+/break start
+/break end
+/shift
+/timesheet
+/staffhours
+/duty
+/forceclockout
+/logs channel
+/logs toggle
+/logs overview
+/logs test
 
 /premium status
 /premium plans

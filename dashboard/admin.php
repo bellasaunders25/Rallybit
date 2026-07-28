@@ -155,7 +155,7 @@ $history = is_array($premium['history'] ?? null) ? array_slice(array_reverse($pr
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css?v=1.0">
-  <link rel="stylesheet" href="/dashboard/style.css?v=5.7">
+  <link rel="stylesheet" href="/dashboard/style.css?v=6.2">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-icon-32.png">
 </head>

@@ -68,7 +68,7 @@ class CommandVisibilityTests(unittest.TestCase):
         self.assertEqual(received, [True])
 
     def test_every_registered_slash_command_has_private_option(self) -> None:
-        async def inspect_commands() -> tuple[int, list[str], list[str], int]:
+        async def inspect_commands() -> tuple[int, list[str], list[str], int, set[str]]:
             client = BotClient(discord.Intents.none())
             await client.setup_hook()
             commands = [
@@ -91,13 +91,22 @@ class CommandVisibilityTests(unittest.TestCase):
                 ):
                     invalid.append(command.qualified_name)
             maximum = max(len(command.parameters) for command in commands)
-            return len(commands), missing, invalid, maximum
+            return len(commands), missing, invalid, maximum, {command.qualified_name for command in commands}
 
-        total, missing, invalid, maximum = asyncio.run(inspect_commands())
-        self.assertEqual(total, 174)
+        total, missing, invalid, maximum, command_names = asyncio.run(inspect_commands())
+        self.assertEqual(total, 199)
         self.assertEqual(missing, [])
         self.assertEqual(invalid, [])
         self.assertLessEqual(maximum, 25)
+        sheet_commands = {
+            "afk",
+            "report setstatus", "report user", "report settings", "report list", "report claim", "report close", "report reopen", "report history", "report status",
+            "ticket create", "ticket close", "ticket reopen", "ticket claim", "ticket unclaim", "ticket priority", "ticket transcript", "ticket status", "ticket setstatus", "ticket settings",
+            "loa request", "loa status", "loa cancel", "loa setstatus", "loa end", "loa settings",
+            "roa request", "roa status", "roa cancel", "roa setstatus", "roa end", "roa settings",
+            "clockin", "clockout", "break start", "break end", "shift", "timesheet", "staffhours", "leaderboard", "duty", "forceclockout",
+        }
+        self.assertEqual(sheet_commands - command_names, set())
 
 
 if __name__ == "__main__":

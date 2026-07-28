@@ -1,16 +1,52 @@
 import discord
 from discord import app_commands
-from core.logging import get_global_stats, get_activity_log
+
+from config.config import STAFF_SHIFTS_FILE
 from core.checks import bot_can_run
+from core.logging import get_activity_log, get_global_stats
+from storage.json_store import load_json
+
 
 def setup_leaderboard_command(tree):
     """Setup Original Leaderboard & User Leaderboard commands (Master Version)."""
 
-    @tree.command(name="leaderboard", description="Show the top active users in THIS server.")
-    async def leaderboard_command(interaction: discord.Interaction):
+    @tree.command(name="leaderboard", description="Show the server activity or staff-hours leaderboard.")
+    @app_commands.choices(category=[
+        app_commands.Choice(name="Activity check-ins", value="activity"),
+        app_commands.Choice(name="Staff hours", value="staff"),
+    ])
+    async def leaderboard_command(interaction: discord.Interaction, category: app_commands.Choice[str] | None = None):
         # 1. Permission Check
         can_run, reason, _ = bot_can_run(interaction)
         if not can_run: return await interaction.response.send_message(reason, ephemeral=True)
+
+        if category and category.value == "staff":
+            from commands.workforce import (
+                _active_seconds,
+                _format_duration,
+                is_staff_member,
+            )
+
+            if not isinstance(interaction.user, discord.Member) or not is_staff_member(interaction.user):
+                return await interaction.response.send_message("You do not have a configured staff role for that leaderboard.", ephemeral=True)
+            guild_rows = (load_json(STAFF_SHIFTS_FILE) or {}).get(str(interaction.guild_id), {})
+            scores = []
+            if isinstance(guild_rows, dict):
+                for user_id, record in guild_rows.items():
+                    if not isinstance(record, dict):
+                        continue
+                    seconds = sum(max(0, int(row.get("seconds", 0) or 0)) for row in record.get("history", []) if isinstance(row, dict))
+                    if isinstance(record.get("active"), dict):
+                        seconds += _active_seconds(record["active"])
+                    if seconds:
+                        scores.append((str(user_id), seconds))
+            scores.sort(key=lambda item: item[1], reverse=True)
+            if not scores:
+                return await interaction.response.send_message("No staff shifts have been recorded yet.")
+            lines = [f"**#{position}** <@{user_id}> · **{_format_duration(seconds)}**" for position, (user_id, seconds) in enumerate(scores[:10], 1)]
+            embed = discord.Embed(title=f"Staff hours · {interaction.guild.name}", description="\n".join(lines), colour=0x7567EE)
+            embed.set_footer(text="Includes completed shifts and current on-duty time")
+            return await interaction.response.send_message(embed=embed, allowed_mentions=discord.AllowedMentions.none())
             
         await interaction.response.defer(ephemeral=False)
         

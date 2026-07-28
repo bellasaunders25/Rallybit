@@ -6,11 +6,11 @@
   <title>Commands — Rallybit Docs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/docs/style.css?v=5.0">
+  <link rel="stylesheet" href="/docs/style.css?v=6.2">
   <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-icon-32.png"><link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
 </head>
 <body><div class="docs-shell"><div data-doc-sidebar></div><main class="docs-main">
-  <span class="eyebrow">Command reference · Build 7.2.2</span>
+  <span class="eyebrow">Command reference · Build 8.1</span>
   <h1>Every Rallybit command, organised by job.</h1>
   <p class="lead">Type <code>/</code> in Discord, choose Rallybit, and Discord will show the commands your current permissions allow you to use.</p>
   <div class="callout"><strong>Public or private replies.</strong><span>Command replies are public by default. Every slash command includes an optional <code>private</code> choice; set it to <code>True</code> to make Rallybit's replies visible only to you.</span></div>
@@ -57,6 +57,32 @@
   <h2>Reviews</h2>
   <div class="command-list">
     <article class="command" data-searchable><h3><code>/review type user stars reason</code></h3><p>Submit a one-to-five-star review for a staff member or community member. Staff reviews and member reviews are routed to their separately configured dashboard channels.</p></article>
+  </div>
+
+  <h2>Staff operations and leave</h2>
+  <div class="callout"><strong>Role-controlled access.</strong><span>Staff commands require a configured staff or HR role. Commands marked HR require a configured HR role; administrators retain emergency access. Every LOA and ROA request notifies the HR roles and every change is recorded in the configured history channel.</span></div>
+  <div class="command-list">
+    <article class="command" data-searchable><h3><code>/loa request</code></h3><p>Submit a Leave of Absence request with its length, reason and optional start date.</p></article>
+    <article class="command" data-searchable><h3><code>/loa status</code> / <code>cancel</code> / <code>end</code></h3><p>View a request, cancel a pending or approved request, or end an approved leave early.</p></article>
+    <article class="command" data-searchable><h3><code>/loa setstatus</code> <small>HR</small></h3><p>Approve, deny or return an LOA request to pending with an optional review note.</p></article>
+    <article class="command" data-searchable><h3><code>/loa settings</code> <small>HR</small></h3><p>Configure staff and HR roles, request and history channels, maximum length and the shift log destination.</p></article>
+    <article class="command" data-searchable><h3><code>/roa request</code></h3><p>Submit a Release of Activity request with its length, reason and optional start date.</p></article>
+    <article class="command" data-searchable><h3><code>/roa status</code> / <code>cancel</code> / <code>end</code></h3><p>View, cancel or end a Release of Activity request.</p></article>
+    <article class="command" data-searchable><h3><code>/roa setstatus</code> / <code>settings</code> <small>HR</small></h3><p>Review ROA requests or configure the shared workforce channels, roles and maximum duration.</p></article>
+    <article class="command" data-searchable><h3><code>/clockin</code> / <code>/clockout</code></h3><p>Start or finish a persistent staff shift. Completed hours survive bot restarts and are written to the staff log.</p></article>
+    <article class="command" data-searchable><h3><code>/break start</code> / <code>/break end</code></h3><p>Pause and resume the active shift timer. Break time is excluded from worked hours.</p></article>
+    <article class="command" data-searchable><h3><code>/shift</code> / <code>/timesheet</code></h3><p>View the live shift state or your completed work during the last seven days.</p></article>
+    <article class="command" data-searchable><h3><code>/staffhours</code> <small>HR</small></h3><p>Inspect a staff member's recorded hours over a chosen 1–365 day period.</p></article>
+    <article class="command" data-searchable><h3><code>/duty</code></h3><p>List every staff member currently on duty or on a break with their worked duration.</p></article>
+    <article class="command" data-searchable><h3><code>/forceclockout</code> <small>HR</small></h3><p>End another member's active shift with an optional reason and a complete audit entry.</p></article>
+  </div>
+
+  <h2>Action logging</h2>
+  <div class="command-list">
+    <article class="command" data-searchable><h3><code>/logs channel</code></h3><p>Set one default Discord destination or a separate channel for an individual event category.</p></article>
+    <article class="command" data-searchable><h3><code>/logs toggle</code></h3><p>Enable or disable commands, configuration, moderation, members, messages, roles, channels, voice, tickets, reports, staff or security logging.</p></article>
+    <article class="command" data-searchable><h3><code>/logs overview</code></h3><p>Review every category, whether it is enabled and which channel receives its events.</p></article>
+    <article class="command" data-searchable><h3><code>/logs test</code></h3><p>Record and deliver a test event through the selected category before relying on it.</p></article>
   </div>
 
   <h2>Moderation</h2>
@@ -120,7 +146,7 @@
 
   <h2>Profiles, rankings, and reports</h2>
   <div class="command-list">
-    <article class="command" data-searchable><h3><code>/leaderboard</code></h3><p>Show server participation rankings.</p></article>
+    <article class="command" data-searchable><h3><code>/leaderboard</code></h3><p>Show server participation rankings, or choose the staff-hours category to rank recorded shift time.</p></article>
     <article class="command" data-searchable><h3><code>/userleaderboard</code></h3><p>Show global activity-win rankings.</p></article>
     <article class="command" data-searchable><h3><code>/profile</code></h3><p>Open a member's Rallybit profile and web profile link.</p></article>
     <article class="command" data-searchable><h3><code>/inactive</code></h3><p>Find members who have not been recorded as active recently.</p></article>

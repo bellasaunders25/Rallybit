@@ -44,11 +44,15 @@ function render_dashboard_sidebar(
             </nav>
 
             <?php if ($guildId !== null): ?>
+                <div class="sidebar-server-card">
+                    <span class="sidebar-server-mark"><?=htmlspecialchars(strtoupper(substr(trim((string)$guildName), 0, 2)))?></span>
+                    <div><strong><?=htmlspecialchars((string)$guildName)?></strong><small>Server workspace</small></div>
+                </div>
                 <span class="sidebar-section-label sidebar-section-spaced">Current server</span>
                 <nav aria-label="Server navigation">
-                    <?php $link('settings', '/dashboard/manage.php' . $guildQuery, 'bi-sliders', 'Activity settings'); ?>
-                    <?php $link('control', '/dashboard/control.php' . $guildQuery, 'bi-grid', 'Control center'); ?>
-                    <?php $link('logs', '/dashboard/audit_logs.php' . $guildQuery, 'bi-clock-history', 'Audit logs'); ?>
+                    <?php $link('settings', '/dashboard/manage.php' . $guildQuery, 'bi-speedometer2', 'Server dashboard'); ?>
+                    <?php $link('control', '/dashboard/control.php' . $guildQuery, 'bi-grid', 'Modules'); ?>
+                    <?php $link('logs', '/dashboard/audit_logs.php' . $guildQuery, 'bi-journal-text', 'Action logs'); ?>
                 </nav>
             <?php endif; ?>
         <?php endif; ?>
