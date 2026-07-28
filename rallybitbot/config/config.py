@@ -90,7 +90,7 @@ SECURITY_QUARANTINE_FILE = data_file("security_quarantine.json")
 SECURITY_LOCKDOWN_FILE = data_file("security_lockdown.json")
 
 
-# Rallybit 8.0 community management data stores.
+# Rallybit 8.1 community management data stores.
 GIVEAWAY_SETTINGS_FILE = data_file("giveaway_settings.json")
 ACTIVE_GIVEAWAYS_FILE = data_file("active_giveaways.json")
 GIVEAWAY_HISTORY_FILE = data_file("giveaway_history.json")

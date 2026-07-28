@@ -13,7 +13,6 @@ import discord
 from core.bot_settings import get_bot_settings, save_bot_settings
 from core.presence import apply_presence
 
-
 MAX_AVATAR_BYTES = 8 * 1024 * 1024
 
 
@@ -53,7 +52,7 @@ def _validate_public_host(url: str) -> None:
 
 def _download_avatar(url: str) -> bytes:
     _validate_public_host(url)
-    request = urllib.request.Request(url, headers={"User-Agent": "Rallybit/7.2.2"})
+    request = urllib.request.Request(url, headers={"User-Agent": "Rallybit/8.1"})
     with urllib.request.urlopen(request, timeout=12) as response:
         final_url = validate_avatar_url(response.geturl())
         _validate_public_host(final_url)

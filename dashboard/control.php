@@ -569,7 +569,7 @@ function role_label(array $roles, mixed $roleId): string {
 <header class="dash-header compact">
 <div>
 <a class="back-link" href="index.php"><i class="bi bi-arrow-left" aria-hidden="true"></i> All servers</a>
-<span class="kicker">Rallybit 8.0</span>
+<span class="kicker">Rallybit 8.1</span>
 <h1>
 <?=htmlspecialchars($guild_name)?> Control Center</h1>
 <p>Run Discord commands and configure every server module from the website. Slash commands stay available too.</p>

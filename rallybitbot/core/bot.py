@@ -260,7 +260,7 @@ class BotClient(discord.AutoShardedClient):
         try:
             request = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"))
             request.add_header("Content-Type", "application/json")
-            request.add_header("User-Agent", "Rallybit/7.2.2")
+            request.add_header("User-Agent", "Rallybit/8.1")
             with urllib.request.urlopen(request, timeout=7):
                 pass
             return True

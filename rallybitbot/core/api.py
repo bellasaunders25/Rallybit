@@ -263,7 +263,7 @@ def health():
     return jsonify({
         "ok": True,
         "status": "healthy",
-        "engine": "Rallybit API 7.1",
+        "engine": "Rallybit API 8.1",
         "uptime_seconds": int(time.time() - START_TIME),
         "metrics": {
             "cpu_percent": psutil.cpu_percent(),
