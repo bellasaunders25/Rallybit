@@ -287,6 +287,8 @@ For production, run the bot under a service manager such as systemd, Docker, or 
 
 The included `rallybitbot/compose.yaml` exposes the bot API only on the Docker host's loopback address (`127.0.0.1:8080`). Inside the container it overrides `API_HOST` to `0.0.0.0`, which is required for Docker's loopback port mapping to reach Flask. The dashboard can therefore keep `BOT_API_URL=http://127.0.0.1:8080` without exposing the API to the network. Start or refresh it from `rallybitbot/` with `docker-compose up -d --build` (or `docker compose up -d --build` on Compose v2).
 
+The production Tailscale Funnel reserves public HTTPS port `443` for Rallybit and proxies it to Apache on `127.0.0.1:80`. If another local application replaces that handler, the public website and Discord OAuth callback will stop loading even though Apache remains healthy. Run `deploy/configure-rallybit-funnel.sh` to back up the current Funnel configuration and restore only Rallybit's port `443` handler; services on other Funnel ports are preserved.
+
 ## Live recovery data
 
 ```text
