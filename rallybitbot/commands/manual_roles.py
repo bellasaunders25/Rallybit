@@ -52,13 +52,13 @@ def _actor_can_manage(actor: discord.Member, target: discord.Member, role: disco
     if actor.id != guild.owner_id:
         if role >= actor.top_role:
             return "That role must be below your highest role."
-        if target.id != actor.id and target >= actor.top_role:
+        if target.id != actor.id and target.top_role >= actor.top_role:
             return "You cannot manage a member whose highest role is equal to or above yours."
     if me is None:
         return "Rallybit's server member could not be found."
     if role >= me.top_role:
         return "Move Rallybit's role above the role you want it to manage."
-    if target.id != me.id and target >= me.top_role:
+    if target.id != me.id and target.top_role >= me.top_role:
         return "Rallybit cannot manage that member because their highest role is equal to or above its own."
     return None
 
@@ -165,7 +165,7 @@ async def process_temporary_roles(bot: discord.Client) -> dict[str, int]:
             continue
         if expiry <= now:
             me = guild.me
-            if me is None or role.managed or role >= me.top_role or (member.id != me.id and member >= me.top_role):
+            if me is None or role.managed or role >= me.top_role or (member.id != me.id and member.top_role >= me.top_role):
                 continue
             try:
                 await member.remove_roles(role, reason="Rallybit temporary role expired")

@@ -57,7 +57,7 @@ def setup_help_commands(tree):
         )
         embed.add_field(
             name="Staff operations",
-            value="`/loa request` Leave request\n`/roa request` Activity release\n`/clockin` Start shift\n`/break start` Pause timer\n`/timesheet` Weekly hours\n`/duty` On-duty staff",
+            value="`/loa request` Leave request\n`/roa request` Activity release\n`/clockin` Start shift\n`/timesheet` Weekly hours\n`/shifts list` HR shift records\n`/shifts remove` Correct a shift",
             inline=True,
         )
         embed.add_field(

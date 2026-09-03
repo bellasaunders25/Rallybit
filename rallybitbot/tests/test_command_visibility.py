@@ -94,7 +94,7 @@ class CommandVisibilityTests(unittest.TestCase):
             return len(commands), missing, invalid, maximum, {command.qualified_name for command in commands}
 
         total, missing, invalid, maximum, command_names = asyncio.run(inspect_commands())
-        self.assertEqual(total, 199)
+        self.assertEqual(total, 202)
         self.assertEqual(missing, [])
         self.assertEqual(invalid, [])
         self.assertLessEqual(maximum, 25)
@@ -105,6 +105,7 @@ class CommandVisibilityTests(unittest.TestCase):
             "loa request", "loa status", "loa cancel", "loa setstatus", "loa end", "loa settings",
             "roa request", "roa status", "roa cancel", "roa setstatus", "roa end", "roa settings",
             "clockin", "clockout", "break start", "break end", "shift", "timesheet", "staffhours", "leaderboard", "duty", "forceclockout",
+            "shifts list", "shifts remove", "shifts clear",
         }
         self.assertEqual(sheet_commands - command_names, set())
 

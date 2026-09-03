@@ -333,11 +333,12 @@ def setup_premium_commands(tree: app_commands.CommandTree) -> None:
             await interaction.response.send_message("You do not have an active staff shift.", ephemeral=True)
             return
         ended = _now()
-        from commands.workforce import _active_seconds
+        from commands.workforce import _active_seconds, _new_shift_id
 
         seconds = _active_seconds(active, ended)
         break_seconds = max(0, int((ended - started).total_seconds()) - seconds)
         record["history"].append({
+            "shift_id": _new_shift_id(),
             "started_at": started.isoformat(),
             "ended_at": ended.isoformat(),
             "seconds": seconds,

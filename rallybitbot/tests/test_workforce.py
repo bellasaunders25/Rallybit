@@ -9,7 +9,10 @@ import discord
 
 from commands.workforce import (
     _active_seconds,
+    _clear_shift_account,
+    _ensure_shift_ids,
     _format_duration,
+    _remove_completed_shift,
     default_workforce_settings,
     is_hr_member,
     is_staff_member,
@@ -50,8 +53,34 @@ class WorkforceTests(unittest.TestCase):
             "loa request", "loa status", "loa cancel", "loa setstatus", "loa end", "loa settings",
             "roa request", "roa status", "roa cancel", "roa setstatus", "roa end", "roa settings",
             "clockin", "clockout", "break start", "break end", "shift", "timesheet", "staffhours", "duty", "forceclockout",
+            "shifts list", "shifts remove", "shifts clear",
         }
         self.assertEqual(expected, names)
+
+    def test_legacy_shift_ids_are_stable_and_allow_one_record_removal(self) -> None:
+        record = {
+            "active": None,
+            "history": [
+                {"started_at": "2026-08-01T10:00:00+00:00", "seconds": 3600},
+                {"shift_id": "sh-existing", "started_at": "2026-08-02T10:00:00+00:00", "seconds": 7200},
+            ],
+        }
+        self.assertTrue(_ensure_shift_ids(record))
+        generated = record["history"][0]["shift_id"]
+        self.assertTrue(generated.startswith("SH-"))
+        self.assertEqual(record["history"][1]["shift_id"], "SH-EXISTING")
+        self.assertFalse(_ensure_shift_ids(record))
+        removed = _remove_completed_shift(record, generated.lower())
+        self.assertIsNotNone(removed)
+        self.assertEqual([row["shift_id"] for row in record["history"]], ["SH-EXISTING"])
+
+    def test_clear_shift_account_can_preserve_or_remove_active_shift(self) -> None:
+        data = {"1": {"2": {"active": {"started_at": "2026-08-03T10:00:00+00:00"}, "history": [{"seconds": 60}]}}}
+        self.assertEqual(_clear_shift_account(data, 1, 2, include_active=False), (1, False))
+        self.assertIn("2", data["1"])
+        self.assertEqual(data["1"]["2"]["history"], [])
+        self.assertEqual(_clear_shift_account(data, 1, 2, include_active=True), (0, True))
+        self.assertEqual(data, {})
 
 
 if __name__ == "__main__":

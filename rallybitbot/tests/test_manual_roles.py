@@ -36,9 +36,10 @@ class _MemberRank:
     def __init__(self, member_id: int, position: int) -> None:
         self.id = member_id
         self.position = position
+        self.top_role = _Rank(position)
 
     def __ge__(self, role) -> bool:
-        return self.position >= role.position
+        raise AssertionError("Member objects must not be compared directly with Role objects")
 
 
 class ManualRoleTests(unittest.TestCase):

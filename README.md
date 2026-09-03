@@ -18,7 +18,7 @@ Use `/premium plans` and `/premium status` in Discord to view available tiers an
 ### Staff operations and complete action logging
 
 - Added free LOA and ROA request workflows with configured staff roles, HR-only review controls, HR request pings, maximum durations and a complete history channel.
-- Added free `/clockin`, `/clockout`, `/break start`, `/break end`, `/shift`, `/timesheet`, `/staffhours`, `/duty` and `/forceclockout` commands. Breaks are excluded from worked hours and shift state survives restarts.
+- Added free `/clockin`, `/clockout`, `/break start`, `/break end`, `/shift`, `/timesheet`, `/staffhours`, `/duty` and `/forceclockout` commands. Breaks are excluded from worked hours and shift state survives restarts. HR can list stable shift IDs, remove one incorrect shift, or confirmation-clear an account with `/shifts list`, `/shifts remove`, and `/shifts clear`; every deletion is audited.
 - `/leaderboard` can now display either activity check-ins or staff hours.
 - Added configurable logging for commands, dashboard changes, moderation, member lifecycle, message edits/deletions, roles, channels, voice, tickets, reports, staff and security. Event-specific Discord destinations can override one default channel.
 - Added a searchable dashboard action log with event filters and retained event statistics.
@@ -216,6 +216,9 @@ Every slash command is public by default. Set its optional `private` choice to `
 /staffhours
 /duty
 /forceclockout
+/shifts list
+/shifts remove
+/shifts clear
 /logs channel
 /logs toggle
 /logs overview

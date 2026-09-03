@@ -150,6 +150,62 @@ def _staff_record(data: dict[str, Any], guild_id: int, user_id: int) -> dict[str
     return record
 
 
+def _new_shift_id() -> str:
+    return f"SH-{uuid.uuid4().hex[:8].upper()}"
+
+
+def _ensure_shift_ids(record: dict[str, Any]) -> bool:
+    """Give legacy completed shifts stable IDs without changing their totals."""
+    changed = False
+    used: set[str] = set()
+    for row in record.get("history", []):
+        if not isinstance(row, dict):
+            continue
+        shift_id = str(row.get("shift_id") or "").strip().upper()
+        if not shift_id or shift_id in used:
+            shift_id = _new_shift_id()
+            while shift_id in used:
+                shift_id = _new_shift_id()
+            row["shift_id"] = shift_id
+            changed = True
+        elif row.get("shift_id") != shift_id:
+            row["shift_id"] = shift_id
+            changed = True
+        used.add(shift_id)
+    return changed
+
+
+def _remove_completed_shift(record: dict[str, Any], shift_id: str) -> dict[str, Any] | None:
+    wanted = str(shift_id or "").strip().upper()
+    for index, row in enumerate(record.get("history", [])):
+        if isinstance(row, dict) and str(row.get("shift_id") or "").strip().upper() == wanted:
+            return record["history"].pop(index)
+    return None
+
+
+def _clear_shift_account(
+    data: dict[str, Any], guild_id: int, user_id: int, *, include_active: bool
+) -> tuple[int, bool] | None:
+    guild_data = data.get(str(guild_id))
+    if not isinstance(guild_data, dict):
+        return None
+    record = guild_data.get(str(user_id))
+    if not isinstance(record, dict):
+        return None
+    history = record.get("history")
+    history_count = len([row for row in history if isinstance(row, dict)]) if isinstance(history, list) else 0
+    active_removed = include_active and isinstance(record.get("active"), dict)
+    if include_active:
+        guild_data.pop(str(user_id), None)
+    else:
+        record["history"] = []
+        if not isinstance(record.get("active"), dict):
+            guild_data.pop(str(user_id), None)
+    if not guild_data:
+        data.pop(str(guild_id), None)
+    return history_count, active_removed
+
+
 def _active_seconds(active: dict[str, Any], end: datetime | None = None) -> int:
     end = end or _now()
     started = _parse_datetime(active.get("started_at"))
@@ -392,6 +448,7 @@ async def _clock_out_member(guild: discord.Guild, member: discord.Member, actor:
     seconds = _active_seconds(active, ended)
     break_seconds = max(0, int((ended - started).total_seconds()) - seconds)
     record["history"].append({
+        "shift_id": _new_shift_id(),
         "started_at": started.isoformat(),
         "ended_at": ended.isoformat(),
         "seconds": seconds,
@@ -410,6 +467,7 @@ def setup_workforce_commands(tree: app_commands.CommandTree) -> None:
     loa = app_commands.Group(name="loa", description="Request and manage staff leave of absence.")
     roa = app_commands.Group(name="roa", description="Request and manage staff release of activity.")
     breaks = app_commands.Group(name="break", description="Pause and resume your active staff shift.")
+    shifts = app_commands.Group(name="shifts", description="Inspect and correct staff shift records.")
 
     @loa.command(name="request", description="Submit a Leave of Absence request.")
     @_staff_check()
@@ -597,6 +655,133 @@ def setup_workforce_commands(tree: app_commands.CommandTree) -> None:
         await interaction.response.send_message(f"{member.mention} was forced off duty after **{_format_duration(seconds)}**.", ephemeral=True)
         await _shift_log(interaction.guild, "Staff Forced Clock Out", member, f"Forced off duty by {interaction.user.mention}.\nTime Worked: **{_format_duration(seconds)}**\nReason: {reason or 'No reason provided'}", DANGER, actor=interaction.user)
 
+    @shifts.command(name="list", description="List a staff member's completed shifts and record IDs. HR access required.")
+    @app_commands.guild_only()
+    @_hr_check()
+    async def shifts_list(
+        interaction: discord.Interaction,
+        member: discord.Member,
+        limit: app_commands.Range[int, 1, 20] = 10,
+    ) -> None:
+        assert interaction.guild is not None
+        data = _shift_data()
+        guild_data = data.get(str(interaction.guild.id), {})
+        record = guild_data.get(str(member.id)) if isinstance(guild_data, dict) else None
+        if not isinstance(record, dict):
+            await interaction.response.send_message(f"{member.mention} has no saved shift account.", ephemeral=True)
+            return
+        if not isinstance(record.get("history"), list):
+            record["history"] = []
+        if _ensure_shift_ids(record) and not save_json(STAFF_SHIFTS_FILE, data):
+            await interaction.response.send_message("Rallybit could not assign IDs to the saved shifts.", ephemeral=True)
+            return
+        rows = [row for row in record["history"] if isinstance(row, dict)]
+        lines: list[str] = []
+        for row in reversed(rows[-int(limit):]):
+            ended = _parse_datetime(row.get("ended_at"))
+            date = discord.utils.format_dt(ended, "D") if ended else "Unknown date"
+            lines.append(f"`{row.get('shift_id')}` · {date} · **{_format_duration(row.get('seconds', 0))}**")
+        embed = discord.Embed(
+            title=f"Shift records · {member.display_name}",
+            description="\n".join(lines) if lines else "No completed shifts are saved for this account.",
+            colour=BRAND,
+        )
+        embed.add_field(name="Completed shifts", value=str(len(rows)), inline=True)
+        embed.add_field(name="Active shift", value="Yes" if isinstance(record.get("active"), dict) else "No", inline=True)
+        embed.set_footer(text="Use /shifts remove with a listed shift ID to correct one entry")
+        await interaction.response.send_message(embed=embed, allowed_mentions=discord.AllowedMentions.none())
+
+    @shifts.command(name="remove", description="Remove one completed shift by its record ID. HR access required.")
+    @app_commands.guild_only()
+    @_hr_check()
+    async def shifts_remove(
+        interaction: discord.Interaction,
+        member: discord.Member,
+        shift_id: str,
+        reason: app_commands.Range[str, 1, 300],
+    ) -> None:
+        assert interaction.guild is not None
+        data = _shift_data()
+        guild_data = data.get(str(interaction.guild.id), {})
+        record = guild_data.get(str(member.id)) if isinstance(guild_data, dict) else None
+        if not isinstance(record, dict):
+            await interaction.response.send_message(f"{member.mention} has no saved shift account.", ephemeral=True)
+            return
+        if not isinstance(record.get("history"), list):
+            record["history"] = []
+        ids_added = _ensure_shift_ids(record)
+        removed = _remove_completed_shift(record, shift_id)
+        if removed is None:
+            if ids_added:
+                save_json(STAFF_SHIFTS_FILE, data)
+            await interaction.response.send_message("That completed shift ID was not found. Run `/shifts list` to copy the current ID.", ephemeral=True)
+            return
+        if not record["history"] and not isinstance(record.get("active"), dict):
+            guild_data.pop(str(member.id), None)
+            if not guild_data:
+                data.pop(str(interaction.guild.id), None)
+        if not save_json(STAFF_SHIFTS_FILE, data):
+            await interaction.response.send_message("The shift could not be removed from storage.", ephemeral=True)
+            return
+        removed_id = str(removed.get("shift_id") or shift_id).upper()
+        duration = _format_duration(removed.get("seconds", 0))
+        await interaction.response.send_message(f"Removed shift `{removed_id}` from {member.mention} (**{duration}**).", ephemeral=True)
+        await _shift_log(
+            interaction.guild,
+            "Staff Shift Removed",
+            member,
+            f"Shift `{removed_id}` was removed by {interaction.user.mention}.\nRecorded time: **{duration}**\nReason: {reason}",
+            DANGER,
+            actor=interaction.user,
+        )
+
+    @shifts.command(name="clear", description="Clear a staff member's saved shift account. HR access required.")
+    @app_commands.guild_only()
+    @_hr_check()
+    async def shifts_clear(
+        interaction: discord.Interaction,
+        member: discord.Member,
+        reason: app_commands.Range[str, 1, 300],
+        include_active: bool = False,
+        confirm: bool = False,
+    ) -> None:
+        assert interaction.guild is not None
+        if not confirm:
+            await interaction.response.send_message(
+                "Nothing was removed. Run the command again with `confirm:True` after checking the member and `include_active` choice.",
+                ephemeral=True,
+            )
+            return
+        data = _shift_data()
+        result = _clear_shift_account(data, interaction.guild.id, member.id, include_active=include_active)
+        if result is None:
+            await interaction.response.send_message(f"{member.mention} has no saved shift account.", ephemeral=True)
+            return
+        history_count, active_removed = result
+        if history_count == 0 and not active_removed:
+            await interaction.response.send_message(
+                f"{member.mention} has no completed shifts to clear." + (" Their active shift was kept." if not include_active else ""),
+                ephemeral=True,
+            )
+            return
+        if not save_json(STAFF_SHIFTS_FILE, data):
+            await interaction.response.send_message("The shift account could not be cleared from storage.", ephemeral=True)
+            return
+        active_note = " The active shift was also removed." if active_removed else ""
+        await interaction.response.send_message(
+            f"Cleared **{history_count}** completed shift(s) from {member.mention}.{active_note}",
+            ephemeral=True,
+        )
+        await _shift_log(
+            interaction.guild,
+            "Staff Shift Account Cleared",
+            member,
+            f"{history_count} completed shift(s) were removed by {interaction.user.mention}.\nActive shift removed: **{'Yes' if active_removed else 'No'}**\nReason: {reason}",
+            DANGER,
+            actor=interaction.user,
+        )
+
     tree.add_command(loa)
     tree.add_command(roa)
     tree.add_command(breaks)
+    tree.add_command(shifts)
