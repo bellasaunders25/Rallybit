@@ -1,5 +1,11 @@
 RewriteEngine On
 
+# Keep one canonical public URL for each legal page.
+RewriteCond %{THE_REQUEST} \s/+privacy(?:\.html)?(?:[?\s]) [NC]
+RewriteRule ^privacy(?:\.html)?$ /privacy-policy [R=301,L]
+RewriteCond %{THE_REQUEST} \s/+terms\.html(?:[?\s]) [NC]
+RewriteRule ^terms\.html$ /terms [R=301,L]
+
 # Redirect production traffic to HTTPS while allowing local development.
 # #RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
 # #RewriteCond %{HTTPS} !=on
