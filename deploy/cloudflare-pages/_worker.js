@@ -11,7 +11,10 @@ function rewriteLocation(value, publicUrl) {
   try {
     const location = new URL(value, ORIGIN);
     const origin = new URL(ORIGIN);
-    if (location.origin === origin.origin) {
+    // Apache can generate an absolute http:// redirect because TLS terminates
+    // at the edge. Match the private origin by hostname, then always expose
+    // the public HTTPS host to the browser.
+    if (location.hostname === origin.hostname) {
       location.protocol = publicUrl.protocol;
       location.host = publicUrl.host;
     }
