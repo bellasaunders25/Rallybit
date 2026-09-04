@@ -20,9 +20,9 @@ $inviteUrl = 'https://discord.com/oauth2/authorize?' . $query;
   <meta property="og:site_name" content="Rallybit">
   <meta property="og:title" content="Add Rallybit to Discord">
   <meta property="og:description" content="Activity checks, moderation, tickets, automation, and community tools in one configurable bot.">
-  <meta property="og:url" content="https://raspberrypi.tail5cb034.ts.net/invite.php">
-  <meta property="og:image" content="https://raspberrypi.tail5cb034.ts.net/assets/brand/rallybit-social-card.png">
-  <meta property="og:image:secure_url" content="https://raspberrypi.tail5cb034.ts.net/assets/brand/rallybit-social-card.png">
+  <meta property="og:url" content="https://rallybit.pages.dev/invite.php">
+  <meta property="og:image" content="https://rallybit.pages.dev/assets/brand/rallybit-social-card.png">
+  <meta property="og:image:secure_url" content="https://rallybit.pages.dev/assets/brand/rallybit-social-card.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1730">
   <meta property="og:image:height" content="909">
@@ -30,8 +30,8 @@ $inviteUrl = 'https://discord.com/oauth2/authorize?' . $query;
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Add Rallybit to Discord">
   <meta name="twitter:description" content="Activity checks, moderation, tickets, automation, and community tools in one configurable bot.">
-  <meta name="twitter:image" content="https://raspberrypi.tail5cb034.ts.net/assets/brand/rallybit-social-card.png">
-  <link rel="canonical" href="https://raspberrypi.tail5cb034.ts.net/invite.php">
+  <meta name="twitter:image" content="https://rallybit.pages.dev/assets/brand/rallybit-social-card.png">
+  <link rel="canonical" href="https://rallybit.pages.dev/invite.php">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <title>Add Rallybit to Discord</title>
 </head>

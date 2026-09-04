@@ -622,7 +622,7 @@ def request_plan(
             headers={
                 "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://rallybits.com",
+                "HTTP-Referer": "https://rallybit.pages.dev",
                 "X-Title": "Rallybit Prettfy",
                 "User-Agent": "Rallybit/Prettfy",
             },
@@ -879,7 +879,7 @@ def _preview_base_url() -> str:
     parsed = urlsplit(DASHBOARD_URL)
     if parsed.scheme in {"http", "https"} and parsed.netloc:
         return f"{parsed.scheme}://{parsed.netloc}/prettfy-preview"
-    return "https://rallybits.com/prettfy-preview"
+    return "https://rallybit.pages.dev/prettfy-preview"
 
 
 def _cleanup_expired_previews() -> None:

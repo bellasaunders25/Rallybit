@@ -456,10 +456,10 @@ class PrettfyTests(unittest.TestCase):
             "new_name": "『📢』general-and-news",
             "reason": "Consistent",
         }]
-        with patch.object(prettfy, "DASHBOARD_URL", "https://rallybits.com/dashboard"):
+        with patch.object(prettfy, "DASHBOARD_URL", "https://rallybit.pages.dev/dashboard"):
             url, path = prettfy.create_channel_preview("Example <Server>", inventory, proposals)
         document = path.read_text(encoding="utf-8")
-        self.assertRegex(url, r"^https://rallybits\.com/prettfy-preview\?token=[a-f0-9]{32}$")
+        self.assertRegex(url, r"^https://rallybit\.pages\.dev/prettfy-preview\?token=[a-f0-9]{32}$")
         self.assertIn("Example &lt;Server&gt;", document)
         self.assertIn("General &amp; News", document)
         self.assertIn("Support Forum", document)

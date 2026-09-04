@@ -12,5 +12,7 @@ rallybitbot/venv/
 rallybitbot/__pycache__/
 rallybitbot/**/__pycache__/
 rallybitbot/data/
+.wrangler/
+node_modules/
 .DS_Store
 Thumbs.db

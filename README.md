@@ -292,6 +292,8 @@ The included `rallybitbot/compose.yaml` exposes the bot API only on the Docker h
 
 The production Tailscale Funnel reserves public HTTPS port `443` for Rallybit and proxies it to Apache on `127.0.0.1:80`. If another local application replaces that handler, the public website and Discord OAuth callback will stop loading even though Apache remains healthy. Run `deploy/configure-rallybit-funnel.sh` to back up the current Funnel configuration and restore only Rallybit's port `443` handler; services on other Funnel ports are preserved.
 
+Rallybit's public address is `https://rallybit.pages.dev`. The Cloudflare Pages advanced-mode worker in `deploy/cloudflare-pages/` is a free HTTPS edge proxy to the Funnel origin. Deploy it with `wrangler pages deploy deploy/cloudflare-pages --project-name rallybit --branch main`. The Discord application's OAuth redirect and both private `.env` files must use `https://rallybit.pages.dev/dashboard/callback.php` and `https://rallybit.pages.dev/dashboard` respectively. Keep the Funnel hostname as an origin address only; do not publish it in bot responses or page metadata.
+
 ## Live recovery data
 
 ```text

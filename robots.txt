@@ -4,4 +4,4 @@ Disallow: /dashboard/admin.php
 Disallow: /dashboard/callback.php
 Disallow: /rallybitbot/
 
-Sitemap: https://activitycheck.top/sitemap.xml
+Sitemap: https://rallybit.pages.dev/sitemap.xml
