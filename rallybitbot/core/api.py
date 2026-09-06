@@ -200,7 +200,7 @@ def _ticket_panel_dashboard_payload(
         "image_url": str(panel.get("image_url") or ""),
         "footer_text": str(panel.get("footer_text") or ""),
         "footer_icon_url": str(panel.get("footer_icon_url") or ""),
-        "show_author": bool(panel.get("show_author", True)),
+        "show_author": bool(panel.get("show_author", False)),
         "show_option_details": bool(panel.get("show_option_details", True)),
         "show_workload": bool(panel.get("show_workload", True)),
         "show_guidance": bool(panel.get("show_guidance", True)),
@@ -213,6 +213,7 @@ def _ticket_panel_dashboard_payload(
                 "emoji": str(option.get("emoji") or ""),
                 "category_id": str(option.get("category_id") or ""),
                 "support_role_id": str((option.get("support_role_ids") or [""])[0]),
+                "enabled": bool(option.get("enabled", True)),
             }
             for option in options
         ],
@@ -724,8 +725,7 @@ async def _dashboard_action_async(payload):
             first_option_category = first_option.get("category_id") if first_option else None
         category_id = params.get("category_id") or first_option_category or cfg.get("default_category_id")
         category = guild.get_channel(int(category_id or 0))
-        configured_roles = cfg.get("support_role_ids", []) if isinstance(cfg, dict) else []
-        support_role_id = params.get("support_role_id") or (configured_roles[0] if configured_roles else None)
+        support_role_id = params.get("support_role_id")
         support_role = guild.get_role(int(support_role_id)) if support_role_id else None
         if not isinstance(target, discord.TextChannel):
             raise RuntimeError("Choose a text channel for the ticket panel.")
@@ -743,17 +743,18 @@ async def _dashboard_action_async(payload):
                 option_name = str(raw_option.get("name") or "").strip()
                 if not option_name:
                     continue
-                option_category = guild.get_channel(int(raw_option.get("category_id") or category.id))
+                option_category = guild.get_channel(int(raw_option.get("category_id") or 0))
                 if not isinstance(option_category, discord.CategoryChannel):
                     raise RuntimeError(f"Choose a valid category for the {option_name[:100]} ticket option.")
                 option_role_id = raw_option.get("support_role_id")
-                option_role = guild.get_role(int(option_role_id)) if option_role_id else support_role
+                option_role = guild.get_role(int(option_role_id)) if option_role_id else None
                 if option_role_id and option_role is None:
                     raise RuntimeError(f"Choose a valid support role for the {option_name[:100]} ticket option.")
                 panel_option = {
                     "name": option_name,
                     "description": str(raw_option.get("description") or "Speak privately with the support team."),
                     "emoji": str(raw_option.get("emoji") or ""),
+                    "enabled": str(raw_option.get("enabled", "true")).strip().lower() not in {"0", "false", "no", "off"},
                     "category_id": option_category.id,
                     "support_role_ids": [option_role.id] if option_role else [],
                     "ticket_name": str(raw_option.get("ticket_name") or ""),
@@ -766,6 +767,7 @@ async def _dashboard_action_async(payload):
                 "name": str(params.get("name") or "Support"),
                 "description": str(params.get("option_description") or "Speak privately with the support team."),
                 "emoji": str(params.get("option_emoji") or "🎫"),
+                "enabled": True,
                 "category_id": category.id,
                 "support_role_ids": [support_role.id] if support_role else [],
             }]
@@ -786,7 +788,7 @@ async def _dashboard_action_async(payload):
                 image_url=str(params.get("image_url") or ""),
                 footer_text=str(params.get("footer_text") or ""),
                 footer_icon_url=str(params.get("footer_icon_url") or ""),
-                show_author=bool(params.get("show_author", True)),
+                show_author=bool(params.get("show_author", False)),
                 show_option_details=bool(params.get("show_option_details", True)),
                 show_workload=bool(params.get("show_workload", True)),
                 show_guidance=bool(params.get("show_guidance", True)),
@@ -813,7 +815,7 @@ async def _dashboard_action_async(payload):
             image_url=str(params.get("image_url") or ""),
             footer_text=str(params.get("footer_text") or ""),
             footer_icon_url=str(params.get("footer_icon_url") or ""),
-            show_author=bool(params.get("show_author", True)),
+            show_author=bool(params.get("show_author", False)),
             show_option_details=bool(params.get("show_option_details", True)),
             show_workload=bool(params.get("show_workload", True)),
             show_guidance=bool(params.get("show_guidance", True)),

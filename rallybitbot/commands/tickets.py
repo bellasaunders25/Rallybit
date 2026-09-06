@@ -225,6 +225,7 @@ def _normalise_panel_option(option: dict[str, Any], fallback_id: str) -> dict[st
         "name": name,
         "description": str(option.get("description") or DEFAULT_OPTION_DESCRIPTION).strip()[:100] or DEFAULT_OPTION_DESCRIPTION,
         "emoji": str(option.get("emoji") or "").strip()[:100],
+        "enabled": _as_bool(option.get("enabled"), True),
         "category_id": option.get("category_id"),
         "support_role_ids": list(dict.fromkeys(str(value) for value in role_ids if str(value).isdigit())),
         "ticket_name": str(option.get("ticket_name") or "").strip()[:90],
@@ -247,6 +248,7 @@ def _panel_options(panel: dict[str, Any]) -> list[dict[str, Any]]:
         "name": panel.get("name") or panel.get("button_label") or "Support",
         "description": panel.get("option_description") or DEFAULT_OPTION_DESCRIPTION,
         "emoji": panel.get("button_emoji") or "🎫",
+        "enabled": True,
         "category_id": panel.get("category_id"),
         "support_role_ids": panel.get("support_role_ids", []),
         "ticket_name": panel.get("ticket_name") or "",
@@ -268,6 +270,8 @@ def _effective_ticket_panel(panel: dict[str, Any], option_id: str | None) -> tup
     option = _panel_option(panel, str(option_id or ""))
     if not option:
         raise RuntimeError("That ticket option no longer exists. Refresh the panel and try again.")
+    if not _as_bool(option.get("enabled"), True):
+        raise RuntimeError("This ticket option is currently closed.")
     effective = dict(panel)
     effective.update(option)
     common_roles = panel.get("support_role_ids", []) if isinstance(panel.get("support_role_ids"), list) else []
@@ -277,6 +281,8 @@ def _effective_ticket_panel(panel: dict[str, Any], option_id: str | None) -> tup
 
 def _select_option_emoji(value: Any) -> discord.PartialEmoji | None:
     raw = str(value or "").strip()
+    if re.fullmatch(r"\d{15,22}", raw):
+        return discord.PartialEmoji(name="ticket_option", id=int(raw))
     custom_emoji = re.fullmatch(r"<a?:[A-Za-z0-9_]+:\d+>", raw)
     has_unicode_symbol = any(
         unicodedata.category(character) == "So" or character == "\u20e3"
@@ -304,22 +310,27 @@ def _ticket_panel_embeds(guild: discord.Guild, panel_id: str, panel: dict[str, A
         color=_panel_colour(panel.get("color")),
         timestamp=discord.utils.utcnow() if _as_bool(panel.get("show_timestamp"), True) else None,
     )
-    author_name = str(panel.get("author_name") or f"{guild.name} • Support centre").strip()[:256]
-    author_icon = _safe_media_url(panel.get("author_icon_url")) or _guild_icon_url(guild)
-    if _as_bool(panel.get("show_author"), True) and author_name:
+    author_name = str(panel.get("author_name") or "").strip()[:256]
+    author_icon = _safe_media_url(panel.get("author_icon_url"))
+    if _as_bool(panel.get("show_author"), False) and author_name:
         if author_icon:
             embed.set_author(name=author_name, icon_url=author_icon)
         else:
             embed.set_author(name=author_name)
-    footer_text = str(panel.get("footer_text") or f"Rallybit Tickets • Panel {panel_id}").strip()[:2048]
+    footer_text = str(panel.get("footer_text") or "").strip()[:2048]
     used_characters = len(embed.title or "") + len(embed.description or "")
-    used_characters += len(author_name) if _as_bool(panel.get("show_author"), True) else 0
+    used_characters += len(author_name) if _as_bool(panel.get("show_author"), False) else 0
     used_characters += len(footer_text)
     if _as_bool(panel.get("show_option_details"), True):
         for option in _panel_options(panel):
             emoji = str(option.get("emoji") or "").strip()
-            heading = f"{emoji} {option['name']}".strip()[:180]
+            if re.fullmatch(r"\d{15,22}", emoji):
+                emoji = f"<:ticket_option:{emoji}>"
+            is_enabled = _as_bool(option.get("enabled"), True)
+            heading = f"{emoji} {option['name']}{'' if is_enabled else ' — Closed'}".strip()[:180]
             field_value = str(option["description"])[:100]
+            if not is_enabled:
+                field_value += "\n*This option is not accepting new tickets.*"
             if used_characters + len(heading) + len(field_value) > 5900:
                 break
             embed.add_field(name=heading, value=field_value, inline=False)
@@ -660,20 +671,28 @@ class TicketPanelSelect(discord.ui.Select):
     def __init__(self, guild_id: int, panel_id: str, panel: dict[str, Any]) -> None:
         self.guild_id = guild_id
         self.panel_id = panel_id
+        enabled_options = [option for option in _panel_options(panel) if _as_bool(option.get("enabled"), True)]
         select_options = []
-        for option in _panel_options(panel):
+        for option in enabled_options:
             select_options.append(discord.SelectOption(
                 label=str(option["name"])[:100],
                 value=str(option["option_id"])[:100],
                 description=str(option["description"])[:100],
                 emoji=_select_option_emoji(option.get("emoji")),
             ))
+        if not select_options:
+            select_options.append(discord.SelectOption(
+                label="Ticket support is closed",
+                value="CLOSED",
+                description="No ticket types are accepting new tickets.",
+            ))
         super().__init__(
-            placeholder=str(panel.get("select_placeholder") or "Select a ticket type…")[:150],
+            placeholder=(str(panel.get("select_placeholder") or "Select a ticket type…")[:150] if enabled_options else "Ticket support is closed"),
             min_values=1,
             max_values=1,
             options=select_options,
             custom_id=f"rallybit:ticket:select:{guild_id}:{panel_id}",
+            disabled=not enabled_options,
         )
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -961,7 +980,7 @@ async def create_ticket_panel(
     image_url: str = "",
     footer_text: str = "",
     footer_icon_url: str = "",
-    show_author: bool = True,
+    show_author: bool = False,
     show_option_details: bool = True,
     show_workload: bool = True,
     show_guidance: bool = True,
@@ -1045,7 +1064,7 @@ async def update_ticket_panel(
     image_url: str = "",
     footer_text: str = "",
     footer_icon_url: str = "",
-    show_author: bool = True,
+    show_author: bool = False,
     show_option_details: bool = True,
     show_workload: bool = True,
     show_guidance: bool = True,

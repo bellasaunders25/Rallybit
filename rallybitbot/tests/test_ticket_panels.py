@@ -111,6 +111,53 @@ class TicketPanelTests(unittest.TestCase):
         self.assertIsNone(tickets._select_option_emoji("not-an-emoji"))
         self.assertIsNone(tickets._select_option_emoji("https://example.com/icon.png"))
         self.assertIsNotNone(tickets._select_option_emoji("🛟"))
+        numeric = tickets._select_option_emoji("123456789012345678")
+        self.assertIsNotNone(numeric)
+        self.assertEqual(numeric.id, 123456789012345678)
+        self.assertEqual(numeric.name, "ticket_option")
+
+    def test_closed_options_are_visible_but_cannot_be_selected(self) -> None:
+        panel = {
+            "show_workload": False,
+            "show_guidance": False,
+            "show_timestamp": False,
+            "options": [
+                {"option_id": "OPEN", "name": "General", "description": "Questions", "enabled": True},
+                {"option_id": "CLOSED", "name": "Billing", "description": "Payments", "enabled": False},
+            ],
+        }
+        view = tickets.TicketPanelView(_Guild.id, "ABC12345", panel)
+        select = view.children[0]
+        self.assertEqual([option.value for option in select.options], ["OPEN"])
+        with patch.object(tickets, "_panel_workload", return_value=0):
+            embed = tickets._ticket_panel_embeds(_Guild(), "ABC12345", panel)[-1]
+        self.assertTrue(any("Closed" in field.name for field in embed.fields))
+        with self.assertRaisesRegex(RuntimeError, "currently closed"):
+            tickets._effective_ticket_panel(panel, "CLOSED")
+
+    def test_panel_with_every_option_closed_disables_dropdown(self) -> None:
+        panel = {
+            "options": [
+                {"option_id": "CLOSED", "name": "Billing", "description": "Payments", "enabled": False},
+            ],
+        }
+        view = tickets.TicketPanelView(_Guild.id, "ABC12345", panel)
+        select = view.children[0]
+        self.assertTrue(select.disabled)
+        self.assertEqual(select.placeholder, "Ticket support is closed")
+        self.assertEqual(select.options[0].value, "CLOSED")
+
+    def test_blank_author_and_footer_do_not_add_branding(self) -> None:
+        panel = {
+            "show_workload": False,
+            "show_guidance": False,
+            "show_timestamp": False,
+            "options": [{"option_id": "A", "name": "Support", "description": "Questions"}],
+        }
+        with patch.object(tickets, "_panel_workload", return_value=0):
+            embed = tickets._ticket_panel_embeds(_Guild(), "ABC12345", panel)[-1]
+        self.assertFalse(embed.author.name)
+        self.assertFalse(embed.footer.text)
 
     def test_embed_character_budget_and_https_media_validation(self) -> None:
         panel = {

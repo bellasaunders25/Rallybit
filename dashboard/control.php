@@ -102,6 +102,7 @@ function posted_ticket_panel_editor(): array {
     $optionEmojis = is_array($_POST['ticket_option_emoji'] ?? null) ? $_POST['ticket_option_emoji'] : [];
     $optionCategories = is_array($_POST['ticket_option_category_id'] ?? null) ? $_POST['ticket_option_category_id'] : [];
     $optionRoles = is_array($_POST['ticket_option_support_role_id'] ?? null) ? $_POST['ticket_option_support_role_id'] : [];
+    $optionEnabled = is_array($_POST['ticket_option_enabled'] ?? null) ? $_POST['ticket_option_enabled'] : [];
     $options = [];
     foreach ($optionNames as $index => $rawName) {
         $name = trim((string)$rawName);
@@ -113,6 +114,7 @@ function posted_ticket_panel_editor(): array {
             'emoji'=>function_exists('mb_substr') ? mb_substr(trim((string)($optionEmojis[$index] ?? '')),0,100) : substr(trim((string)($optionEmojis[$index] ?? '')),0,100),
             'category_id'=>clean_id($optionCategories[$index] ?? ''),
             'support_role_id'=>clean_id($optionRoles[$index] ?? ''),
+            'enabled'=>!in_array(strtolower(trim((string)($optionEnabled[$index] ?? '1'))), ['0','false','no','off'], true),
         ];
         if (count($options) >= 25) break;
     }
@@ -436,8 +438,8 @@ if (!is_array($ticketPanelEditor)) {
         'title'=>'How can we help?','description'=>'Choose the ticket type that best matches what you need. Your conversation will be private.',
         'select_placeholder'=>'Select a ticket type...','color'=>'#7C6CFF','author_name'=>'','author_icon_url'=>'',
         'header_image_url'=>'','thumbnail_url'=>'','image_url'=>'','footer_text'=>'','footer_icon_url'=>'',
-        'show_author'=>true,'show_option_details'=>true,'show_workload'=>true,'show_guidance'=>true,'show_timestamp'=>true,
-        'options'=>[['option_id'=>'','name'=>'General Support','description'=>'General questions and assistance','emoji'=>'🎫','category_id'=>$tickets['default_category_id']??null,'support_role_id'=>$tickets['support_role_ids'][0]??null]],
+        'show_author'=>false,'show_option_details'=>true,'show_workload'=>true,'show_guidance'=>true,'show_timestamp'=>true,
+        'options'=>[['option_id'=>'','name'=>'General Support','description'=>'General questions and assistance','emoji'=>'🎫','category_id'=>null,'support_role_id'=>null,'enabled'=>true]],
     ];
 }
 $avatar = user_avatar_url(80);
@@ -454,11 +456,11 @@ function channel_picker(array $items, mixed $selected, string $fieldName, string
     $safeId = htmlspecialchars($pickerId);
     $menuId = $safeId.'-menu';
     $icon = $categories ? 'bi-folder' : 'bi-hash';
-    $html = '<div class="channel-picker" data-channel-picker data-required="'.($required ? 'true' : 'false').'" id="'.$safeId.'">';
+    $html = '<div class="channel-picker" data-channel-picker data-resource-kind="'.($categories ? 'categories' : 'channels').'" data-required="'.($required ? 'true' : 'false').'" id="'.$safeId.'">';
     $html .= '<input type="hidden" name="'.htmlspecialchars($fieldName).'" value="'.htmlspecialchars($selectedId).'" data-channel-picker-value>';
     $html .= '<button class="channel-picker-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="'.$menuId.'"><span class="channel-picker-current"><i class="bi '.$icon.'" aria-hidden="true"></i><span data-channel-picker-label>'.htmlspecialchars($selectedName ?: $placeholder).'</span></span><i class="bi bi-chevron-down channel-picker-chevron" aria-hidden="true"></i></button>';
     $html .= '<div class="channel-picker-popover" data-channel-picker-popover id="'.$menuId.'" role="listbox" hidden>';
-    $html .= '<div class="channel-picker-search"><i class="bi bi-search" aria-hidden="true"></i><input type="search" placeholder="Search '.($categories ? 'categories' : 'channels').'" aria-label="Search '.($categories ? 'categories' : 'channels').'" data-channel-picker-search></div>';
+    $html .= '<div class="channel-picker-search resource-picker-search"><span class="resource-search-input"><i class="bi bi-search" aria-hidden="true"></i><input type="search" placeholder="Search '.($categories ? 'categories' : 'channels').'" aria-label="Search '.($categories ? 'categories' : 'channels').'" data-channel-picker-search></span><button type="button" class="resource-refresh-button" data-refresh-resources title="Refresh server lists" aria-label="Refresh server lists"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button></div>';
     $html .= '<div class="channel-picker-options">';
     if (!$required) {
         $html .= '<button type="button" class="channel-picker-option" data-channel-option data-value="" data-label="'.$placeholder.'" data-search="none" aria-selected="'.($selectedId === '' ? 'true' : 'false').'"><i class="bi bi-slash-circle" aria-hidden="true"></i><span>None</span><i class="bi bi-check2 channel-picker-check" aria-hidden="true"></i></button>';
@@ -492,11 +494,11 @@ function single_role_picker(array $roles, mixed $selected, string $fieldName, st
     $placeholder = 'Select a role';
     $safeId = htmlspecialchars($pickerId);
     $menuId = $safeId.'-menu';
-    $html = '<div class="single-role-picker" data-single-role-picker data-required="'.($required ? 'true' : 'false').'" id="'.$safeId.'">';
+    $html = '<div class="single-role-picker" data-single-role-picker data-resource-kind="roles" data-required="'.($required ? 'true' : 'false').'" id="'.$safeId.'">';
     $html .= '<input type="hidden" name="'.htmlspecialchars($fieldName).'" value="'.htmlspecialchars($selectedId).'" data-single-role-picker-value>';
     $html .= '<button class="single-role-picker-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="'.$menuId.'"><span class="single-role-picker-current"><span class="role-colour" data-single-role-picker-colour style="--role-colour:'.htmlspecialchars($selectedColour).'"'.($selectedName === '' ? ' hidden' : '').'></span><i class="bi bi-person-badge" data-single-role-picker-placeholder-icon aria-hidden="true"'.($selectedName !== '' ? ' hidden' : '').'></i><span data-single-role-picker-label>'.htmlspecialchars($selectedName ?: $placeholder).'</span></span><i class="bi bi-chevron-down single-role-picker-chevron" aria-hidden="true"></i></button>';
     $html .= '<div class="single-role-picker-popover" data-single-role-picker-popover id="'.$menuId.'" role="listbox" hidden>';
-    $html .= '<div class="single-role-picker-search"><i class="bi bi-search" aria-hidden="true"></i><input type="search" placeholder="Search roles" aria-label="Search roles" data-single-role-picker-search></div>';
+    $html .= '<div class="single-role-picker-search resource-picker-search"><span class="resource-search-input"><i class="bi bi-search" aria-hidden="true"></i><input type="search" placeholder="Search roles" aria-label="Search roles" data-single-role-picker-search></span><button type="button" class="resource-refresh-button" data-refresh-resources title="Refresh server lists" aria-label="Refresh server lists"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button></div>';
     $html .= '<div class="single-role-picker-options">';
     if (!$required) {
         $html .= '<button type="button" class="single-role-picker-option" data-single-role-option data-value="" data-label="'.$placeholder.'" data-colour="" data-search="none" aria-selected="'.($selectedId === '' ? 'true' : 'false').'"><i class="bi bi-slash-circle" aria-hidden="true"></i><span>None</span><i class="bi bi-check2 single-role-picker-check" aria-hidden="true"></i></button>';
@@ -521,10 +523,10 @@ function role_picker(array $roles, array $selected, string $fieldName, string $p
     $selectedCount = count(array_intersect($selectedIds, array_map(static fn($role) => (string)$role['id'], $roles)));
     $summary = $selectedCount === 0 ? 'Choose roles' : ($selectedCount === 1 ? '1 role selected' : "{$selectedCount} roles selected");
     $safeId = htmlspecialchars($pickerId);
-    $html = '<div class="role-picker" data-role-picker id="'.$safeId.'">';
+    $html = '<div class="role-picker" data-role-picker data-resource-kind="roles" data-field-name="'.htmlspecialchars($fieldName).'" id="'.$safeId.'">';
     $html .= '<button class="role-picker-trigger" type="button" aria-expanded="false"><span data-role-picker-summary>'.htmlspecialchars($summary).'</span><i class="bi bi-chevron-down" aria-hidden="true"></i></button>';
     $html .= '<div class="role-picker-popover" data-role-picker-popover hidden>';
-    $html .= '<div class="role-picker-search"><i class="bi bi-search" aria-hidden="true"></i><input type="search" placeholder="Search roles" aria-label="Search roles" data-role-picker-search></div>';
+    $html .= '<div class="role-picker-search resource-picker-search"><span class="resource-search-input"><i class="bi bi-search" aria-hidden="true"></i><input type="search" placeholder="Search roles" aria-label="Search roles" data-role-picker-search></span><button type="button" class="resource-refresh-button" data-refresh-resources title="Refresh server lists" aria-label="Refresh server lists"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button></div>';
     $html .= '<div class="role-picker-options">';
     foreach ($roles as $role) {
         $id = htmlspecialchars((string)$role['id']);
@@ -559,7 +561,7 @@ function role_label(array $roles, mixed $roleId): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard/style.css?v=6.2">
+<link rel="stylesheet" href="/dashboard/style.css?v=6.3">
 <link rel="icon" href="/favicon.ico">
 </head>
 <body>
@@ -1046,7 +1048,7 @@ function role_label(array $roles, mixed $roleId): string {
 <h3><?=!empty($ticketPanelEditor['panel_id'])?'Edit ticket dropdown':'Publish one ticket dropdown'?></h3>
 <p class="form-intro"><?=!empty($ticketPanelEditor['panel_id'])?'Saving updates the original Discord message and its working dropdown.':'Create one polished panel with multiple ticket types. Each choice can open in its own category and notify its own support role.'?></p>
 <div class="form-field"><span class="field-label"><?=!empty($ticketPanelEditor['panel_id'])?'Original message channel':'Send to channel'?></span><?=channel_picker($channels,$ticketPanelEditor['channel_id']??null,'ticket_panel_channel_id','ticket-publish-channel-picker',empty($ticketPanelEditor['panel_id']))?></div>
-<input type="hidden" name="category_id" value="<?=htmlspecialchars((string)($tickets['default_category_id']??''))?>">
+<input type="hidden" name="category_id" value="">
 <label>Panel title<input name="title" value="<?=htmlspecialchars((string)($ticketPanelEditor['title']??'How can we help?'))?>" maxlength="256" required>
 </label>
 <label>Introduction<textarea name="description" rows="4" required><?=htmlspecialchars((string)($ticketPanelEditor['description']??''))?></textarea>
@@ -1064,17 +1066,18 @@ function role_label(array $roles, mixed $roleId): string {
 <div class="ticket-option-card">
 <div class="ticket-option-heading"><strong>Option <?=$ticketOptionNumber?></strong><span><?=$ticketOptionIndex===0?'Required':'Optional'?></span></div>
 <input type="hidden" name="ticket_option_id[]" value="<?=htmlspecialchars((string)($ticketOption['option_id']??''))?>">
+<label class="ticket-option-availability"><input type="hidden" name="ticket_option_enabled[]" value="<?=array_key_exists('enabled',$ticketOption)&&empty($ticketOption['enabled'])?'0':'1'?>" data-ticket-option-enabled-value><input type="checkbox" data-ticket-option-enabled-toggle <?=!array_key_exists('enabled',$ticketOption)||!empty($ticketOption['enabled'])?'checked':''?>><span><strong>Accept new tickets</strong><small>Turn this off to keep the option visible while marking it closed.</small></span></label>
 <div class="field-grid">
 <label>Name<input name="ticket_option_name[]" value="<?=htmlspecialchars((string)($ticketOption['name']??''))?>" maxlength="100" <?=$ticketOptionIndex===0?'required':''?> placeholder="e.g. Billing Support">
 </label>
-<label>Custom icon<input name="ticket_option_emoji[]" value="<?=htmlspecialchars((string)($ticketOption['emoji']??''))?>" maxlength="100" placeholder="Unicode or server emoji">
+<label>Custom icon<input name="ticket_option_emoji[]" value="<?=htmlspecialchars((string)($ticketOption['emoji']??''))?>" maxlength="100" placeholder="Emoji, server emoji, or emoji ID"><small>Paste a normal emoji, a full server emoji, or its numeric ID.</small>
 </label>
 </div>
 <label>Description<input name="ticket_option_description[]" value="<?=htmlspecialchars((string)($ticketOption['description']??''))?>" maxlength="100" placeholder="Shown under the option name">
 </label>
 <div class="field-grid">
-<div class="form-field"><span class="field-label">Ticket category</span><?=channel_picker($categories,$ticketOption['category_id']??($tickets['default_category_id']??null),"ticket_option_category_id[]","ticket-option-category-{$ticketOptionNumber}",$ticketOptionIndex===0,true)?></div>
-<div class="form-field"><span class="field-label">Support role</span><?=single_role_picker($roles,$ticketOption['support_role_id']??($tickets['support_role_ids'][0]??null),"ticket_option_support_role_id[]","ticket-option-role-{$ticketOptionNumber}")?></div>
+<div class="form-field"><span class="field-label">Ticket category</span><?=channel_picker($categories,$ticketOption['category_id']??null,"ticket_option_category_id[]","ticket-option-category-{$ticketOptionNumber}",$ticketOptionIndex===0,true)?></div>
+<div class="form-field"><span class="field-label">Support role</span><?=single_role_picker($roles,$ticketOption['support_role_id']??null,"ticket_option_support_role_id[]","ticket-option-role-{$ticketOptionNumber}")?></div>
 </div>
 </div>
 <?php endfor; ?>
@@ -1087,16 +1090,16 @@ function role_label(array $roles, mixed $roleId): string {
 <label>Body image URL<input type="url" name="panel_image_url" value="<?=htmlspecialchars((string)($ticketPanelEditor['image_url']??''))?>" placeholder="https://example.com/body.png"></label>
 </div>
 <div class="field-grid">
-<label>Author name<input name="panel_author_name" maxlength="256" value="<?=htmlspecialchars((string)($ticketPanelEditor['author_name']??''))?>" placeholder="Defaults to server name • Support centre"></label>
+<label>Author name<input name="panel_author_name" maxlength="256" value="<?=htmlspecialchars((string)($ticketPanelEditor['author_name']??''))?>" placeholder="Optional author name"></label>
 <label>Author icon URL<input type="url" name="panel_author_icon_url" value="<?=htmlspecialchars((string)($ticketPanelEditor['author_icon_url']??''))?>" placeholder="https://example.com/author.png"></label>
 </div>
 <div class="field-grid">
-<label>Footer text<input name="panel_footer_text" maxlength="2048" value="<?=htmlspecialchars((string)($ticketPanelEditor['footer_text']??''))?>" placeholder="Defaults to Rallybit Tickets and panel ID"></label>
+<label>Footer text<input name="panel_footer_text" maxlength="2048" value="<?=htmlspecialchars((string)($ticketPanelEditor['footer_text']??''))?>" placeholder="Optional footer text"></label>
 <label>Footer icon URL<input type="url" name="panel_footer_icon_url" value="<?=htmlspecialchars((string)($ticketPanelEditor['footer_icon_url']??''))?>" placeholder="https://example.com/footer.png"></label>
 </div>
 </div>
 <div class="ticket-display-options">
-<label class="toggle-row"><input type="checkbox" name="panel_show_author" <?=!empty($ticketPanelEditor['show_author'])?'checked':''?>><span><strong>Show author</strong><small>Server branding or the custom author above.</small></span></label>
+<label class="toggle-row"><input type="checkbox" name="panel_show_author" <?=!empty($ticketPanelEditor['show_author'])?'checked':''?>><span><strong>Show author</strong><small>Display the custom author name and icon above.</small></span></label>
 <label class="toggle-row"><input type="checkbox" name="panel_show_option_details" <?=!empty($ticketPanelEditor['show_option_details'])?'checked':''?>><span><strong>Show option details</strong><small>List each dropdown choice inside the embed.</small></span></label>
 <label class="toggle-row"><input type="checkbox" name="panel_show_workload" <?=!empty($ticketPanelEditor['show_workload'])?'checked':''?>><span><strong>Show workload</strong><small>Display the number of active tickets.</small></span></label>
 <label class="toggle-row"><input type="checkbox" name="panel_show_guidance" <?=!empty($ticketPanelEditor['show_guidance'])?'checked':''?>><span><strong>Show guidance</strong><small>Remind members what to include.</small></span></label>
@@ -1331,15 +1334,51 @@ function openModule(name){
 moduleButtons.forEach(function(button){button.addEventListener('click',function(){openModule(button.dataset.moduleTarget);});});
 var requested=location.hash.slice(1);
 if(requested && document.querySelector('[data-module-target="'+requested+'"]')) openModule(requested);
+var resourceEndpoint=<?=json_encode('/dashboard/resources.php?id='.$guild_id, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?>;
+var resourceRefreshPromise=null;
+function resourceRefreshState(state,message){
+  document.querySelectorAll('[data-refresh-resources]').forEach(function(button){
+    var icon=button.querySelector('i');
+    button.disabled=state==='loading';
+    button.classList.toggle('is-loading',state==='loading');
+    button.classList.toggle('is-success',state==='success');
+    button.classList.toggle('is-error',state==='error');
+    icon.className='bi '+(state==='loading'?'bi-arrow-clockwise':state==='success'?'bi-check2':state==='error'?'bi-x-lg':'bi-arrow-clockwise');
+    button.title=message||'Refresh server lists';
+    button.setAttribute('aria-label',button.title);
+  });
+}
+function refreshServerResources(){
+  if(resourceRefreshPromise)return resourceRefreshPromise;
+  resourceRefreshState('loading','Refreshing channels, categories and roles');
+  resourceRefreshPromise=fetch(resourceEndpoint,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}})
+    .then(function(response){return response.json().catch(function(){return {};}).then(function(data){if(!response.ok||!data.ok)throw new Error(data.error||'Server lists could not be refreshed.');return data;});})
+    .then(function(data){
+      document.querySelectorAll('[data-resource-kind]').forEach(function(picker){picker.dispatchEvent(new CustomEvent('rallybit:resources',{detail:data}));});
+      resourceRefreshState('success','Server lists refreshed');
+      window.setTimeout(function(){resourceRefreshState('idle','Refresh server lists');},1600);
+    })
+    .catch(function(error){
+      resourceRefreshState('error',error.message||'Server lists could not be refreshed.');
+      window.setTimeout(function(){resourceRefreshState('idle','Refresh server lists');},3000);
+    })
+    .finally(function(){resourceRefreshPromise=null;});
+  return resourceRefreshPromise;
+}
+document.querySelectorAll('[data-refresh-resources]').forEach(function(button){button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();refreshServerResources();});});
 document.querySelectorAll('[data-channel-picker]').forEach(function(picker){
   var trigger=picker.querySelector('.channel-picker-trigger');
   var popover=picker.querySelector('[data-channel-picker-popover]');
   var search=picker.querySelector('[data-channel-picker-search]');
   var options=Array.from(picker.querySelectorAll('[data-channel-option]'));
+  var optionsContainer=picker.querySelector('.channel-picker-options');
   var value=picker.querySelector('[data-channel-picker-value]');
   var label=picker.querySelector('[data-channel-picker-label]');
   var noResults=picker.querySelector('[data-channel-picker-no-results]');
   var error=picker.querySelector('[data-channel-picker-error]');
+  var isCategory=picker.dataset.resourceKind==='categories';
+  var placeholder=isCategory?'Select a category':'Select a channel';
+  var itemIcon=isCategory?'bi-folder':'bi-hash';
   function filter(){
     var query=search.value.trim().toLowerCase();var visible=0;
     options.forEach(function(option){var show=query===''||option.dataset.search.includes(query);option.hidden=!show;if(show)visible++;});
@@ -1355,9 +1394,30 @@ document.querySelectorAll('[data-channel-picker]').forEach(function(picker){
     options.forEach(function(item){item.setAttribute('aria-selected',item===option?'true':'false');});
     picker.classList.remove('invalid');error.hidden=true;value.dispatchEvent(new Event('change',{bubbles:true}));close();trigger.focus();
   }
+  function bindOptions(){options=Array.from(picker.querySelectorAll('[data-channel-option]'));options.forEach(function(option){option.addEventListener('click',function(){choose(option);});});}
+  function rebuild(items){
+    var selected=value.value;
+    optionsContainer.textContent='';
+    if(picker.dataset.required!=='true'){
+      var none=document.createElement('button');none.type='button';none.className='channel-picker-option';none.dataset.channelOption='';none.dataset.value='';none.dataset.label=placeholder;none.dataset.search='none';none.setAttribute('aria-selected',selected===''?'true':'false');
+      none.innerHTML='<i class="bi bi-slash-circle" aria-hidden="true"></i><span>None</span><i class="bi bi-check2 channel-picker-check" aria-hidden="true"></i>';optionsContainer.appendChild(none);
+    }
+    var matched=false;
+    items.forEach(function(item){
+      var id=String(item.id||'');var name=String(item.name||'').trim();if(!id||!name)return;
+      var display=(isCategory?'':'#')+name;var option=document.createElement('button');option.type='button';option.className='channel-picker-option';option.dataset.channelOption='';option.dataset.value=id;option.dataset.label=display;option.dataset.search=display.toLowerCase();option.setAttribute('aria-selected',id===selected?'true':'false');
+      var leading=document.createElement('i');leading.className='bi '+itemIcon;leading.setAttribute('aria-hidden','true');var text=document.createElement('span');text.textContent=display;var check=document.createElement('i');check.className='bi bi-check2 channel-picker-check';check.setAttribute('aria-hidden','true');option.append(leading,text,check);optionsContainer.appendChild(option);
+      if(id===selected){matched=true;label.textContent=display;}
+    });
+    if(!items.length){var empty=document.createElement('div');empty.className='channel-picker-empty';empty.textContent='No '+(isCategory?'categories':'channels')+' are available.';optionsContainer.appendChild(empty);}
+    noResults=document.createElement('div');noResults.className='channel-picker-empty';noResults.dataset.channelPickerNoResults='';noResults.hidden=true;noResults.textContent='No matching '+(isCategory?'categories':'channels')+'.';optionsContainer.appendChild(noResults);
+    if(selected&&!matched){value.value='';label.textContent=placeholder;}
+    bindOptions();filter();
+  }
   trigger.addEventListener('click',function(){popover.hidden?open():close();});
-  options.forEach(function(option){option.addEventListener('click',function(){choose(option);});});
+  bindOptions();
   search.addEventListener('input',filter);
+  picker.addEventListener('rallybit:resources',function(event){rebuild(Array.isArray(event.detail[picker.dataset.resourceKind])?event.detail[picker.dataset.resourceKind]:[]);});
   picker.addEventListener('keydown',function(event){if(event.key==='Escape'){close();trigger.focus();}});
   document.addEventListener('click',function(event){if(!picker.contains(event.target))close();});
   var form=picker.closest('form');
@@ -1370,6 +1430,7 @@ document.querySelectorAll('[data-single-role-picker]').forEach(function(picker){
   var popover=picker.querySelector('[data-single-role-picker-popover]');
   var search=picker.querySelector('[data-single-role-picker-search]');
   var options=Array.from(picker.querySelectorAll('[data-single-role-option]'));
+  var optionsContainer=picker.querySelector('.single-role-picker-options');
   var value=picker.querySelector('[data-single-role-picker-value]');
   var label=picker.querySelector('[data-single-role-picker-label]');
   var colour=picker.querySelector('[data-single-role-picker-colour]');
@@ -1394,9 +1455,27 @@ document.querySelectorAll('[data-single-role-picker]').forEach(function(picker){
     options.forEach(function(item){item.setAttribute('aria-selected',item===option?'true':'false');});
     picker.classList.remove('invalid');error.hidden=true;value.dispatchEvent(new Event('change',{bubbles:true}));close();trigger.focus();
   }
+  function bindOptions(){options=Array.from(picker.querySelectorAll('[data-single-role-option]'));options.forEach(function(option){option.addEventListener('click',function(){choose(option);});});}
+  function roleColour(raw){var number=Math.max(0,Math.min(0xFFFFFF,Number(raw)||0));return number?'#'+number.toString(16).padStart(6,'0').toUpperCase():'#667085';}
+  function rebuild(items){
+    var selected=value.value;var matched=false;optionsContainer.textContent='';
+    if(picker.dataset.required!=='true'){
+      var none=document.createElement('button');none.type='button';none.className='single-role-picker-option';none.dataset.singleRoleOption='';none.dataset.value='';none.dataset.label='Select a role';none.dataset.colour='';none.dataset.search='none';none.setAttribute('aria-selected',selected===''?'true':'false');none.innerHTML='<i class="bi bi-slash-circle" aria-hidden="true"></i><span>None</span><i class="bi bi-check2 single-role-picker-check" aria-hidden="true"></i>';optionsContainer.appendChild(none);
+    }
+    items.forEach(function(item){
+      var id=String(item.id||'');var name=String(item.name||'').trim();if(!id||!name)return;var display='@'+name;var colourValue=roleColour(item.color);var option=document.createElement('button');option.type='button';option.className='single-role-picker-option';option.dataset.singleRoleOption='';option.dataset.value=id;option.dataset.label=display;option.dataset.colour=colourValue;option.dataset.search=display.toLowerCase();option.setAttribute('aria-selected',id===selected?'true':'false');
+      var dot=document.createElement('span');dot.className='role-colour';dot.style.setProperty('--role-colour',colourValue);var text=document.createElement('span');text.textContent=display;var check=document.createElement('i');check.className='bi bi-check2 single-role-picker-check';check.setAttribute('aria-hidden','true');option.append(dot,text,check);optionsContainer.appendChild(option);
+      if(id===selected){matched=true;label.textContent=display;colour.hidden=false;placeholderIcon.hidden=true;colour.style.setProperty('--role-colour',colourValue);}
+    });
+    if(!items.length){var empty=document.createElement('div');empty.className='single-role-picker-empty';empty.textContent='No roles are available.';optionsContainer.appendChild(empty);}
+    noResults=document.createElement('div');noResults.className='single-role-picker-empty';noResults.dataset.singleRolePickerNoResults='';noResults.hidden=true;noResults.textContent='No matching roles.';optionsContainer.appendChild(noResults);
+    if(selected&&!matched){value.value='';label.textContent='Select a role';colour.hidden=true;placeholderIcon.hidden=false;}
+    bindOptions();filter();
+  }
   trigger.addEventListener('click',function(){popover.hidden?open():close();});
-  options.forEach(function(option){option.addEventListener('click',function(){choose(option);});});
+  bindOptions();
   search.addEventListener('input',filter);
+  picker.addEventListener('rallybit:resources',function(event){rebuild(Array.isArray(event.detail.roles)?event.detail.roles:[]);});
   picker.addEventListener('keydown',function(event){if(event.key==='Escape'){close();trigger.focus();}});
   document.addEventListener('click',function(event){if(!picker.contains(event.target))close();});
   var form=picker.closest('form');
@@ -1409,6 +1488,7 @@ document.querySelectorAll('[data-role-picker]').forEach(function(picker){
   var popover=picker.querySelector('[data-role-picker-popover]');
   var search=picker.querySelector('[data-role-picker-search]');
   var options=Array.from(picker.querySelectorAll('[data-role-option]'));
+  var optionsContainer=picker.querySelector('.role-picker-options');
   var summary=picker.querySelector('[data-role-picker-summary]');
   var count=picker.querySelector('[data-role-picker-count]');
   var done=picker.querySelector('[data-role-picker-done]');
@@ -1422,16 +1502,32 @@ document.querySelectorAll('[data-role-picker]').forEach(function(picker){
     document.querySelectorAll('[data-role-picker-popover]:not([hidden])').forEach(function(other){if(other!==popover){other.hidden=true;other.parentElement.querySelector('.role-picker-trigger').setAttribute('aria-expanded','false');}});
     popover.hidden=false;trigger.setAttribute('aria-expanded','true');search.focus();
   }
+  function bindOptions(){options=Array.from(picker.querySelectorAll('[data-role-option]'));options.forEach(function(option){option.querySelector('input').addEventListener('change',update);});}
+  function roleColour(raw){var number=Math.max(0,Math.min(0xFFFFFF,Number(raw)||0));return number?'#'+number.toString(16).padStart(6,'0').toUpperCase():'#667085';}
+  function rebuild(items){
+    var selected=new Set(options.filter(function(option){return option.querySelector('input').checked;}).map(function(option){return option.querySelector('input').value;}));optionsContainer.textContent='';
+    items.forEach(function(item){
+      var id=String(item.id||'');var name=String(item.name||'').trim();if(!id||!name)return;var display='@'+name;var option=document.createElement('label');option.className='role-picker-option';option.dataset.roleOption='';option.dataset.search=display.toLowerCase();var input=document.createElement('input');input.type='checkbox';input.name=picker.dataset.fieldName+'[]';input.value=id;input.checked=selected.has(id);var dot=document.createElement('span');dot.className='role-colour';dot.style.setProperty('--role-colour',roleColour(item.color));var text=document.createElement('span');text.className='role-name';text.textContent=display;var check=document.createElement('i');check.className='bi bi-check2 role-check';check.setAttribute('aria-hidden','true');option.append(input,dot,text,check);optionsContainer.appendChild(option);
+    });
+    if(!items.length){var empty=document.createElement('div');empty.className='role-picker-empty';empty.textContent='No roles are available.';optionsContainer.appendChild(empty);}
+    bindOptions();update();search.dispatchEvent(new Event('input'));
+  }
   trigger.addEventListener('click',function(){popover.hidden?open():close();});
-  options.forEach(function(option){option.querySelector('input').addEventListener('change',update);});
+  bindOptions();
   search.addEventListener('input',function(){
     var query=search.value.trim().toLowerCase();
     options.forEach(function(option){option.hidden=query!==''&&!option.dataset.search.includes(query);});
   });
   done.addEventListener('click',close);
+  picker.addEventListener('rallybit:resources',function(event){rebuild(Array.isArray(event.detail.roles)?event.detail.roles:[]);});
   picker.addEventListener('keydown',function(event){if(event.key==='Escape'){close();trigger.focus();}});
   document.addEventListener('click',function(event){if(!picker.contains(event.target))close();});
   update();
+});
+document.querySelectorAll('[data-ticket-option-enabled-toggle]').forEach(function(toggle){
+  var value=toggle.parentElement.querySelector('[data-ticket-option-enabled-value]');
+  function update(){value.value=toggle.checked?'1':'0';toggle.closest('.ticket-option-card').classList.toggle('is-closed',!toggle.checked);}
+  toggle.addEventListener('change',update);update();
 });
 document.querySelectorAll('[data-embed-editor]').forEach(function(form){
   var fields=form.querySelector('[data-embed-fields]');
