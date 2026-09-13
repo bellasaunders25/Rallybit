@@ -1,182 +1,82 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Rallybit slash commands for activity checks, AFK statuses, reviews, reports, tickets, moderation, quizzes, security, analytics, and configuration.">
-  <title>Commands — Rallybit Docs</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Detailed Rallybit documentation for every slash command, including syntax, options, permissions, plan access, examples, and troubleshooting notes.">
+  <title>Command Reference — Rallybit Docs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/docs/style.css?v=6.2">
-  <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-icon-32.png"><link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
+  <link rel="stylesheet" href="/docs/style.css?v=7.0">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-icon-32.png">
+  <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
 </head>
-<body><div class="docs-shell"><div data-doc-sidebar></div><main class="docs-main">
-  <span class="eyebrow">Command reference · Build 8.1</span>
-  <h1>Every Rallybit command, organised by job.</h1>
-  <p class="lead">Type <code>/</code> in Discord, choose Rallybit, and Discord will show the commands your current permissions allow you to use.</p>
-  <div class="callout"><strong>Public or private replies.</strong><span>Command replies are public by default. Every slash command includes an optional <code>private</code> choice; set it to <code>True</code> to make Rallybit's replies visible only to you.</span></div>
-  <div class="callout"><strong>Slash-command control.</strong><span>Normal features remain slash-command driven. Message Content Intent is used only when optional security filtering or message-event logging is enabled.</span></div>
+<body>
+  <div class="docs-shell">
+    <div data-doc-sidebar></div>
+    <main class="docs-main docs-main-wide">
+      <span class="eyebrow">Command reference · Build 9.0</span>
+      <h1>Every Rallybit command, explained.</h1>
+      <p class="lead">Search all 202 commands and subcommands. Each guide shows exactly what the command does, how to fill in its options, who can use it, and a ready-to-follow example.</p>
 
-  <h2>Activity checks</h2>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/activitycheck</code></h3><p>Start a timed activity check in the current channel.</p></article>
-    <article class="command" data-searchable><h3><code>/endactivitycheck</code></h3><p>Stop the active check and publish the result.</p></article>
-    <article class="command" data-searchable><h3><code>/setactivitytext</code></h3><p>Change the message used by new checks.</p></article>
-    <article class="command" data-searchable><h3><code>/setmode</code></h3><p>Switch between emoji reaction and interactive button mode.</p></article>
-    <article class="command" data-searchable><h3><code>/setreactor</code></h3><p>Choose the participation emoji.</p></article>
-    <article class="command" data-searchable><h3><code>/setbuttontext</code></h3><p>Change the participation button label.</p></article>
-    <article class="command" data-searchable><h3><code>/setwinner</code></h3><p>Choose the participant target, up to 100.</p></article>
-    <article class="command" data-searchable><h3><code>/setduration</code></h3><p>Set the default check duration, from 1 to 1,440 minutes.</p></article>
-    <article class="command" data-searchable><h3><code>/setperm</code></h3><p>Choose the staff role allowed to start and stop checks.</p></article>
-    <article class="command" data-searchable><h3><code>/setlogs</code></h3><p>Choose where check and moderation logs are posted.</p></article>
-    <article class="command" data-searchable><h3><code>/setauto</code></h3><p>Configure the recurring activity-check channel and interval.</p></article>
-    <article class="command" data-searchable><h3><code>/startauto</code> / <code>/stopauto</code></h3><p>Resume or pause recurring activity checks.</p></article>
+      <section class="command-intro" aria-labelledby="command-basics">
+        <h2 id="command-basics">How slash commands work</h2>
+        <div class="command-basics-grid">
+          <article>
+            <span class="guide-number">1</span>
+            <h3>Choose the command</h3>
+            <p>Type <code>/</code> in a server channel, select Rallybit, then choose the command or subcommand you need.</p>
+          </article>
+          <article>
+            <span class="guide-number">2</span>
+            <h3>Complete its options</h3>
+            <p>Discord shows every field in order. Options marked Required must be completed; optional fields can be left empty.</p>
+          </article>
+          <article>
+            <span class="guide-number">3</span>
+            <h3>Choose reply visibility</h3>
+            <p>Replies are public by default. Set <code>private:true</code> to make Rallybit's command response visible only to you.</p>
+          </article>
+        </div>
+        <div class="callout compact-callout">
+          <strong>Commands only appear when Discord allows them.</strong>
+          <span>If a command is missing, confirm the required server permission or configured Rallybit role shown in its guide. The bot must also have permission to carry out the requested action.</span>
+        </div>
+      </section>
+
+      <section class="command-browser" aria-labelledby="browse-commands">
+        <div class="section-heading-row">
+          <div>
+            <span class="section-kicker">Complete reference</span>
+            <h2 id="browse-commands">Find a command</h2>
+          </div>
+          <span class="command-result-count" data-command-count aria-live="polite">Loading 202 commands…</span>
+        </div>
+
+        <div class="command-toolbar">
+          <label class="command-search-field">
+            <span>Search commands</span>
+            <input type="search" placeholder="Try ticket, role, warning, transcript…" autocomplete="off" data-command-search>
+          </label>
+          <button class="clear-search" type="button" data-command-clear hidden>Clear search</button>
+        </div>
+
+        <div class="command-filters" data-command-filters aria-label="Filter command categories"></div>
+        <div class="command-catalog" data-command-catalog>
+          <div class="catalog-loading" role="status">Loading the current Rallybit command catalogue…</div>
+        </div>
+        <div class="catalog-empty" data-command-empty hidden>
+          <h3>No commands matched that search.</h3>
+          <p>Try a command name, feature, permission, or option such as <code>channel</code> or <code>reason</code>.</p>
+        </div>
+        <noscript>
+          <div class="callout"><strong>JavaScript is required for this reference.</strong><span>Enable JavaScript to search and open the full command catalogue.</span></div>
+        </noscript>
+      </section>
+    </main>
   </div>
-
-  <h2>Community quizzes</h2>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/quiz start</code></h3><p>Start a random timed quiz. Staff can optionally notify the configured quiz role with <code>notify_role:true</code>.</p></article>
-    <article class="command" data-searchable><h3><code>/quiz stop</code></h3><p>End the active quiz and reveal its answer and results immediately.</p></article>
-    <article class="command" data-searchable><h3><code>/quiz setup</code></h3><p>Choose the automatic quiz channel, interval, category, answer time, and optional chat-revive role ping.</p></article>
-    <article class="command" data-searchable><h3><code>/quiz auto</code></h3><p>Enable or pause recurring automatic quizzes.</p></article>
-    <article class="command" data-searchable><h3><code>/quiz pingrole</code></h3><p>Set the role used by automatic quizzes and optional manual quiz notifications, or run it without a role to disable pings.</p></article>
-    <article class="command" data-searchable><h3><code>/quiz settings</code></h3><p>Review the server's automatic quiz configuration.</p></article>
-    <article class="command" data-searchable><h3><code>/quiz leaderboard</code></h3><p>Rank members by quiz points, accuracy, and streak performance.</p></article>
-  </div>
-
-  <h2>Community tools</h2>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/community icebreaker</code></h3><p>Post a random conversation starter. Staff can use <code>notify_role:true</code> to ping the configured Chat Revive role.</p></article>
-    <article class="command" data-searchable><h3><code>/community pulse</code></h3><p>Start an anonymous aggregate mood pulse. It notifies the configured community role by default; use <code>notify_role:false</code> for a silent pulse.</p></article>
-    <article class="command" data-searchable><h3><code>/community pingrole</code></h3><p>Set the role used by community pulse notifications and staff-triggered icebreakers, or leave the role empty to disable it.</p></article>
-    <article class="command" data-searchable><h3><code>/community settings</code></h3><p>Review the configured community notification role and default behaviour.</p></article>
-    <article class="command" data-searchable><h3><code>/community stoppulse</code></h3><p>Close the active pulse and publish its aggregate result.</p></article>
-    <article class="command" data-searchable><h3><code>/community pulsehistory</code></h3><p>View aggregate trends from the last ten completed pulses. Individual responses are not stored in history.</p></article>
-    <article class="command" data-searchable><h3><code>/afk</code></h3><p>Set yourself as AFK with an optional reason. Members who mention you are told that you are away, and the status is removed when you next send a message.</p></article>
-  </div>
-
-  <h2>Reviews</h2>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/review type user stars reason</code></h3><p>Submit a one-to-five-star review for a staff member or community member. Staff reviews and member reviews are routed to their separately configured dashboard channels.</p></article>
-  </div>
-
-  <h2>Staff operations and leave</h2>
-  <div class="callout"><strong>Role-controlled access.</strong><span>Staff commands require a configured staff or HR role. Commands marked HR require a configured HR role; administrators retain emergency access. Every LOA and ROA request notifies the HR roles and every change is recorded in the configured history channel.</span></div>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/loa request</code></h3><p>Submit a Leave of Absence request with its length, reason and optional start date.</p></article>
-    <article class="command" data-searchable><h3><code>/loa status</code> / <code>cancel</code> / <code>end</code></h3><p>View a request, cancel a pending or approved request, or end an approved leave early.</p></article>
-    <article class="command" data-searchable><h3><code>/loa setstatus</code> <small>HR</small></h3><p>Approve, deny or return an LOA request to pending with an optional review note.</p></article>
-    <article class="command" data-searchable><h3><code>/loa settings</code> <small>HR</small></h3><p>Configure staff and HR roles, request and history channels, maximum length and the shift log destination.</p></article>
-    <article class="command" data-searchable><h3><code>/roa request</code></h3><p>Submit a Release of Activity request with its length, reason and optional start date.</p></article>
-    <article class="command" data-searchable><h3><code>/roa status</code> / <code>cancel</code> / <code>end</code></h3><p>View, cancel or end a Release of Activity request.</p></article>
-    <article class="command" data-searchable><h3><code>/roa setstatus</code> / <code>settings</code> <small>HR</small></h3><p>Review ROA requests or configure the shared workforce channels, roles and maximum duration.</p></article>
-    <article class="command" data-searchable><h3><code>/clockin</code> / <code>/clockout</code></h3><p>Start or finish a persistent staff shift. Completed hours survive bot restarts and are written to the staff log.</p></article>
-    <article class="command" data-searchable><h3><code>/break start</code> / <code>/break end</code></h3><p>Pause and resume the active shift timer. Break time is excluded from worked hours.</p></article>
-    <article class="command" data-searchable><h3><code>/shift</code> / <code>/timesheet</code></h3><p>View the live shift state or your completed work during the last seven days.</p></article>
-    <article class="command" data-searchable><h3><code>/staffhours</code> <small>HR</small></h3><p>Inspect a staff member's recorded hours over a chosen 1–365 day period.</p></article>
-    <article class="command" data-searchable><h3><code>/shifts list</code> <small>HR</small></h3><p>List a member's recent completed shifts with stable record IDs, dates, durations and active-shift state.</p></article>
-    <article class="command" data-searchable><h3><code>/shifts remove</code> <small>HR</small></h3><p>Remove one incorrect completed shift using its record ID and a required audit reason.</p></article>
-    <article class="command" data-searchable><h3><code>/shifts clear</code> <small>HR</small></h3><p>Clear all completed shifts from an account after explicit confirmation, optionally removing its active shift too. Every deletion is recorded in the configured shift log and audit history.</p></article>
-    <article class="command" data-searchable><h3><code>/duty</code></h3><p>List every staff member currently on duty or on a break with their worked duration.</p></article>
-    <article class="command" data-searchable><h3><code>/forceclockout</code> <small>HR</small></h3><p>End another member's active shift with an optional reason and a complete audit entry.</p></article>
-  </div>
-
-  <h2>Action logging</h2>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/logs channel</code></h3><p>Set one default Discord destination or a separate channel for an individual event category.</p></article>
-    <article class="command" data-searchable><h3><code>/logs toggle</code></h3><p>Enable or disable commands, configuration, moderation, members, messages, roles, channels, voice, tickets, reports, staff or security logging.</p></article>
-    <article class="command" data-searchable><h3><code>/logs overview</code></h3><p>Review every category, whether it is enabled and which channel receives its events.</p></article>
-    <article class="command" data-searchable><h3><code>/logs test</code></h3><p>Record and deliver a test event through the selected category before relying on it.</p></article>
-  </div>
-
-  <h2>Moderation</h2>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/channel transcript</code></h3><p>Authorized moderation staff can archive every available message from a selected text channel into another text channel or a new forum post. The archive records the source channel name, archive time, staff member, message IDs, timestamps, edits, replies, attachments, stickers, embeds, reactions, and message links.</p></article>
-    <article class="command" data-searchable><h3><code>/channel purge</code></h3><p>Authorized moderation staff can delete an inclusive range using its first and last message IDs, delete all messages from a selected member with an optional amount cap, or delete the latest chosen amount. Message links may be supplied instead of raw IDs, and an optional reason is written to Discord's audit log.</p></article>
-    <article class="command" data-searchable><h3><code>/mod panel</code></h3><p>Open the interactive member panel with warnings, timeout controls, kick, ban, message clearing, nickname changes, and role tools.</p></article>
-    <article class="command" data-searchable><h3><code>/mod warn</code></h3><p>Add a warning with a unique warning ID and an audit entry.</p></article>
-    <article class="command" data-searchable><h3><code>/mod warnings</code></h3><p>View a member's active Rallybit warnings.</p></article>
-    <article class="command" data-searchable><h3><code>/mod unwarn</code></h3><p>Remove a warning by ID or remove the latest active warning.</p></article>
-    <article class="command" data-searchable><h3><code>/mod unban</code></h3><p>Unban a Discord user by numeric user ID.</p></article>
-    <article class="command" data-searchable><h3><code>/role give</code> / <code>/role remove</code></h3><p>Give or remove a role only when both the acting moderator and Rallybit are above the selected role and target member. Managed roles and <code>@everyone</code> are rejected.</p></article>
-    <article class="command" data-searchable><h3><code>/role temp</code></h3><p>Assign a persistent temporary role for days, weeks, 30-day months, or 365-day years. Rallybit appends a compact live countdown to the member's nickname, accepts an optional base nickname, survives restarts, and restores the original nickname after the member's final temporary role expires.</p></article>
-    <article class="command" data-searchable><h3><code>/report user</code></h3><p>Privately report a member with a reason, optional details, and an evidence link. The report is sent to the configured moderation review channel.</p></article>
-    <article class="command" data-searchable><h3><code>/report status</code></h3><p>View the current status, assigned staff member, and latest update for a report you submitted.</p></article>
-    <article class="command" data-searchable><h3><code>/report settings</code></h3><p>Staff only. Choose the moderation channel that receives new member reports.</p></article>
-    <article class="command" data-searchable><h3><code>/report list</code></h3><p>Staff only. View reports that are pending, claimed, or under review.</p></article>
-    <article class="command" data-searchable><h3><code>/report claim</code></h3><p>Staff only. Assign yourself to a report so other moderators can see who is handling it.</p></article>
-    <article class="command" data-searchable><h3><code>/report setstatus</code></h3><p>Staff only. Change a report to Pending, Claimed, Under Review, Resolved, Dismissed, or Closed and optionally add an update.</p></article>
-    <article class="command" data-searchable><h3><code>/report close</code></h3><p>Staff only. Close a report with an optional resolution note.</p></article>
-    <article class="command" data-searchable><h3><code>/report reopen</code></h3><p>Staff only. Return a previously closed report to the moderation review queue.</p></article>
-    <article class="command" data-searchable><h3><code>/report history</code></h3><p>Staff only. View reports that have been submitted against a particular member.</p></article>
-  </div>
-
-  <h2>Tickets</h2>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/ticket create</code></h3><p>Create a support ticket in a configured ticket category and provide the reason for the request.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket status</code></h3><p>View whether the current ticket is Open, Claimed, Pending, Waiting for User, Resolved, or Closed, together with its priority and assigned staff member.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket close</code></h3><p>Close and lock the current ticket with a required reason. The Close button opens the same reason form, and a transcript is sent to the configured log channel.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket reopen</code></h3><p>Staff only. Reopen a closed ticket, restore the owner's access, and return its status to Open.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket claim</code></h3><p>Ticket support staff only. Assign the current ticket to yourself using the configured support role or native Manage Messages permission.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket unclaim</code></h3><p>Staff only. Remove the current staff assignment and return the ticket to the unassigned queue.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket priority</code></h3><p>Staff only. Set the ticket priority to Low, Medium, High, or Critical.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket setstatus</code></h3><p>Staff only. Move the ticket through Open, Claimed, Pending, Waiting for User, Resolved, or Closed.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket transcript</code></h3><p>Generate a text transcript of the current ticket before or after it is closed.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket settings</code></h3><p>Staff only. Configure the default category, support role, log channel, transcript limit, automatic deletion delay, and one-ticket-per-member rule.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket panel create</code></h3><p>Publish one persistent dropdown panel with a first ticket type, custom icon, description, placeholder, header image, thumbnail, body image, author, footer text/icon, and optional workload or guidance sections.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket panel add-option</code> / <code>remove-option</code></h3><p>Add up to 25 named dropdown choices, each with its own description, custom Unicode or server emoji, destination category, and support role, without republishing the panel.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket panel list</code> / <code>delete</code></h3><p>Inspect or remove configured ticket dropdowns. Existing Rallybit button panels are migrated to a compatible one-option dropdown when the bot refreshes them.</p></article>
-    <article class="command" data-searchable><h3>Ticket control buttons</h3><p>Configured support staff can claim, export, close, or permanently delete a ticket. Claim announcements are pinned automatically, and deletion requires confirmation and archives a final transcript.</p></article>
-    <article class="command" data-searchable><h3><code>/ticket add</code> / <code>remove</code> / <code>rename</code></h3><p>Staff only. Manage ticket participants or rename the current ticket channel.</p></article>
-  </div>
-
-  <h2>Security</h2>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/security overview</code></h3><p>Review every security module, threshold, trusted-role bypass, log channel, account age gate, and scam trap setting.</p></article>
-    <article class="command" data-searchable><h3><code>/security-trap setup</code></h3><p>Create or repair the top-level <code>#do-not-text-here</code> honeypot. Human accounts that post there are immediately banned or kicked according to the server setting.</p></article>
-    <article class="command" data-searchable><h3><code>/security-agegate configure</code></h3><p>Kick accounts younger than a configurable number of days after attempting to DM the server rule and appeal link.</p></article>
-    <article class="command" data-searchable><h3><code>/security-antibot configure</code></h3><p>Ban unauthorised bot additions and apply the chosen action to the account that added the bot.</p></article>
-    <article class="command" data-searchable><h3><code>/security-modules set</code></h3><p>Enable anti-webhook, anti-integration, anti-dangerous-permission, and anti-nuke modules with ban, kick, or quarantine actions.</p></article>
-    <article class="command" data-searchable><h3><code>/security-modules threshold</code></h3><p>Choose how many bans, kicks, channel deletions, role deletions, emoji deletions, or sticker deletions trigger protection within a time window.</p></article>
-    <article class="command" data-searchable><h3><code>/security-antispam configure</code></h3><p>Set a rapid-message limit, time window, and automatic timeout length.</p></article>
-    <article class="command" data-searchable><h3><code>/security-automod ...</code></h3><p>Optionally block Discord invites and maintain a per-server word or phrase filter.</p></article>
-    <article class="command" data-searchable><h3><code>/security-trust ...</code></h3><p>Add trusted roles, remove them, list bypasses, or choose whether all administrators bypass automatic protection.</p></article>
-    <article class="command" data-searchable><h3><code>/security-logs ...</code></h3><p>Set the security-alert channel, enable optional member/message/voice/structure logs, and optionally DM the server owner after automatic actions.</p></article>
-    <article class="command" data-searchable><h3><code>/security audit</code> / <code>/security history</code></h3><p>Scan the server for permission weaknesses and review persistent security events.</p></article>
-    <article class="command" data-searchable><h3><code>/security lockdown</code> / <code>/security panic</code></h3><p>Disable basic @everyone chat and voice permissions, restore the saved state, or combine lockdown with an emergency invite purge.</p></article>
-    <article class="command" data-searchable><h3><code>/security quarantine</code> / <code>/security release</code></h3><p>Strip manageable roles, isolate a member, and later restore roles saved by Rallybit.</p></article>
-    <article class="command" data-searchable><h3><code>/security clearinvites</code> / <code>/security purgeuser</code></h3><p>Delete active invites or perform a confirmation-protected soft-ban message purge.</p></article>
-  </div>
-
-  <h2>Profiles, rankings, and reports</h2>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/leaderboard</code></h3><p>Show server participation rankings, or choose the staff-hours category to rank recorded shift time.</p></article>
-    <article class="command" data-searchable><h3><code>/userleaderboard</code></h3><p>Show global activity-win rankings.</p></article>
-    <article class="command" data-searchable><h3><code>/profile</code></h3><p>Open a member's Rallybit profile and web profile link.</p></article>
-    <article class="command" data-searchable><h3><code>/inactive</code></h3><p>Find members who have not been recorded as active recently.</p></article>
-    <article class="command" data-searchable><h3><code>/settings</code></h3><p>View the current server configuration and channel permission checks.</p></article>
-    <article class="command" data-searchable><h3><code>/dashboard</code></h3><p>Open the Rallybit dashboard.</p></article>
-    <article class="command" data-searchable><h3><code>/help</code> / <code>/support</code></h3><p>Open Rallybit's built-in command centre, documentation, and support links.</p></article>
-  </div>
-
-  <h2>Premium previews</h2>
-  <div class="callout"><strong>Coming soon.</strong><span>Every existing command remains free. Manually authorised Community, Pro, and Network preview grants already unlock the commands below.</span></div>
-  <div class="command-list">
-    <article class="command" data-searchable><h3><code>/premium status</code></h3><p>Show the effective plan, access source, server coverage, and expiration.</p></article>
-    <article class="command" data-searchable><h3><code>/premium plans</code></h3><p>Compare the Free, Community, Pro, and Network previews.</p></article>
-    <article class="command" data-searchable><h3><code>/insights overview</code> <small>Community</small></h3><p>Show activity checks, participants, tickets, moderation actions, and staff time over 7 to 365 days.</p></article>
-    <article class="command" data-searchable><h3><code>/case member</code> / <code>recent</code> <small>Community</small></h3><p>Open a member's moderation case file or search recent actions by type and moderator. Results are private and respect the configured warning-role permission.</p></article>
-    <article class="command" data-searchable><h3><code>/case stats</code> <small>Community</small></h3><p>Measure moderation workload by action type and moderator over a selected period.</p></article>
-    <article class="command" data-searchable><h3><code>/insights export</code> <small>Pro</small></h3><p>Export detailed activity, ticket, moderation, and staff-shift records as a CSV file.</p></article>
-    <article class="command" data-searchable><h3><code>/case export</code> <small>Pro</small></h3><p>Export moderation cases to CSV with optional member, moderator, action, and date filters.</p></article>
-    <article class="command" data-searchable><h3><code>/staff clockin</code> / <code>clockout</code> <small>Pro</small></h3><p>Start or complete a persistent staff shift, with an optional shift note.</p></article>
-    <article class="command" data-searchable><h3><code>/staff status</code> / <code>leaderboard</code> <small>Pro</small></h3><p>Inspect recorded shift time and rank staff activity over a selected period.</p></article>
-    <article class="command" data-searchable><h3><code>/prettfy</code> <small>Pro</small></h3><p>Run a guided naming wizard with complete channel coverage, including forum and media channels. Partial AI results are merged across retries, with safe local suggestions filling any missing channels before review. The temporary HTML channel review lists every current and proposed name, then is deleted after the DM approval or after one hour. Channel names use hyphens instead of spaces, no ampersands, lowercase except voice/stage voice, and supported <code>『example』</code> brackets. The live checklist uses ✅ complete, 🔁 in progress, and ❎ not completed. Setup answers are saved for 24 hours: use the retry button or <code>/prettfy retry_last:true</code> to retry without answering everything again. Roles retain their DM review. Each phase requires explicit approval and changes names only; permissions, hierarchy, topics, colours, and assignments remain untouched. Use <code>/prettfy undo_last:true</code> to restore the previous names.</p></article>
-    <article class="command" data-searchable><h3><code>/backup create</code> / <code>list</code> / <code>inspect</code> <small>Pro</small></h3><p>Retain up to ten labelled snapshots of every Rallybit configuration module, together with a channel and role manifest.</p></article>
-    <article class="command" data-searchable><h3><code>/backup drift</code> / <code>restore</code> / <code>delete</code> <small>Pro</small></h3><p>Compare current settings and server structure with a snapshot, transactionally restore Rallybit settings, or remove a retained backup. Restore never deletes or recreates Discord channels and roles.</p></article>
-    <article class="command" data-searchable><h3><code>/network channel</code> / <code>overview</code> <small>Network</small></h3><p>Server owners configure an announcement destination in each owned server and see member totals and readiness across the complete network.</p></article>
-    <article class="command" data-searchable><h3><code>/network broadcast</code> / <code>export</code> <small>Network</small></h3><p>Send one mention-safe embed to every configured server you own or export the owned-server inventory and destination readiness to CSV. Network operations are owner-only.</p></article>
-  </div>
-
-  <h2>Permission notes</h2>
-  <p>Regular members can use profiles, leaderboards, quiz rankings, AFK, icebreakers, ticket creation, reviews, report submission, and help commands. Review destinations are configured in Dashboard → Control Center → Reviews. Staff report actions use the Warnings and Reports permission configured in Dashboard → Control Center → Moderation. Ticket staff actions accept the configured ticket support roles as well as administrators and members with Manage Messages. The moderation panel shows only the actions its moderator is allowed to use and checks both the moderator and bot role hierarchy before applying them.</p>
-</main></div><script src="/docs/script.js?v=5.0"></script></body></html>
+  <script src="/docs/script.js?v=6.0"></script>
+</body>
+</html>
