@@ -33,9 +33,11 @@ Recovery changes:
 
 ## JavaScript conversion status
 
-`bot-js/` contains the native discord.js implementation. Production cutover is
-still pending platform verification; the live deployment remains Python until
-that checklist passes. Its command coverage report is executable:
+`bot-js/` is the live native discord.js implementation. Production cutover
+completed on **13 November 2026 at 07:30 UTC**, using runtime commit `56fc61f`.
+All 202 commands were confirmed through Discord's registration API, all seven
+connected servers and their dashboard resources were checked, and one controlled
+restart preserved the quiz dispatch ledger. The command coverage report is executable:
 
 ```
 cd bot-js
@@ -77,17 +79,24 @@ record deletion confirmation, request ownership, free access and retained staff 
 role hierarchy, timed-role expiry, permanent conversion, nickname recovery,
 disk-full failures, duplicate schedulers, uncertain sends and lease replacement.
 
-The live deployment stays on the corrected Python runtime while feature parity
-is implemented and verified. Handler coverage alone is not proof of full event,
-dashboard API, recovery or persistent-component compatibility.
+The Python gateway is stopped with automatic restart disabled. Its container,
+image and a private data/environment snapshot are retained for emergency rollback.
+There is no Python command proxy in the live runtime. Handler coverage alone is
+not proof of full event, dashboard, recovery or persistent-component compatibility.
 
-The current JavaScript suite has over 100 tests. Checks include moderation role
+The JavaScript suite passed **106 tests on the Raspberry Pi**, including a run
+with the production read-only root filesystem and dropped capabilities. A copy
+of all 65 saved JSON files and all 35 ticket panels passed parsing/render checks;
+the unprivileged account also passed SQLite and atomic-write ownership probes.
+Checks include moderation role
 revocation, role hierarchy, atomic report claims, failed report delivery, large-ID
 purges, old-message deletion, dashboard authentication/actions, disk-full failures,
 profile rollback, formula-safe CSV, journaled backups, duplicate quiz prevention,
 safe event recovery, ticket role revocation and timed deletion, Prettfy coverage,
 temporary review cleanup, legacy undo snapshots, startup guards and gateway wiring.
-CVMS is paused until the existing migration and safe production cutover complete.
+These are automated and service-level checks, not a claim that every destructive
+command was exercised against real members. CVMS voice capture has not been enabled
+by this migration; its implementation remains separate follow-up work.
 
 ## Deployment checklist
 
