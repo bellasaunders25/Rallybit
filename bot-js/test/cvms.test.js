@@ -20,6 +20,7 @@ import {
   parseTranscript,
   pcmWav,
   audible,
+  recognitionRuns,
 } from "../src/modules/cvms-config.js";
 import {
   LocalSpeech,
@@ -234,6 +235,30 @@ test("literal Unicode phrase matching respects word boundaries and does not run 
   );
   assert.equal(matchRules("all text", rules).length, 0);
 });
+test("adjacent recognised segments preserve phrase boundaries without bridging low-confidence gaps", () => {
+  const runs = recognitionRuns(
+    [
+      { text: "A restricted", score: 0.9 },
+      { text: "phrase", score: 0.8 },
+    ],
+    0.75,
+  );
+  assert.equal(
+    matchRules(runs[0].text, [{ id: "r", phrase: "restricted phrase" }]).length,
+    1,
+  );
+  assert.equal(
+    recognitionRuns(
+      [
+        { text: "restricted", score: 0.9 },
+        { text: "uncertain speech", score: 0.3 },
+        { text: "phrase", score: 0.8 },
+      ],
+      0.75,
+    ).length,
+    2,
+  );
+});
 test("unknown, non-finite and no-speech confidence never become a trusted score", () => {
   assert.deepEqual(
     parseTranscript({
@@ -249,6 +274,12 @@ test("unknown, non-finite and no-speech confidence never become a trusted score"
     segments: [{ text: "Words", avg_logprob: -0.1, no_speech_prob: 0.1 }],
   });
   assert.ok(result.score > 0.9 && result.score < 1);
+  const separated = parseTranscript({ segments: [
+    { text: "restricted", avg_logprob: -0.1, no_speech_prob: 0.1 },
+    { text: "unknown", avg_logprob: null, no_speech_prob: null },
+    { text: "phrase", avg_logprob: -0.1, no_speech_prob: 0.1 },
+  ] });
+  assert.equal(recognitionRuns(separated, 0.75).length, 2);
 });
 test("audio WAVs are bounded mono 16 kHz PCM; silence and tiny clips are discarded", () => {
   const pcm = Buffer.alloc(32000);
@@ -606,4 +637,27 @@ test("automatic watch sessions never exceed the watch expiry", async (t) => {
   f.advance(3000);
   assert.equal(session.valid(U), false);
   assert.equal(session.valid(A), false);
+});
+test("full storage blocks receiver startup and leaves a stopped disclosure", async (t) => {
+  const f = await setup(t),
+    update = f.store.update.bind(f.store);
+  f.store.update = (file, change, ...rest) =>
+    file === "cvms_sessions.json"
+      ? Promise.reject(Object.assign(new Error("Full"), { code: "ENOSPC" }))
+      : update(file, change, ...rest);
+  await assert.rejects(f.service.start(f.guild, f.voice, f.i.user), {
+    code: "ENOSPC",
+  });
+  assert.equal(f.captured, 0);
+  assert.ok(f.events.includes("edit"));
+  assert.equal(f.service.sessions.size, 0);
+  assert.equal(f.service.paused.has(G), true);
+});
+test("an uncached voice-state participant cannot be treated as consented", async (t) => {
+  const f = await setup(t);
+  f.guild.voiceStates = {
+    cache: new Map([["missing", { id: "missing", channelId: C }]]),
+  };
+  await assert.rejects(f.service.start(f.guild, f.voice, f.i.user));
+  assert.equal(f.captured, 0);
 });

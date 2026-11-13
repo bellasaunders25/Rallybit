@@ -299,7 +299,7 @@ async function initialiseSidebar() {
   const holder = document.querySelector('[data-doc-sidebar]');
   if (holder) {
     try {
-      const response = await fetch('/docs/includes/sidebar.html?v=10.0');
+      const response = await fetch('/docs/includes/sidebar.html?v=cvms-1');
       if (!response.ok) throw new Error('Sidebar unavailable');
       holder.outerHTML = await response.text();
     } catch (error) {

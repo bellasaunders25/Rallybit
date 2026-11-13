@@ -300,6 +300,7 @@ export async function startRuntime({
     timers.push(heartbeat);
     heartbeat.unref();
     periodic(5000, "fast", () => maintenance(app, client, assertOwner, "fast"));
+    periodic(5000, "cvms", () => app.cvms.tick(client));
     periodic(30000, "slow", () => maintenance(app, client, assertOwner));
     periodic(1800000, "status", () => statusSample(app, client));
     periodic(60000, "presence", () =>

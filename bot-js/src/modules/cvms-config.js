@@ -76,12 +76,15 @@ export function matchRules(value, rules) {
 export function parseTranscript(payload) {
   const segments = Array.isArray(payload?.segments) ? payload.segments : [],
     eligible = [];
+  let gap = false;
   for (const row of segments) {
     if (
       typeof row.avg_logprob !== "number" ||
       typeof row.no_speech_prob !== "number"
-    )
+    ) {
+      gap = true;
       continue;
+    }
     const log = Number(row.avg_logprob),
       noSpeech = Number(row.no_speech_prob);
     if (
@@ -90,13 +93,37 @@ export function parseTranscript(payload) {
       noSpeech < 0 ||
       noSpeech > 0.6 ||
       log > 0
-    )
+    ) {
+      gap = true;
       continue;
+    }
     const score = Math.min(1, Math.max(0, Math.exp(log)));
     const text = String(row.text ?? "").trim();
-    if (text && text.length < 6000) eligible.push({ text, score });
+    if (text && text.length < 6000) {
+      eligible.push({ text, score, ...(gap ? { breakBefore: true } : {}) });
+      gap = false;
+    } else gap = true;
   }
   return eligible;
+}
+export function recognitionRuns(segments, threshold) {
+  const runs = [];
+  let current = null;
+  for (const segment of segments) {
+    if (segment.breakBefore) current = null;
+    if (!Number.isFinite(segment.score) || segment.score < threshold) {
+      current = null;
+      continue;
+    }
+    if (!current) {
+      current = { text: String(segment.text ?? ""), score: segment.score };
+      runs.push(current);
+    } else {
+      current.text += " " + String(segment.text ?? "");
+      current.score = Math.min(current.score, segment.score);
+    }
+  }
+  return runs;
 }
 export function pcmWav(pcm) {
   if (

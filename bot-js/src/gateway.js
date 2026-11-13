@@ -163,7 +163,6 @@ export async function maintenance(
   };
   if (kind === "fast") {
     await run("events", () => app.campaigns.events.tick(client, assertOwner));
-    if (app.cvms) await run("cvms", () => app.cvms.tick(client));
     return;
   }
   await run("roles", () => app.roles.tick(client, assertOwner));

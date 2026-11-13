@@ -22,6 +22,7 @@ import {
   consentScope,
   hasConsent,
   matchRules,
+  recognitionRuns,
   CONSENT_HOURS,
 } from "./cvms-config.js";
 import { LocalSpeech, SpeechQueue, VoiceCapture } from "./cvms-audio.js";
@@ -170,6 +171,11 @@ export class CvmsService {
       throw new UserError(
         "Rallybit is server-deafened. A moderator must undeafen it first.",
       );
+    // Voice state IDs are authoritative even when a member was not included in
+    // the initial member cache. Do not mistake an uncached person for consent.
+    for (const state of guild.voiceStates?.cache.values() ?? [])
+      if (state.channelId === channel.id && !channel.members.has(state.id))
+        await guild.members.fetch({ user: state.id, force: true });
     const humans = [...channel.members.values()].filter(
       (member) => !member.user.bot,
     );
@@ -387,6 +393,16 @@ export class CvmsService {
             )
           )
             return false;
+          if (
+            [...(guild.voiceStates?.cache.values() ?? [])].some(
+              (state) =>
+                state.channelId === channel.id &&
+                state.id !== guild.client.user.id &&
+                !session.members.has(state.id) &&
+                !channel.members.get(state.id)?.user.bot,
+            )
+          )
+            return false;
           if (!userId) return true;
           const member = channel.members.get(userId);
           return Boolean(
@@ -426,27 +442,31 @@ export class CvmsService {
           throw new UserError("CVMS eligibility changed while joining.");
         return session;
       } catch (error) {
-        await this.stop(guild.id, "Voice monitoring could not start.", {
-          pause: true,
-        });
-        if (session.notice)
-          await session.notice
-            .edit({
-              embeds: [
-                embed(
-                  "CVMS monitoring did not start",
-                  "The pending session was cancelled or could not pass its final checks. No further audio is being captured.",
-                ),
-              ],
-              components: [],
-              allowedMentions: { parse: [] },
-            })
-            .catch(() => {});
+        try {
+          await this.stop(guild.id, "Voice monitoring could not start.", {
+            pause: true,
+          });
+        } finally {
+          if (session.notice)
+            await session.notice
+              .edit({
+                embeds: [
+                  embed(
+                    "CVMS monitoring did not start",
+                    "The pending session was cancelled or could not pass its final checks. No further audio is being captured.",
+                  ),
+                ],
+                components: [],
+                allowedMentions: { parse: [] },
+              })
+              .catch(() => {});
+        }
         throw error;
       }
     });
   }
   async stop(guildId, reason, { pause = false } = {}) {
+    if (pause) this.paused.add(guildId);
     const session = this.sessions.get(guildId);
     // Invalidate first, including inference already in flight.
     if (session) {
@@ -455,23 +475,25 @@ export class CvmsService {
       this.speech.cancel(session.id);
       session.capture?.stop();
     }
-    await this.store.update("cvms_sessions.json", (data) => {
-      delete data[guildId];
-    });
-    if (pause) {
-      this.paused.add(guildId);
-      await this.store.update("cvms_pauses.json", (data) => {
-        data[guildId] = { reason: text(reason, 300), paused_at: nowISO() };
+    try {
+      await this.store.update("cvms_sessions.json", (data) => {
+        delete data[guildId];
       });
+      if (pause) {
+        await this.store.update("cvms_pauses.json", (data) => {
+          data[guildId] = { reason: text(reason, 300), paused_at: nowISO() };
+        });
+      }
+    } finally {
+      if (session?.notice)
+        await session.notice
+          .edit({
+            embeds: [embed("CVMS monitoring stopped", text(reason, 1000))],
+            components: [],
+            allowedMentions: { parse: [] },
+          })
+          .catch(() => {});
     }
-    if (session?.notice)
-      await session.notice
-        .edit({
-          embeds: [embed("CVMS monitoring stopped", text(reason, 1000))],
-          components: [],
-          allowedMentions: { parse: [] },
-        })
-        .catch(() => {});
     return Boolean(session);
   }
   async result(guild, session, userId, segments) {
@@ -483,7 +505,7 @@ export class CvmsService {
       consentScope(cfg) !== consentScope(session.cfg)
     )
       return;
-    for (const segment of segments) {
+    for (const segment of recognitionRuns(segments, cfg.threshold / 100)) {
       if (segment.score < cfg.threshold / 100) continue;
       const matches = matchRules(segment.text, cfg.rules);
       if (!matches.length) continue;

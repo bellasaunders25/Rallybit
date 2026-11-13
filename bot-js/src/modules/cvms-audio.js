@@ -81,7 +81,7 @@ export class LocalSpeech {
       method: "POST",
       body,
       redirect: "error",
-      signal: AbortSignal.any([signal, AbortSignal.timeout(45000)]),
+      signal: AbortSignal.any([signal, AbortSignal.timeout(45000)].filter(Boolean)),
     });
     if (!response.ok) throw new Error("Local speech service unavailable");
     return parseTranscript(await limitedJSON(response));
@@ -135,7 +135,10 @@ export class SpeechQueue {
         this.current = row;
         let wav;
         try {
-          if (!row.valid() || Date.now() - row.queuedAt > 15000) continue;
+          if (!row.valid() || Date.now() - row.queuedAt > 15000) {
+            this.dropped++;
+            continue;
+          }
           wav = pcmWav(row.pcm);
           row.pcm.fill(0);
           const result = await this.provider.transcribe(
@@ -185,9 +188,12 @@ export class VoiceCapture {
       selfMute: true,
       daveEncryption: true,
     });
-    this.connection.on("error", () => this.onStop("Voice connection error"));
-    this.connection.on(VoiceConnectionStatus.Disconnected, () =>
-      this.onStop("Voice connection ended"),
+    this.connection.on("error", () => {
+      if (!this.closed) this.onStop("Voice connection error");
+    });
+    this.connection.on(
+      VoiceConnectionStatus.Disconnected,
+      () => !this.closed && this.onStop("Voice connection ended"),
     );
     await entersState(this.connection, VoiceConnectionStatus.Ready, 20000);
     if (!this.valid()) {
@@ -261,6 +267,8 @@ export class VoiceCapture {
       } catch {
         clear();
         stream.destroy();
+        if (!this.closed)
+          this.onStop("Voice decoding failed; monitoring stopped.");
       }
     });
     stream.once("end", end);
@@ -268,6 +276,8 @@ export class VoiceCapture {
     stream.on("error", () => {
       clear();
       end();
+      if (!this.closed)
+        this.onStop("Voice receiving failed; monitoring stopped.");
     });
   }
   stop() {
@@ -280,6 +290,7 @@ export class VoiceCapture {
       row.stream.destroy();
     }
     this.captures.clear();
-    this.connection?.destroy();
+    if (this.connection?.state.status !== VoiceConnectionStatus.Destroyed)
+      this.connection?.destroy();
   }
 }
