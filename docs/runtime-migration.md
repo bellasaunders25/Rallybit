@@ -33,8 +33,9 @@ Recovery changes:
 
 ## JavaScript conversion status
 
-`bot-js/` is the new discord.js runtime foundation. It is **not yet a full
-replacement** for the Python bot. Its command coverage report is executable:
+`bot-js/` contains the native discord.js implementation. Production cutover is
+still pending platform verification; the live deployment remains Python until
+that checklist passes. Its command coverage report is executable:
 
 ```
 cd bot-js
@@ -48,13 +49,12 @@ Every native handler must register against that inventory; duplicate and unknown
 paths are rejected. Production startup refuses to connect to Discord until all
 202 paths have handlers. No migration placeholders are exposed as working commands.
 
-Currently implemented: **88 of 202 commands**. This includes dashboard, help,
-support, the three account-age-gate configuration commands, all 28 staff/workforce
-commands, role give/remove/temp, moderation panels and warning tools, reports,
-reviews, channel archives/purges, logging configuration, activity/profile utilities,
-developer commands, insights/case exports, configuration backups and owner-network
-operations. The native HTTP API and shared bot-profile services are implemented
-and tested independently; full dashboard action compatibility is still pending.
+Currently registered: **202 of 202 native commands**, with no Python command
+proxy or placeholder handlers. All **26 dashboard actions** have native handlers.
+Modules cover staff/workforce, role timers, moderation, reports/reviews, streaming
+archives/purges, audit/security listeners, tickets, member tools, welcome/invites,
+activity checks, quizzes, pulses, giveaways, durable schedules, insights, backups,
+owner-network tools, developer controls and Prettfy.
 All commands are free; no subscription checks are applied. The staff ledger preserves active shifts, breaks, completed record IDs, HR
 corrections and LOA/ROA requests. Temporary-role timers survive restarts, enforce
 member/role hierarchy, and retain failed nickname restorations for retry.
@@ -81,29 +81,43 @@ The live deployment stays on the corrected Python runtime while feature parity
 is implemented and verified. Handler coverage alone is not proof of full event,
 dashboard API, recovery or persistent-component compatibility.
 
-The current JavaScript suite has 45 passing tests. New checks cover moderation
-role revocation on existing panels, role hierarchy, atomic report claims, failed
-report delivery, inclusive large-ID purges, old-message deletion, authenticated
-dashboard JSON operations, storage-full failures, profile rollback, spreadsheet
-formula escaping and journaled backup recovery. CVMS work is paused until the
-existing discord.js migration and safe production cutover are complete.
+The current JavaScript suite has over 100 tests. Checks include moderation role
+revocation, role hierarchy, atomic report claims, failed report delivery, large-ID
+purges, old-message deletion, dashboard authentication/actions, disk-full failures,
+profile rollback, formula-safe CSV, journaled backups, duplicate quiz prevention,
+safe event recovery, ticket role revocation and timed deletion, Prettfy coverage,
+temporary review cleanup, legacy undo snapshots, startup guards and gateway wiring.
+CVMS is paused until the existing migration and safe production cutover complete.
 
-Remaining conversion work, in order:
+## Deployment checklist
 
-1. Complete authenticated dashboard API compatibility and health reporting;
-   expand guard and registration tests alongside each migrated module.
-2. Moderation, reports, reviews and channel archives.
-3. Tickets: existing persistent component IDs, forms, transcripts, claim/close/
-   reopen/delete workflows, permission reconciliation, and timed deletion.
-4. Quizzes, community pulses, activity checks, giveaways and automation recovery.
-   One durable scheduler must own all dispatches; do not replay a missed backlog.
-5. Security listeners, audit events, welcome/goodbye, invites, levels, autoroles,
-   reaction roles and verification.
-6. Premium analytics, backups, Network, Prettfy and developer tools, with the
-   existing state formats preserved or explicitly migrated.
-7. Compare all commands, arguments, choices, checks and persistent components to
-   the old runtime, test recovery and failure cases, back up data, stop the old
-   gateway/schedulers, and perform a single-instance cutover with rollback.
+1. Run `npm ci`, `npm test`, `npm run coverage`, secret scanning and diff validation.
+   All 202 registration paths, options and access policies must match the contract.
+2. Build `bot-js/Dockerfile --target test` on the target architecture and run its
+   tests without a token, gateway connection or live data volume.
+3. Build the `runtime` target. Inspect legacy JSON shapes and validate the data
+   snapshot with the new parser. Do not silently replace corrupt files.
+4. Preserve the current service notice. Stop Python and its schedulers, disable
+   its container auto-restart, and take a private data/environment recovery archive
+   outside the web root. Keep the stopped Python container/image for rollback.
+5. Start exactly one JS container using `bot-js/compose.yaml`. It owns the existing
+   data directory and localhost API port. Confirm health, Discord registration,
+   all connected guilds, dashboard resources and persistent-control compatibility.
+6. Observe recovery/scheduler logs and restart once. Check that no announcements
+   are duplicated and that settings/active shifts/role timers remain intact.
+7. Restore the original notice, confirm public health/login routing, and record
+   the deployed commit. If verification fails, stop JS before restoring the private
+   snapshot and restarting the saved Python container. Never run both gateways.
+
+The Docker image does not contain tokens or customer data. The container has a
+read-only root filesystem, a bounded temporary archive directory, rotated logs,
+resource limits and no added Linux capabilities. The existing data directory
+retains its ownership; root inside the container is currently required to read
+legacy owner-only files. No Vyloza files, services or volumes are part of this cutover.
+
+The current deployment has one shard. Its developer restart control restarts that
+single supervised process. Targeted multi-shard restarts require a separate sharding
+supervisor and are rejected rather than falsely reported as successful.
 
 ## Dashboard redesign brief
 

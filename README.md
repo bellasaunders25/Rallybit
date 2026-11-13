@@ -62,7 +62,8 @@ Rallybit/
 ├── dashboard/                         Discord OAuth management dashboard
 ├── docs/                              Documentation
 ├── changelogs/                        Release notes
-├── rallybitbot/                       Python Discord bot and local API bridge
+├── bot-js/                            Native discord.js bot and local API bridge
+├── rallybitbot/                       Legacy rollback source and shared data location
 ├── .env.example                       Website/dashboard configuration template
 └── .htaccess                          Apache routing and security headers
 ```
@@ -78,8 +79,8 @@ Rallybit/
 
 ### Bot
 
-- Python 3.11 or newer
-- Packages from `rallybitbot/requirements.txt`
+- Node.js 24 or newer (Docker uses the Node 24 LTS image)
+- Packages locked in `bot-js/package-lock.json`
 - Discord application with **Server Members Intent** enabled
 - **Message Content Intent** enabled for optional security invite/term filtering and message edit/delete logs
 - Presence Intent is not required
@@ -138,14 +139,14 @@ Dashboard sessions persist across browser restarts. Discord access tokens are re
 ## 2. Configure the bot
 
 ```bash
-cd rallybitbot
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+cd bot-js
+npm ci
 cp .env.example .env
 ```
 
-Fill in `rallybitbot/.env`:
+Fill in `bot-js/.env` for a direct Node deployment. Docker reuses the existing
+private `rallybitbot/.env` and `rallybitbot/data` paths so dashboard settings,
+staff shifts and active sessions are retained:
 
 - `DISCORD_BOT_TOKEN`
 - `OWNER_ID`
@@ -160,8 +161,18 @@ Fill in `rallybitbot/.env`:
 Start it with:
 
 ```bash
-python main.py
+npm test
+npm run coverage
+# Complete the cutover checklist, stop Python, and then set
+# RALLYBIT_JS_CUTOVER_APPROVED=verified in your private environment.
+npm start
 ```
+
+For Docker, use `docker compose -p rallybit-js -f bot-js/compose.yaml up -d --build`
+from the repository root after completing [the cutover checklist](docs/runtime-migration.md).
+Never run the legacy Python gateway or its schedulers alongside the JavaScript bot.
+The Python source is retained for emergency rollback, not as a command proxy.
+CVMS remains separate work; the runtime conversion does not enable voice recording.
 
 ## Command reply visibility
 

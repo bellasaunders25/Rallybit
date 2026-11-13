@@ -3,11 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24.0.0" },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "start": "node --env-file-if-exists=.env src/index.js",
     "test": "node --test",
     "coverage": "node src/coverage.js"
   },
-  "dependencies": { "discord.js": "14.28.1" }
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "^3.0.92",
+    "ai": "^7.0.172",
+    "discord.js": "14.28.1"
+  }
 }

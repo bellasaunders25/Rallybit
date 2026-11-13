@@ -1,0 +1,244 @@
+{
+  "QUESTION_BANK": [
+    {
+      "category": "general",
+      "question": "Which instrument usually has 88 keys?",
+      "choices": ["Violin", "Piano", "Trumpet", "Flute"],
+      "answer": 1,
+      "explanation": "A standard modern piano has 88 keys."
+    },
+    {
+      "category": "general",
+      "question": "What colour do you get by mixing blue and yellow paint?",
+      "choices": ["Purple", "Orange", "Green", "Pink"],
+      "answer": 2,
+      "explanation": "Blue and yellow pigments combine to make green."
+    },
+    {
+      "category": "general",
+      "question": "How many sides does a hexagon have?",
+      "choices": ["Five", "Six", "Seven", "Eight"],
+      "answer": 1,
+      "explanation": "The prefix hex- means six."
+    },
+    {
+      "category": "general",
+      "question": "Which month has an extra day during a leap year?",
+      "choices": ["January", "February", "March", "December"],
+      "answer": 1,
+      "explanation": "February has 29 days in a leap year."
+    },
+    {
+      "category": "science",
+      "question": "What gas do plants absorb from the atmosphere?",
+      "choices": ["Oxygen", "Hydrogen", "Carbon dioxide", "Helium"],
+      "answer": 2,
+      "explanation": "Plants use carbon dioxide during photosynthesis."
+    },
+    {
+      "category": "science",
+      "question": "Which planet is known for its prominent rings?",
+      "choices": ["Mars", "Saturn", "Venus", "Mercury"],
+      "answer": 1,
+      "explanation": "Saturn has the Solar System's most visible ring system."
+    },
+    {
+      "category": "science",
+      "question": "What is H2O commonly called?",
+      "choices": ["Salt", "Water", "Oxygen", "Sugar"],
+      "answer": 1,
+      "explanation": "H2O is the chemical formula for water."
+    },
+    {
+      "category": "science",
+      "question": "Which part of a cell contains most of its genetic material?",
+      "choices": ["Nucleus", "Cell wall", "Cytoplasm", "Membrane"],
+      "answer": 0,
+      "explanation": "In eukaryotic cells, most DNA is stored in the nucleus."
+    },
+    {
+      "category": "science",
+      "question": "What force pulls objects toward Earth?",
+      "choices": ["Magnetism", "Friction", "Gravity", "Electricity"],
+      "answer": 2,
+      "explanation": "Gravity attracts objects with mass toward one another."
+    },
+    {
+      "category": "geography",
+      "question": "What is the capital city of Japan?",
+      "choices": ["Kyoto", "Osaka", "Tokyo", "Sapporo"],
+      "answer": 2,
+      "explanation": "Tokyo is Japan's capital."
+    },
+    {
+      "category": "geography",
+      "question": "Which ocean lies between Africa and Australia?",
+      "choices": ["Atlantic", "Indian", "Arctic", "Southern"],
+      "answer": 1,
+      "explanation": "The Indian Ocean separates much of Africa from Australia."
+    },
+    {
+      "category": "geography",
+      "question": "Mount Everest is part of which mountain range?",
+      "choices": ["Andes", "Alps", "Himalayas", "Rockies"],
+      "answer": 2,
+      "explanation": "Mount Everest is in the Himalayas."
+    },
+    {
+      "category": "geography",
+      "question": "Which country has a maple leaf on its flag?",
+      "choices": ["Canada", "Norway", "Finland", "Austria"],
+      "answer": 0,
+      "explanation": "Canada's flag features a red maple leaf."
+    },
+    {
+      "category": "gaming",
+      "question": "In chess, which piece moves in an L-shape?",
+      "choices": ["Bishop", "Rook", "Knight", "Queen"],
+      "answer": 2,
+      "explanation": "The knight moves two squares one way and one square sideways."
+    },
+    {
+      "category": "gaming",
+      "question": "What does NPC usually stand for in games?",
+      "choices": [
+        "New Player Character",
+        "Non-Player Character",
+        "Network Play Controller",
+        "Next Play Challenge"
+      ],
+      "answer": 1,
+      "explanation": "NPC means non-player character."
+    },
+    {
+      "category": "gaming",
+      "question": "Which company created the Nintendo Switch?",
+      "choices": ["Sony", "Microsoft", "Nintendo", "Sega"],
+      "answer": 2,
+      "explanation": "The Switch is a Nintendo console."
+    },
+    {
+      "category": "gaming",
+      "question": "In a standard deck, how many playing cards are there without jokers?",
+      "choices": ["48", "50", "52", "54"],
+      "answer": 2,
+      "explanation": "A standard deck contains 52 cards."
+    },
+    {
+      "category": "internet",
+      "question": "What does URL stand for?",
+      "choices": [
+        "Universal Route Link",
+        "Uniform Resource Locator",
+        "User Reference List",
+        "Unified Response Language"
+      ],
+      "answer": 1,
+      "explanation": "URL stands for Uniform Resource Locator."
+    },
+    {
+      "category": "internet",
+      "question": "Which symbol is used in every standard email address?",
+      "choices": ["#", "@", "&", "%"],
+      "answer": 1,
+      "explanation": "The @ symbol separates the mailbox name from its domain."
+    },
+    {
+      "category": "internet",
+      "question": "What does HTML primarily describe?",
+      "choices": [
+        "A webpage's structure",
+        "A database engine",
+        "An image format",
+        "A Wi-Fi standard"
+      ],
+      "answer": 0,
+      "explanation": "HTML defines the structure and meaning of webpage content."
+    },
+    {
+      "category": "internet",
+      "question": "Which protocol is the secure version of HTTP?",
+      "choices": ["FTP", "SMTP", "HTTPS", "SSH-D"],
+      "answer": 2,
+      "explanation": "HTTPS protects HTTP traffic using encryption."
+    },
+    {
+      "category": "discord",
+      "question": "What is a collection of channels and members called on Discord?",
+      "choices": ["Server", "Thread", "Stage", "Forum post"],
+      "answer": 0,
+      "explanation": "Discord communities are organised into servers."
+    },
+    {
+      "category": "discord",
+      "question": "Which Discord feature keeps a focused conversation inside a channel?",
+      "choices": ["Thread", "Role", "Webhook", "Emoji"],
+      "answer": 0,
+      "explanation": "Threads create focused sub-conversations inside channels."
+    },
+    {
+      "category": "discord",
+      "question": "What can server roles commonly control?",
+      "choices": [
+        "Permissions",
+        "Internet speed",
+        "Screen brightness",
+        "Account passwords"
+      ],
+      "answer": 0,
+      "explanation": "Roles are commonly used to organise members and grant permissions."
+    },
+    {
+      "category": "logic",
+      "question": "What number comes next: 2, 4, 8, 16, ...?",
+      "choices": ["18", "24", "30", "32"],
+      "answer": 3,
+      "explanation": "Each number is doubled, so 16 becomes 32."
+    },
+    {
+      "category": "logic",
+      "question": "If all Bloops are Razzies and all Razzies are Lazzies, every Bloop is a...?",
+      "choices": ["Lazzy", "Maybe Lazzy", "Not Lazzy", "None"],
+      "answer": 0,
+      "explanation": "The relationship is transitive: every Bloop is a Lazzy."
+    },
+    {
+      "category": "logic",
+      "question": "Which value is the odd one out?",
+      "choices": ["4", "9", "16", "20"],
+      "answer": 3,
+      "explanation": "4, 9 and 16 are perfect squares; 20 is not."
+    }
+  ],
+  "ICEBREAKERS": {
+    "casual": [
+      "What tiny thing made your day better recently?",
+      "What song have you had on repeat lately?",
+      "What is your most-used emoji, and does it actually represent you?",
+      "Which snack would you defend in a completely unnecessary debate?",
+      "What is one thing you are looking forward to this week?",
+      "What fictional world would be fun to visit—but terrible to live in?"
+    ],
+    "gaming": [
+      "Which game deserves a remake, and what would you change?",
+      "What is your proudest gaming achievement?",
+      "Which game has the best soundtrack?",
+      "What mechanic instantly makes a game more fun for you?",
+      "Which game would you erase from memory just to experience it fresh again?"
+    ],
+    "creative": [
+      "Pitch a terrible movie in one sentence.",
+      "Invent a new holiday. What does everyone do on it?",
+      "Describe your dream game without naming an existing game.",
+      "Turn the last emoji you used into a superhero.",
+      "Create a restaurant name using your favourite colour and last snack."
+    ],
+    "debate": [
+      "Are spoilers ever acceptable?",
+      "Is pineapple on pizza actually a problem, or just free publicity?",
+      "Would you rather have perfect Wi-Fi or never need to charge a device?",
+      "Are remakes better when they stay faithful or reinvent everything?",
+      "Should group chats have an official bedtime?"
+    ]
+  }
+}

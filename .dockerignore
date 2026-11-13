@@ -1,0 +1,10 @@
+**/.env
+**/.env.*
+**/node_modules
+**/data
+**/__pycache__
+**/.venv
+**/venv
+.git
+backups
+*.tar.gz
