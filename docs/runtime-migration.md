@@ -100,6 +100,8 @@ CVMS is paused until the existing migration and safe production cutover complete
 4. Preserve the current service notice. Stop Python and its schedulers, disable
    its container auto-restart, and take a private data/environment recovery archive
    outside the web root. Keep the stopped Python container/image for rollback.
+   After the snapshot, assign ownership of only Rallybit's data directory to
+   UID/GID 1000 (the image's `node` account), without following symbolic links.
 5. Start exactly one JS container using `bot-js/compose.yaml`. It owns the existing
    data directory and localhost API port. Confirm health, Discord registration,
    all connected guilds, dashboard resources and persistent-control compatibility.
@@ -111,9 +113,10 @@ CVMS is paused until the existing migration and safe production cutover complete
 
 The Docker image does not contain tokens or customer data. The container has a
 read-only root filesystem, a bounded temporary archive directory, rotated logs,
-resource limits and no added Linux capabilities. The existing data directory
-retains its ownership; root inside the container is currently required to read
-legacy owner-only files. No Vyloza files, services or volumes are part of this cutover.
+resource limits and no added Linux capabilities. The bot runs as the unprivileged
+`node` account. Legacy data ownership is normalised to UID/GID 1000 after taking
+the recovery snapshot; the snapshot preserves original ownership for rollback.
+No Vyloza files, services or volumes are part of this cutover.
 
 The current deployment has one shard. Its developer restart control restarts that
 single supervised process. Targeted multi-shard restarts require a separate sharding
