@@ -1,0 +1,2 @@
+# Runtime sources and local state are not public website assets.
+Require all denied
