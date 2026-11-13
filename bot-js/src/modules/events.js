@@ -597,9 +597,14 @@ export class EventService {
           reason,
           final_status:
             kind === "activity"
-              ? reason === "time"
-                ? "completed"
-                : "manually_stopped"
+              ? reason === "cancelled"
+                ? "cancelled"
+                : reason === "time"
+                  ? (row.winners?.length ?? 0) >=
+                    Number(row.settings_snapshot?.winner_count ?? 3)
+                    ? "completed"
+                    : "timed_out"
+                  : "manually_stopped"
               : reason,
         };
         if (kind === "giveaway") {
@@ -621,7 +626,9 @@ export class EventService {
       if (kind === "activity") {
         await this.participation(guild.id, row);
         await this.store.update("global_stats.json", (data) => {
-          for (const person of row.winners ?? []) {
+          for (const person of row.final_status === "cancelled"
+            ? []
+            : (row.winners ?? [])) {
             const record = (data[person.user_id] ??= {
                 wins: 0,
                 checkins: 0,
@@ -769,6 +776,17 @@ export class EventService {
       if (!rows.some((row) => String(row[field]) === id)) rows.push(record);
       data[guildId] = rows.slice(-250);
     });
+  }
+  async deleted(message) {
+    if (!message.guild) return;
+    const row = (await this.rows("activity"))[message.guildId];
+    if (row && String(row.message_id) === message.id)
+      await this.finish(
+        "activity",
+        message.guild,
+        message.guildId,
+        "cancelled",
+      );
   }
   async tick(client, assertOwner = () => {}) {
     for (const kind of Object.keys(EVENT_FILES))

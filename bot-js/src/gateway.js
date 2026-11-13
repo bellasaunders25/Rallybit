@@ -99,10 +99,16 @@ export function bindGateway(
     await safe("afk", () => app.utility.onMessage(message));
     await safe("levels", () => app.members.onMessage(message));
   });
-  on(Events.MessageDelete, (message) => app.snipes.record(message));
+  on(Events.MessageDelete, async (message) => {
+    app.snipes.record(message);
+    await app.campaigns.events.deleted(message);
+  });
   on(Events.MessageUpdate, (before, after) => app.snipes.record(before, after));
-  on(Events.MessageBulkDelete, (messages) => {
-    for (const message of messages.values()) app.snipes.record(message);
+  on(Events.MessageBulkDelete, async (messages) => {
+    for (const message of messages.values()) {
+      app.snipes.record(message);
+      await app.campaigns.events.deleted(message);
+    }
   });
   const reaction = (remove) => async (row, user) => {
     if (user.bot) return;

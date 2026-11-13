@@ -474,6 +474,27 @@ test("all event payloads retain persistent legacy component IDs and disable on e
 test("legacy naive UTC timestamps parse consistently", () => {
   assert.equal(epoch("2026-11-13T12:00:00"), epoch("2026-11-13T12:00:00Z"));
 });
+test("deleting an activity announcement cancels it without awarding a win", async (t) => {
+  const store = await setup(t),
+    fx = fixtures(),
+    service = new EventService({ store });
+  const row = await service.start(
+    "activity",
+    fx.guild,
+    fx.channel,
+    { id: U },
+    { settings: { reactor_type: "button" } },
+  );
+  row.winners = [{ user_id: C, name: "Member", time: Date.now() / 1000 }];
+  await store.write(EVENT_FILES.activity, { [G]: row });
+  await service.deleted({ id: row.message_id, guildId: G, guild: fx.guild });
+  assert.equal((await store.read("global_stats.json"))[C], undefined);
+  assert.equal(
+    (await store.read("activity_audit_logs.json"))[G][row.check_id].status,
+    "cancelled",
+  );
+  assert.equal((await store.read(EVENT_FILES.activity))[G], undefined);
+});
 test("automatic schedules reserve their next interval before failures and do not flood retries", async (t) => {
   const store = await setup(t),
     fx = fixtures(),
