@@ -57,51 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = api_error($result, 'The bot did not accept the profile update.');
             $messageType = 'error';
         }
-    } elseif ($action === 'grant') {
-        $subjectType = (string)($_POST['subject_type'] ?? 'server');
-        $subjectId = preg_replace('/\D/', '', (string)($_POST['subject_id'] ?? ''));
-        $plan = strtolower((string)($_POST['plan'] ?? ''));
-        $expiresRaw = trim((string)($_POST['expires_at'] ?? ''));
-        $expiresAt = null;
-        if ($expiresRaw !== '') {
-            try {
-                $expiry = new DateTimeImmutable($expiresRaw, new DateTimeZone('UTC'));
-                if ($expiry <= new DateTimeImmutable('now', new DateTimeZone('UTC'))) {
-                    throw new RuntimeException('Expiration must be in the future.');
-                }
-                $expiresAt = $expiry->setTimezone(new DateTimeZone('UTC'))->format(DateTimeInterface::ATOM);
-            } catch (Throwable $error) {
-                $message = $error->getMessage() ?: 'Enter a valid future expiration.';
-                $messageType = 'error';
-            }
-        }
-        if ($messageType !== 'error') {
-            $result = api_request('/api/premium/grant', [
-                'subject_type' => $subjectType,
-                'subject_id' => $subjectId,
-                'plan' => $plan,
-                'expires_at' => $expiresAt,
-                'actor_id' => (string)($_SESSION['user_id'] ?? ''),
-            ], 20);
-            if (!empty($result['ok'])) {
-                $message = ucfirst($plan).' preview granted successfully.';
-            } else {
-                $message = api_error($result, 'Could not grant that plan.');
-                $messageType = 'error';
-            }
-        }
-    } elseif ($action === 'revoke') {
-        $result = api_request('/api/premium/revoke', [
-            'subject_type' => (string)($_POST['subject_type'] ?? ''),
-            'subject_id' => preg_replace('/\D/', '', (string)($_POST['subject_id'] ?? '')),
-            'actor_id' => (string)($_SESSION['user_id'] ?? ''),
-        ], 20);
-        if (!empty($result['ok'])) {
-            $message = 'Preview access revoked.';
-        } else {
-            $message = api_error($result, 'Could not revoke that plan.');
-            $messageType = 'error';
-        }
     } elseif ($action === 'command') {
         $key = preg_replace('/[^a-z0-9_]/', '', strtolower((string)($_POST['command_key'] ?? '')));
         if ($key !== '') {
@@ -132,18 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$premium = get_premium_entitlements();
 $globalSettings = is_array($settings['global'] ?? null) ? $settings['global'] : [];
 $csrf = get_csrf_token();
-$entitlementRows = [];
-foreach (['servers' => 'server', 'users' => 'user'] as $bucket => $type) {
-    foreach (($premium[$bucket] ?? []) as $id => $record) {
-        if (!is_array($record)) continue;
-        $entitlementRows[] = ['type' => $type, 'id' => (string)$id] + $record;
-    }
-}
-usort($entitlementRows, fn(array $a, array $b): int => strcmp((string)($b['granted_at'] ?? ''), (string)($a['granted_at'] ?? '')));
-$history = is_array($premium['history'] ?? null) ? array_slice(array_reverse($premium['history']), 0, 12) : [];
 ?>
 <!doctype html>
 <html lang="en">
@@ -155,16 +100,16 @@ $history = is_array($premium['history'] ?? null) ? array_slice(array_reverse($pr
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css?v=1.0">
-  <link rel="stylesheet" href="/dashboard/style.css?v=6.2">
+  <link rel="stylesheet" href="/dashboard/style.css?v=10.0">
   <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-icon-32.png">
-</head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-mark-32.png">
+<script src="/assets/theme.js?v=10.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
 <body>
 <div class="dash-shell">
   <?php render_dashboard_sidebar('admin'); ?>
   <main class="dash-main">
     <header class="dash-header">
-      <div><span class="kicker">Restricted controls</span><h1>Developer tools</h1><p>Manage service availability, the shared bot profile, preview plans, and access blocks.</p></div>
+      <div><span class="kicker">Restricted controls</span><h1>Developer tools</h1><p>Manage service availability, the shared bot profile and access blocks.</p></div>
     </header>
 
     <?php if ($message !== ''): ?>
@@ -199,49 +144,6 @@ $history = is_array($premium['history'] ?? null) ? array_slice(array_reverse($pr
           </select></label>
           <button class="button primary" type="submit"><i class="bi bi-person-badge"></i> Update bot profile</button>
         </form>
-      </section>
-
-      <section class="panel admin-wide">
-        <div class="panel-heading"><span>03</span><div><h2>Premium previews</h2><p>Grant working previews while public paid plans remain Coming soon.</p></div></div>
-        <div class="entitlement-builders">
-          <form method="post" class="admin-subpanel">
-            <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>"><input type="hidden" name="action" value="grant"><input type="hidden" name="subject_type" value="server">
-            <div class="subpanel-title"><i class="bi bi-hdd-rack"></i><div><strong>Server plan</strong><span>Community or Pro for one server.</span></div></div>
-            <label>Server ID<input name="subject_id" inputmode="numeric" pattern="[0-9]{15,22}" required placeholder="123456789012345678"></label>
-            <label>Plan<select name="plan"><option value="community">Community</option><option value="pro">Pro</option></select></label>
-            <label>Expires (UTC)<input type="datetime-local" name="expires_at"><small>Leave blank for no expiration.</small></label>
-            <button class="button primary" type="submit"><i class="bi bi-plus-circle"></i> Grant server preview</button>
-          </form>
-          <form method="post" class="admin-subpanel">
-            <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>"><input type="hidden" name="action" value="grant"><input type="hidden" name="subject_type" value="user"><input type="hidden" name="plan" value="network">
-            <div class="subpanel-title"><i class="bi bi-diagram-3"></i><div><strong>Network owner plan</strong><span>Unlimited servers actually owned by this user.</span></div></div>
-            <label>Discord user ID<input name="subject_id" inputmode="numeric" pattern="[0-9]{15,22}" required placeholder="123456789012345678"></label>
-            <label>Plan<input value="Network" disabled></label>
-            <label>Expires (UTC)<input type="datetime-local" name="expires_at"><small>Leave blank for no expiration.</small></label>
-            <button class="button primary" type="submit"><i class="bi bi-plus-circle"></i> Grant Network preview</button>
-          </form>
-        </div>
-
-        <div class="admin-table-heading"><div><h3>Current entitlements</h3><p>Expired records remain visible until revoked.</p></div><span><?=number_format(count($entitlementRows))?> total</span></div>
-        <?php if (!$entitlementRows): ?>
-          <div class="compact-empty"><span><i class="bi bi-key"></i></span><strong>No preview grants</strong><p>Developer accounts still have automatic Network preview access.</p></div>
-        <?php else: ?>
-          <div class="data-table-wrap"><table class="data-table premium-table"><thead><tr><th>Subject</th><th>Plan</th><th>Granted</th><th>Expiration</th><th>Status</th><th></th></tr></thead><tbody>
-          <?php foreach ($entitlementRows as $row):
-              $expiry = !empty($row['expires_at']) ? strtotime((string)$row['expires_at']) : false;
-              $expired = $expiry !== false && $expiry <= time(); ?>
-            <tr><td><strong><?=ucfirst(htmlspecialchars($row['type']))?></strong><small><?=htmlspecialchars($row['id'])?></small></td><td><?=ucfirst(htmlspecialchars((string)($row['plan'] ?? 'free')))?></td><td><?=!empty($row['granted_at']) ? htmlspecialchars(gmdate('d M Y H:i', strtotime((string)$row['granted_at']))) : 'Unknown'?></td><td><?=$expiry ? htmlspecialchars(gmdate('d M Y H:i', $expiry)).' UTC' : 'Never'?></td><td><span class="state-pill <?=$expired ? 'expired' : 'active'?>"><?=$expired ? 'Expired' : 'Active'?></span></td><td><form method="post"><input type="hidden" name="csrf_token" value="<?=htmlspecialchars($csrf)?>"><input type="hidden" name="action" value="revoke"><input type="hidden" name="subject_type" value="<?=htmlspecialchars($row['type'])?>"><input type="hidden" name="subject_id" value="<?=htmlspecialchars($row['id'])?>"><button class="icon-button danger" type="submit" aria-label="Revoke entitlement"><i class="bi bi-trash3"></i></button></form></td></tr>
-          <?php endforeach; ?>
-          </tbody></table></div>
-        <?php endif; ?>
-
-        <?php if ($history): ?>
-          <details class="grant-history"><summary>Recent grant history</summary><div class="history-list">
-          <?php foreach ($history as $entry): ?>
-            <div><i class="bi bi-clock-history"></i><span><strong><?=ucfirst(htmlspecialchars((string)($entry['action'] ?? 'updated')))?> <?=ucfirst(htmlspecialchars((string)($entry['plan'] ?? 'plan')))?></strong><small><?=htmlspecialchars((string)($entry['subject_type'] ?? 'subject'))?> <?=htmlspecialchars((string)($entry['subject_id'] ?? ''))?> · <?=htmlspecialchars((string)($entry['timestamp'] ?? ''))?></small></span></div>
-          <?php endforeach; ?>
-          </div></details>
-        <?php endif; ?>
       </section>
 
       <section class="panel">

@@ -212,50 +212,17 @@ def _insights_csv(guild: discord.Guild, insights: dict[str, Any]) -> bytes:
 
 
 def setup_premium_commands(tree: app_commands.CommandTree) -> None:
-    premium = app_commands.Group(name="premium", description="View Rallybit plans and preview access.")
-    insights = app_commands.Group(name="insights", description="Premium server operations and analytics.")
-    staff = app_commands.Group(name="staff", description="Premium staff shift tracking.")
+    premium = app_commands.Group(name="premium", description="Rallybit free access information.")
+    insights = app_commands.Group(name="insights", description="Server operations and analytics.")
+    staff = app_commands.Group(name="staff", description="Staff shift tracking.")
 
-    @premium.command(name="status", description="View the plan currently active in this server.")
+    @premium.command(name="status", description="Confirm that all Rallybit features are free.")
     async def premium_status(interaction: discord.Interaction) -> None:
-        guild = interaction.guild
-        entitlement = resolve_entitlement(
-            user_id=interaction.user.id,
-            guild_id=guild.id if guild else None,
-            guild_owner_id=guild.owner_id if guild else None,
-        )
-        source_labels = {
-            "default": "Free access",
-            "server": "Server preview grant",
-            "owner": "Server owner subscription",
-            "user": "Your subscription",
-            "developer": "Developer preview",
-        }
-        expiry = _parse_datetime(entitlement.get("expires_at"))
-        embed = discord.Embed(
-            title=f"{entitlement['name']} plan",
-            description=source_labels.get(str(entitlement.get("source")), "Rallybit plan"),
-            color=BRAND,
-            timestamp=_now(),
-        )
-        embed.add_field(name="Access", value="Active", inline=True)
-        embed.add_field(name="Server coverage", value="Unlimited owned servers" if entitlement["unlimited_servers"] else "This server", inline=True)
-        embed.add_field(name="Expires", value=discord.utils.format_dt(expiry, "F") if expiry else "No expiration", inline=False)
-        embed.set_footer(text="Paid plans are in developer preview and are not available to purchase yet.")
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=discord.Embed(title="Rallybit is free", description="Every command and feature is available without a subscription. Staff roles and Discord permissions still apply.", color=BRAND))
 
-    @premium.command(name="plans", description="Compare Free, Community, Pro, and Network previews.")
+    @premium.command(name="plans", description="View Rallybit's free access information.")
     async def premium_plans(interaction: discord.Interaction) -> None:
-        embed = discord.Embed(
-            title="Rallybit plans",
-            description="Rallybit starts free. Paid plans are coming soon; authorised preview grants already work.",
-            color=BRAND,
-        )
-        embed.add_field(name="Free — £0", value="Every existing Rallybit command.", inline=False)
-        embed.add_field(name="Community — £3.99/month", value="Coming soon · Insights plus searchable moderation case files and workload stats.", inline=False)
-        embed.add_field(name="Pro — £8.99/month", value="Coming soon · AI-guided server styling with preview and undo, CSV exports, staff operations, and restorable configuration backups.", inline=False)
-        embed.add_field(name="Network — £19.99/month", value="Coming soon · Everything in Pro across unlimited owned servers, with cross-server broadcasts and exports.", inline=False)
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=discord.Embed(title="Everything is included", description="There are no paid plans, subscriptions or preview grants. Use all Rallybit features for free.", color=BRAND))
 
     @insights.command(name="overview", description="View activity, ticket, moderation, and staff totals.")
     @app_commands.guild_only()
@@ -276,7 +243,7 @@ def setup_premium_commands(tree: app_commands.CommandTree) -> None:
         embed.add_field(name="Moderation", value=f"{data['moderation_actions']:,} recorded actions", inline=True)
         embed.add_field(name="Staff time", value=_format_duration(data["staff_seconds"]), inline=True)
         embed.add_field(name="Deleted tickets", value=f"{data['tickets_deleted']:,}", inline=True)
-        embed.set_footer(text="Community plan preview")
+        embed.set_footer(text="Rallybit Insights")
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @insights.command(name="export", description="Export detailed operational records as a CSV file.")

@@ -1,36 +1,37 @@
+@import url("/assets/theme.css?v=10.0");
 :root {
-  --bg: #111725;
-  --sidebar: #202940;
-  --surface: #161d2b;
-  --surface-2: #1c2537;
-  --surface-3: #253047;
-  --input: #101622;
-  --border: #2a354c;
-  --text: #f4f6fb;
-  --muted: #a4afbf;
-  --muted-2: #748196;
-  --accent: #7567ee;
-  --accent-hover: #897cf5;
-  --success: #45c486;
+  --bg: var(--rally-bg);
+  --sidebar: var(--rally-sidebar);
+  --surface: var(--rally-surface);
+  --surface-2: var(--rally-surface-2);
+  --surface-3: var(--rally-surface-3);
+  --input: var(--rally-input);
+  --border: var(--rally-border);
+  --text: var(--rally-text);
+  --muted: var(--rally-muted);
+  --muted-2: var(--rally-subtle);
+  --accent: var(--rally-brand);
+  --accent-hover: var(--rally-brand-hover);
+  --success: var(--rally-positive);
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; color-scheme: dark; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.65; }
 a { color: inherit; }
-::selection { background: rgba(88, 101, 242, 0.44); color: #fff; }
+::selection { background: rgba(9, 98, 63, 0.44); color: #fff; }
 .docs-shell { display: grid; grid-template-columns: 276px minmax(0, 1fr); min-height: 100vh; }
 .docs-sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 20px 14px; border-right: 1px solid rgba(0, 0, 0, 0.2); background: var(--sidebar); }
 .docs-brand { display: flex; align-items: center; gap: 10px; margin: 0 6px 20px; padding: 8px; color: #fff; text-decoration: none; font-size: 18px; font-weight: 800; letter-spacing: -0.025em; }
 .docs-brand img { width: 39px; height: 39px; border-radius: 0; object-fit: contain; }
 .docs-search { position: relative; margin: 0 6px 20px; }
-.docs-search input { width: 100%; padding: 10px 11px; border: 1px solid transparent; border-radius: 6px; outline: none; background: #111214; color: var(--text); font: inherit; font-size: 13px; transition: border-color 0.14s ease, box-shadow 0.14s ease; }
-.docs-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.15); }
+.docs-search input { width: 100%; padding: 10px 11px; border: 1px solid transparent; border-radius: 6px; outline: none; background: var(--rally-surface-2); color: var(--text); font: inherit; font-size: 13px; transition: border-color 0.14s ease, box-shadow 0.14s ease; }
+.docs-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(9, 98, 63, 0.15); }
 .docs-nav-group { margin: 20px 0; }
 .docs-nav-group strong { display: block; margin: 0 10px 7px; color: var(--muted-2); font-size: 10px; font-weight: 800; letter-spacing: 0.11em; text-transform: uppercase; }
 .docs-nav a { position: relative; display: block; padding: 8px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 650; transition: color 0.14s ease, background 0.14s ease; }
 .docs-nav a:hover { color: var(--text); background: var(--surface-2); }
-.docs-nav a.active { color: #d8d4ff; background: rgba(117,103,238,.15); }
+.docs-nav a.active { color: var(--rally-brand); background: rgba(9, 98, 63,.15); }
 .docs-nav a.active::before { content: ""; position: absolute; top: 7px; bottom: 7px; left: -14px; width: 4px; border-radius: 0 4px 4px 0; background: var(--accent); }
 
 .docs-main { width: 100%; max-width: 1050px; padding: 54px clamp(28px, 6vw, 88px) 100px; }
@@ -38,7 +39,7 @@ a { color: inherit; }
 .docs-main h2 { margin: 47px 0 11px; padding-top: 9px; font-size: 27px; letter-spacing: -0.03em; }
 .docs-main h3 { margin: 24px 0 7px; font-size: 17px; }
 .docs-main p, .docs-main li { color: var(--muted); }
-.eyebrow { display: inline-flex; padding: 6px 9px; border-radius: 6px; background: rgba(88, 101, 242, 0.15); color: #aeb4ff; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.eyebrow { display: inline-flex; padding: 6px 9px; border-radius: 6px; background: rgba(9, 98, 63, 0.15); color: var(--rally-brand); font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
 .lead { max-width: 720px; font-size: 17px; }
 .docs-actions { display: flex; flex-wrap: wrap; gap: 9px; margin: 24px 0; }
 .btn { display: inline-flex; padding: 10px 14px; border-radius: 7px; background: var(--surface-2); color: #fff; text-decoration: none; font-weight: 750; transition: transform 0.14s ease, background 0.14s ease; }
@@ -51,7 +52,7 @@ a { color: inherit; }
 .doc-card:hover { background: var(--surface-2); }
 .doc-card h3, .command h3 { margin: 0 0 6px; color: var(--text); }
 .doc-card p { margin: 0; }
-.callout { margin: 20px 0; padding: 19px; border-left: 4px solid var(--accent); background: rgba(88, 101, 242, 0.11); }
+.callout { margin: 20px 0; padding: 19px; border-left: 4px solid var(--accent); background: rgba(9, 98, 63, 0.11); }
 .callout strong { display: block; margin-bottom: 4px; }
 .steps { counter-reset: step; display: grid; gap: 10px; margin: 20px 0; }
 .step { counter-increment: step; display: grid; grid-template-columns: 37px 1fr; gap: 12px; padding: 17px; border-radius: 9px; background: var(--surface); transition: transform 0.17s ease, background 0.17s ease; }
@@ -62,9 +63,9 @@ a { color: inherit; }
 .command-list { display: grid; gap: 10px; }
 .command { display: grid; grid-template-columns: minmax(180px, 0.4fr) 1fr; gap: 17px; padding: 19px; transition: background 0.16s ease; }
 .command:hover { background: var(--surface-2); }
-.command code, code { padding: 2px 6px; border-radius: 5px; background: #111214; color: #c3c7ff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.command code, code { padding: 2px 6px; border-radius: 5px; background: var(--rally-surface-2); color: var(--rally-brand); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .command p { margin: 0; }
-.command h3 small { display: inline-flex; margin-left: 5px; padding: 3px 6px; border: 1px solid rgba(117,103,238,.34); border-radius: 5px; color: #b9b2ff; font-size: 8px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; vertical-align: middle; }
+.command h3 small { display: inline-flex; margin-left: 5px; padding: 3px 6px; border: 1px solid rgba(9, 98, 63,.34); border-radius: 5px; color: var(--rally-brand); font-size: 8px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; vertical-align: middle; }
 .table-wrap { overflow: auto; border-radius: 9px; background: var(--surface); }
 .docs-table { width: 100%; min-width: 620px; border-collapse: collapse; }
 .docs-table th, .docs-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); text-align: left; }
@@ -103,7 +104,7 @@ a { color: inherit; }
 .command-basics-grid article { position: relative; min-height: 178px; padding: 22px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
 .command-basics-grid h3 { margin: 14px 0 6px; }
 .command-basics-grid p { margin: 0; font-size: 14px; line-height: 1.58; }
-.guide-number { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid rgba(117,103,238,.48); border-radius: 6px; background: rgba(117,103,238,.12); color: #c7c1ff; font-size: 12px; font-weight: 800; }
+.guide-number { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid rgba(9, 98, 63,.48); border-radius: 6px; background: rgba(9, 98, 63,.12); color: var(--rally-brand); font-size: 12px; font-weight: 800; }
 .compact-callout { display: grid; grid-template-columns: minmax(210px, .42fr) 1fr; gap: 18px; margin-top: 12px; }
 .compact-callout strong { margin: 0; }
 .command-browser { margin-top: 55px; }
@@ -116,38 +117,38 @@ a { color: inherit; }
 .command-search-field span { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
 .command-search-field input { width: 100%; min-height: 46px; padding: 0 14px; border: 1px solid var(--border); border-radius: 7px; outline: none; background: var(--input); color: var(--text); font: inherit; font-size: 14px; }
 .command-search-field input::placeholder { color: var(--muted-2); }
-.command-search-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(117,103,238,.14); }
+.command-search-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(9, 98, 63,.14); }
 .clear-search, .copy-command, .command-filter { border: 0; color: var(--text); font: inherit; cursor: pointer; }
 .clear-search { min-height: 46px; padding: 0 15px; border-radius: 7px; background: var(--surface-3); font-size: 13px; font-weight: 700; }
-.clear-search:hover { background: #303c56; }
+.clear-search:hover { background: var(--rally-surface-2); }
 .command-filters { display: flex; gap: 7px; margin: 14px 0 30px; padding-bottom: 3px; overflow-x: auto; scrollbar-width: thin; }
 .command-filter { flex: 0 0 auto; padding: 8px 11px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; }
-.command-filter:hover { border-color: #3c4963; color: var(--text); }
-.command-filter.active { border-color: rgba(117,103,238,.6); background: rgba(117,103,238,.15); color: #d8d4ff; }
+.command-filter:hover { border-color: var(--rally-surface-2); color: var(--text); }
+.command-filter.active { border-color: rgba(9, 98, 63,.6); background: rgba(9, 98, 63,.15); color: var(--rally-brand); }
 .command-category { margin: 0 0 43px; scroll-margin-top: 20px; }
 .command-category-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 11px; padding: 0 2px; }
 .command-category-heading h2 { margin: 0; padding: 0; font-size: 23px; }
 .command-category-heading span { color: var(--muted-2); font-size: 12px; font-weight: 700; }
 .command-reference-list { display: grid; gap: 8px; }
 .command-reference { overflow: clip; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); scroll-margin-top: 18px; }
-.command-reference[open] { border-color: #39455d; }
+.command-reference[open] { border-color: var(--rally-surface-2); }
 .command-reference > summary { display: flex; align-items: center; justify-content: space-between; gap: 22px; min-height: 82px; padding: 16px 20px; list-style: none; cursor: pointer; transition: background .14s ease; }
 .command-reference > summary::-webkit-details-marker { display: none; }
 .command-reference > summary:hover { background: var(--surface-2); }
 .command-reference > summary::after { content: "+"; display: grid; flex: 0 0 27px; width: 27px; height: 27px; place-items: center; border-radius: 6px; background: var(--surface-3); color: var(--muted); font-size: 18px; line-height: 1; }
 .command-reference[open] > summary::after { content: "−"; color: var(--text); }
 .command-summary-main { display: grid; min-width: 0; gap: 5px; }
-.command-name { width: fit-content; padding: 3px 7px; color: #d5d1ff; font-size: 14px; font-weight: 750; }
+.command-name { width: fit-content; padding: 3px 7px; color: var(--rally-brand); font-size: 14px; font-weight: 750; }
 .command-one-line { overflow: hidden; color: var(--muted); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .command-summary-badges { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin-left: auto; }
 .command-badge { display: inline-flex; padding: 4px 7px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface-2); color: var(--muted); font-size: 9px; font-weight: 800; letter-spacing: .045em; text-transform: uppercase; }
-.command-badge.plan-free { color: #cbd4e2; }
-.command-badge.plan-community { border-color: rgba(69,196,134,.32); color: #7ae0ad; }
-.command-badge.plan-pro { border-color: rgba(117,103,238,.45); color: #b4acff; }
-.command-badge.plan-network { border-color: rgba(240,181,71,.42); color: #f2c66f; }
-.command-badge.access-everyone { color: #8fd5b3; }
-.command-badge.access-restricted { color: #c6cee0; }
-.command-reference-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(290px, .78fr); gap: 0 30px; padding: 24px 20px 26px; border-top: 1px solid var(--border); background: #141b29; }
+.command-badge.plan-free { color: var(--rally-text); }
+.command-badge.plan-community { border-color: rgba(69,196,134,.32); color: var(--rally-positive); }
+.command-badge.plan-pro { border-color: rgba(9, 98, 63,.45); color: var(--rally-brand); }
+.command-badge.plan-network { border-color: rgba(240,181,71,.42); color: var(--rally-warning); }
+.command-badge.access-everyone { color: var(--rally-positive); }
+.command-badge.access-restricted { color: var(--rally-text); }
+.command-reference-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(290px, .78fr); gap: 0 30px; padding: 24px 20px 26px; border-top: 1px solid var(--border); background: var(--rally-surface-2); }
 .command-reference-body section { min-width: 0; }
 .command-reference-body h3 { margin: 0 0 8px; color: var(--text); font-size: 13px; letter-spacing: .015em; }
 .command-reference-body p { margin: 0; font-size: 13px; line-height: 1.6; }
@@ -156,7 +157,7 @@ a { color: inherit; }
 .command-requirements, .command-example { grid-column: 2; }
 .command-requirements { grid-row: 1 / span 3; padding: 17px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
 .command-example { grid-row: 4 / span 2; align-self: start; padding: 17px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
-.command-usage > code { display: block; overflow-x: auto; padding: 12px 13px; border: 1px solid #272f41; border-radius: 7px; white-space: nowrap; }
+.command-usage > code { display: block; overflow-x: auto; padding: 12px 13px; border: 1px solid var(--rally-surface-2); border-radius: 7px; white-space: nowrap; }
 .syntax-note, .example-note, .requirement-note { margin-top: 8px !important; color: var(--muted-2) !important; font-size: 11px !important; }
 .command-howto ol { margin: 0; padding-left: 21px; color: var(--muted); }
 .command-howto li { margin: 5px 0; padding-left: 3px; font-size: 13px; }
@@ -168,7 +169,7 @@ a { color: inherit; }
 .copy-command { padding: 5px 8px; border-radius: 5px; background: var(--surface-3); color: var(--muted); font-size: 10px; font-weight: 750; }
 .copy-command:hover { color: var(--text); }
 .command-example pre { max-width: 100%; margin: 10px 0 0; overflow-x: auto; white-space: pre; }
-.command-example pre code { display: block; padding: 11px; color: #d5d1ff; font-size: 11px; line-height: 1.5; }
+.command-example pre code { display: block; padding: 11px; color: var(--rally-brand); font-size: 11px; line-height: 1.5; }
 .option-table-wrap { margin-bottom: 1px; overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
 .option-table { width: 100%; min-width: 690px; border-collapse: collapse; background: var(--surface); }
 .option-table caption { padding: 13px 14px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 13px; font-weight: 750; text-align: left; }
@@ -204,3 +205,17 @@ a { color: inherit; }
   .command-reference > summary { position: relative; }
   .command-reference-body { padding: 20px 15px; }
 }
+
+.docs-brand { color: var(--text); }
+.docs-sidebar { border-right: 1px solid var(--border); }
+.docs-nav a.active { color: var(--accent); }
+.docs-search input { background: var(--input); border-color: var(--border); }
+.doc-card, .callout, .command { border: 1px solid var(--border); }
+.callout { border-left: 3px solid var(--accent); }
+.command-reference-body { background: var(--bg); }
+.command-example, .command-requirements { background: var(--surface); }
+.docs-main .theme-toggle { margin: 0; }
+.docs-sidebar .theme-toggle { margin: 16px 8px; width: calc(100% - 16px); }
+.btn { color: var(--text); }
+.btn.primary { color: #fff; }
+[data-theme="dark"] .btn.primary { color: #10251a; }

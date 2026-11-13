@@ -7,7 +7,7 @@ const COMMAND_CATEGORIES = [
   { id: 'staff', label: 'Staff management', roots: ['staff', 'clockin', 'clockout', 'shift', 'timesheet', 'staffhours', 'duty', 'forceclockout', 'loa', 'roa', 'break', 'shifts'] },
   { id: 'members', label: 'Members & messages', roots: ['level', 'autorole', 'reactionrole', 'verification', 'welcome', 'goodbye', 'invites'] },
   { id: 'security', label: 'Security & logging', roots: ['logs', 'security', 'security-trap', 'security-agegate', 'security-modules', 'security-antispam', 'security-automod', 'security-trust', 'security-logs', 'security-antibot'] },
-  { id: 'premium', label: 'Premium previews', roots: ['premium', 'insights', 'case', 'backup', 'network', 'prettfy'] },
+  { id: 'premium', label: 'Server operations', roots: ['premium', 'insights', 'case', 'backup', 'network', 'prettfy'] },
   { id: 'developer', label: 'Developer tools', roots: ['addadmin', 'banuser', 'banserver', 'syncguilds'] }
 ];
 
@@ -60,16 +60,11 @@ function categoryFor(root) {
     || { id: 'other', label: 'Other commands', roots: [] };
 }
 
-function planFor(path) {
-  if (path.startsWith('network ')) return 'Network';
-  if (path === 'prettfy' || path.startsWith('backup ') || path === 'insights export' || path === 'case export' || path.startsWith('staff ')) return 'Pro';
-  if (path.startsWith('case ') || path === 'insights overview') return 'Community';
-  return 'Free';
-}
+function planFor() { return 'Free'; }
 
 function accessFor(path) {
   if (['addadmin', 'banuser', 'banserver', 'syncguilds'].includes(path)) return 'Rallybit developer only';
-  if (path.startsWith('network ')) return 'Server owner with Network';
+  if (path.startsWith('network ')) return 'Server owner';
   if (ADMINISTRATOR_PATHS.has(path)) return 'Administrator';
   if (startsWithAny(path, TICKET_SETUP_PREFIXES)) return 'Manage Channels';
   if (path === 'verification setup') return 'Manage Roles and Manage Channels';
@@ -258,7 +253,7 @@ function renderCommand(command) {
   const requirements = el('section', 'command-requirements');
   requirements.append(el('h3', '', 'Access and requirements'));
   const requirementGrid = el('dl', 'requirement-grid');
-  [['Plan', plan], ['Who can run it', access], ['Where', 'A Discord server'], ['Reply visibility', 'Public by default; private:true is user-only']].forEach(([term, value]) => {
+  [['Cost', 'Free'], ['Who can run it', access], ['Where', 'A Discord server'], ['Reply visibility', 'Public by default; private:true is user-only']].forEach(([term, value]) => {
     requirementGrid.append(el('dt', '', term), el('dd', '', value));
   });
   requirements.append(requirementGrid);
@@ -298,7 +293,7 @@ async function initialiseSidebar() {
   const holder = document.querySelector('[data-doc-sidebar]');
   if (holder) {
     try {
-      const response = await fetch('/docs/includes/sidebar.html?v=7.0');
+      const response = await fetch('/docs/includes/sidebar.html?v=10.0');
       if (!response.ok) throw new Error('Sidebar unavailable');
       holder.outerHTML = await response.text();
     } catch (error) {
@@ -332,7 +327,7 @@ async function initialiseCommandCatalogue() {
   const clear = document.querySelector('[data-command-clear]');
 
   try {
-    const response = await fetch('/docs/command-catalog.json?v=9.1');
+    const response = await fetch('/docs/command-catalog.json?v=10.0');
     if (!response.ok) throw new Error(`Catalogue request failed with ${response.status}`);
     const catalogue = await response.json();
     const commands = Array.isArray(catalogue.commands) ? catalogue.commands : [];

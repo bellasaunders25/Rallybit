@@ -8,7 +8,7 @@ const SETTINGS_FILE = 'workforce_settings.json';
 const DAY = 86400000;
 const staffPolicy = { guildOnly: true, workforce: 'staff' };
 const hrPolicy = { guildOnly: true, workforce: 'hr' };
-const proPolicy = { guildOnly: true, moderation: 'warn', plan: 'pro' };
+const proPolicy = { guildOnly: true, moderation: 'warn' };
 const id = prefix => `${prefix}-${randomUUID().replaceAll('-', '').slice(0, 8).toUpperCase()}`;
 const numeric = value => Math.max(0, Number(value) || 0);
 const seconds = (start, end) => Math.max(0, Math.floor((end - start) / 1000));

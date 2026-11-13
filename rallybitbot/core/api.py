@@ -346,55 +346,10 @@ def premium_entitlements():
 
 
 @app.post("/api/premium/grant")
-def premium_grant():
-    if not auth(request): return jsonify({"error": "unauthorized"}), 401
-    payload = request.get_json(silent=True) or {}
-    try:
-        record = grant_entitlement(
-            subject_type=payload.get("subject_type"),
-            subject_id=payload.get("subject_id"),
-            plan=str(payload.get("plan") or "").lower(),
-            expires_at=payload.get("expires_at"),
-            granted_by=payload.get("actor_id"),
-        )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
-    except RuntimeError as exc:
-        return jsonify({"error": str(exc)}), 500
-    try:
-        if str(payload.get("subject_type")) == "server":
-            avatar_result = _run_bot_coro(sync_plan_avatars(discord_bot, server_id=int(payload.get("subject_id")), force=True))
-        else:
-            avatar_result = _run_bot_coro(sync_plan_avatars(discord_bot, owner_id=int(payload.get("subject_id")), force=True))
-    except Exception as exc:
-        avatar_result = [{"ok": False, "error": f"Plan granted, but the server avatar could not refresh: {exc}"}]
-    return jsonify({"ok": True, "record": record, "avatar_result": avatar_result})
-
-
 @app.post("/api/premium/revoke")
-def premium_revoke():
+def retired_plan_operation():
     if not auth(request): return jsonify({"error": "unauthorized"}), 401
-    payload = request.get_json(silent=True) or {}
-    try:
-        removed = revoke_entitlement(
-            subject_type=payload.get("subject_type"),
-            subject_id=payload.get("subject_id"),
-            revoked_by=payload.get("actor_id"),
-        )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
-    except RuntimeError as exc:
-        return jsonify({"error": str(exc)}), 500
-    if not removed:
-        return jsonify({"error": "No active entitlement was found for that ID."}), 404
-    try:
-        if str(payload.get("subject_type")) == "server":
-            avatar_result = _run_bot_coro(sync_plan_avatars(discord_bot, server_id=int(payload.get("subject_id")), force=True))
-        else:
-            avatar_result = _run_bot_coro(sync_plan_avatars(discord_bot, owner_id=int(payload.get("subject_id")), force=True))
-    except Exception as exc:
-        avatar_result = [{"ok": False, "error": f"Plan revoked, but the server avatar could not refresh: {exc}"}]
-    return jsonify({"ok": True, "avatar_result": avatar_result})
+    return jsonify({"error": "Plans have been retired. All Rallybit features are free."}), 410
 
 
 @app.post("/api/logs/read")

@@ -50,14 +50,14 @@ paths are rejected. Production startup refuses to connect to Discord until all
 
 Currently implemented: **37 of 202 commands**. This includes dashboard, help,
 support, the three account-age-gate configuration commands, all 28 staff/workforce
-commands (including the four Pro staff commands), and role give/remove/temp.
-The staff ledger preserves active shifts, breaks, completed record IDs, HR
+commands, and role give/remove/temp.
+All commands are free; no subscription checks are applied. The staff ledger preserves active shifts, breaks, completed record IDs, HR
 corrections and LOA/ROA requests. Temporary-role timers survive restarts, enforce
 member/role hierarchy, and retain failed nickname restorations for retry.
 
 Shared services now provide a serialised atomic JSON store, safe legacy Discord
 ID parsing, a SQLite runtime/job lease, durable schedule reservations, command
-dispatch, current member/role checks, UTC entitlement expiry, service-notice
+dispatch, current member/role checks, free access without subscription gates, service-notice
 embeds, reply visibility, and bounded audit records. A central access policy is
 required for every registered handler. Permission failures are private.
 
@@ -69,7 +69,7 @@ registration writes. The comparison also corrected 22 string-length metadata
 fields in the public command reference.
 
 The JavaScript tests cover concurrent clock-ins, break timing across restarts,
-record deletion confirmation, request ownership, Network ownership and expiry,
+record deletion confirmation, request ownership, free access and retained staff permissions,
 role hierarchy, timed-role expiry, permanent conversion, nickname recovery,
 disk-full failures, duplicate schedulers, uncertain sends and lease replacement.
 

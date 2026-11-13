@@ -1,20 +1,7 @@
 import { PermissionFlagsBits as P } from 'discord.js';
 
 export class UserError extends Error {}
-const ranks = { free: 0, community: 10, pro: 20, network: 30 };
-const validRecord = (record, now) => record && Object.hasOwn(ranks, record.plan)
-  && (!record.expires_at || (Number.isFinite(Date.parse(record.expires_at)) && Date.parse(record.expires_at) > now));
-
-export function resolvePlan({ userId, guildId, ownerId, developerIds = [], grants = {}, now = Date.now() }) {
-  if (developerIds.map(String).includes(String(userId))) return { plan: 'network', source: 'developer' };
-  const candidates = [{ plan: 'free', source: 'default' }];
-  const server = grants.servers?.[guildId];
-  if (['community', 'pro'].includes(server?.plan) && validRecord(server, now)) candidates.push({ ...server, source: 'server' });
-  // Resolve Network against the server OWNER, never against an administrator.
-  const owner = grants.users?.[ownerId];
-  if (owner?.plan === 'network' && validRecord(owner, now)) candidates.push({ ...owner, source: 'owner' });
-  return candidates.sort((a, b) => ranks[b.plan] - ranks[a.plan])[0];
-}
+export function resolvePlan() { return { plan: 'free', source: 'default' }; }
 
 function hasRole(member, ids) {
   return Array.isArray(ids) && ids.some(id => member.roles.cache.has(String(id)));
@@ -55,10 +42,5 @@ export async function enforceAccess(interaction, policy, store, { ownerId = proc
   }
   if (policy.moderation && !await canModerate(member, policy.moderation, store)) throw new UserError('You need the configured moderation role and Discord permission.');
   if (policy.owner && interaction.user.id !== interaction.guild.ownerId && !developers.includes(interaction.user.id)) throw new UserError('Only the server owner can use this command.');
-  if (policy.plan) {
-    const plan = resolvePlan({ userId: interaction.user.id, guildId: interaction.guildId,
-      ownerId: interaction.guild.ownerId, developerIds: developers, grants: await store.read('premium_entitlements.json') });
-    if (!(policy.plan in ranks) || ranks[plan.plan] < ranks[policy.plan]) throw new UserError(`This preview requires the ${policy.plan} plan. Paid plans are coming soon.`);
-  }
   return member;
 }

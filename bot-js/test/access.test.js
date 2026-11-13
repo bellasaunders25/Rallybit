@@ -8,12 +8,15 @@ import { createDispatcher } from '../src/runtime.js';
 const now = Date.parse('2026-11-13T09:00:00Z');
 const grants = { users: { owner: { plan: 'network', expires_at: '2026-12-01T00:00:00Z' }, admin: { plan: 'network' } },
   servers: { a: { plan: 'pro' }, b: { plan: 'pro', expires_at: '2026-11-13T09:00:00Z' } } };
-test('Network follows an owner across unlimited servers, not an administrator', () => {
-  for (const guildId of ['one', 'two', 'three', 'four']) assert.equal(resolvePlan({ userId: 'staff', guildId, ownerId: 'owner', grants, now }).plan, 'network');
-  assert.equal(resolvePlan({ userId: 'admin', guildId: 'one', ownerId: 'different', grants, now }).plan, 'free');
-  assert.equal(resolvePlan({ userId: 'staff', guildId: 'a', ownerId: 'different', grants, now }).plan, 'pro');
-  assert.equal(resolvePlan({ userId: 'staff', guildId: 'b', ownerId: 'different', grants, now }).plan, 'free');
-  assert.equal(resolvePlan({ userId: 'dev', guildId: 'any', developerIds: ['dev'], grants, now }).plan, 'network');
+test('all features are free regardless of past grants, expiration or server ownership', async () => {
+  for (const userId of ['staff', 'admin', 'dev']) {
+    for (const guildId of ['one', 'two', 'a', 'b']) {
+      assert.equal(resolvePlan({ userId, guildId, ownerId: 'different', grants, now }).plan, 'free');
+    }
+  }
+  const member = { permissions: new PermissionsBitField(), roles: { cache: new Map() } };
+  const interaction = { user: { id: 'staff' }, guildId: 'g', guild: { ownerId: 'owner', members: { fetch: async () => member } } };
+  await enforceAccess(interaction, { guildOnly: true, plan: 'pro' }, { read: async name => { assert.notEqual(name, 'premium_entitlements.json'); return {}; } });
 });
 
 test('staff permissions use configured roles and HR fallback without widening Pro permissions', async () => {

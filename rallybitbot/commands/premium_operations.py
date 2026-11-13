@@ -419,15 +419,6 @@ def _network_owner_check():
             raise app_commands.CheckFailure(
                 "Network operations can only be run by the server owner."
             )
-        entitlement = resolve_entitlement(
-            user_id=interaction.user.id,
-            guild_id=guild.id,
-            guild_owner_id=guild.owner_id,
-        )
-        if not has_plan(entitlement, "network"):
-            raise app_commands.CheckFailure(
-                "This command requires the **Network** plan. Paid plans are coming soon."
-            )
         return True
 
     return app_commands.check(predicate)

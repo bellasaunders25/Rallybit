@@ -7,16 +7,7 @@ $adminGuilds = array_values(array_filter(
     $allGuilds,
     fn(array $guild): bool => has_admin_permission((int)($guild['permissions'] ?? 0))
 ));
-$premiumEntitlements = get_premium_entitlements();
-$dashboardUserId = (string)($_SESSION['user_id'] ?? '');
-$developerPreview = is_bot_admin();
 $highestPlan = ['key' => 'free', 'name' => 'Free', 'rank' => 0];
-foreach ($adminGuilds as &$planGuild) {
-    $planGuild['_plan'] = dashboard_plan_for_guild($planGuild, $premiumEntitlements, $dashboardUserId, $developerPreview);
-    if (($planGuild['_plan']['rank'] ?? 0) > ($highestPlan['rank'] ?? 0)) $highestPlan = $planGuild['_plan'];
-}
-unset($planGuild);
-if ($developerPreview && !$adminGuilds) $highestPlan = ['key' => 'network', 'name' => 'Developer preview', 'rank' => 30];
 $_SESSION['dashboard_plan'] = $highestPlan;
 
 $botGuilds = load_json_data(BOT_GUILDS_FILE);
@@ -164,12 +155,12 @@ function dashboard_time_ago(int $timestamp, string $fallback): string {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/dashboard/style.css?v=6.2">
+  <link rel="stylesheet" href="/dashboard/style.css?v=10.0">
   <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-icon-32.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/assets/brand/rallybit-icon-192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-mark-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/brand/rallybit-mark-192.png">
   <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
-</head>
+<script src="/assets/theme.js?v=10.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
 <body class="dashboard-home">
 <div class="dash-shell">
   <?php render_dashboard_sidebar('overview', null, null, count($joined), $highestPlan); ?>
@@ -182,7 +173,7 @@ function dashboard_time_ago(int $timestamp, string $fallback): string {
         <p>Welcome back, <?=htmlspecialchars($displayName)?>. Here is what is happening across your Rallybit servers.</p>
       </div>
       <div class="topbar-actions">
-        <span class="dashboard-plan-badge plan-<?=htmlspecialchars((string)$highestPlan['key'])?>"><img class="plan-logo" src="/assets/brand/rallybit-icon.png" alt=""><span><small>Your plan</small><strong><?=htmlspecialchars((string)$highestPlan['name'])?></strong></span></span>
+        <span class="dashboard-plan-badge plan-<?=htmlspecialchars((string)$highestPlan['key'])?>"><img class="plan-logo" src="/assets/brand/rallybit-mark.svg" alt=""><span><small>All features included</small><strong><?=htmlspecialchars((string)$highestPlan['name'])?></strong></span></span>
         <span class="bot-status <?=$botOnline ? 'online' : 'offline'?>">
           <i></i><?= $botOnline ? 'Bot online' : 'Bot offline' ?>
           <?php if ($botOnline && $latency !== null): ?><small><?=$latency?>ms</small><?php endif; ?>
@@ -283,7 +274,7 @@ function dashboard_time_ago(int $timestamp, string $fallback): string {
                 <div class="server-meta">
                   <h3><?=htmlspecialchars((string)$guild['name'])?></h3>
                   <span><i class="inline-online-dot"></i> Rallybit connected</span>
-                  <span class="server-plan plan-<?=htmlspecialchars((string)$plan['key'])?>"><img class="plan-logo" src="/assets/brand/rallybit-icon.png" alt=""><?=htmlspecialchars((string)$plan['name'])?> plan</span>
+                  <span class="server-plan plan-<?=htmlspecialchars((string)$plan['key'])?>"><img class="plan-logo" src="/assets/brand/rallybit-mark.svg" alt=""><?=htmlspecialchars((string)$plan['name'])?> plan</span>
                 </div>
                 <a class="button small primary" href="manage.php?id=<?=urlencode((string)$guild['id'])?>&name=<?=urlencode((string)$guild['name'])?>">Manage</a>
               </div>

@@ -891,12 +891,12 @@
     },
     {
       "name": "premium",
-      "description": "View Rallybit plans and preview access.",
+      "description": "Rallybit free access information.",
       "type": 1,
       "options": [
         {
           "name": "status",
-          "description": "View the plan currently active in this server.",
+          "description": "Confirm that all Rallybit features are free.",
           "type": 1,
           "options": [
             {
@@ -909,7 +909,7 @@
         },
         {
           "name": "plans",
-          "description": "Compare Free, Community, Pro, and Network previews.",
+          "description": "View Rallybit's free access information.",
           "type": 1,
           "options": [
             {
@@ -929,7 +929,7 @@
     },
     {
       "name": "insights",
-      "description": "Premium server operations and analytics.",
+      "description": "Server operations and analytics.",
       "type": 1,
       "options": [
         {
@@ -983,7 +983,7 @@
     },
     {
       "name": "staff",
-      "description": "Premium staff shift tracking.",
+      "description": "Staff shift tracking.",
       "type": 1,
       "options": [
         {

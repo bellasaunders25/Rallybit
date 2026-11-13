@@ -31,8 +31,8 @@ function render_dashboard_sidebar(
     ?>
     <aside class="dash-sidebar">
         <a class="dash-brand plan-brand plan-<?=htmlspecialchars($planKey)?>" href="/index.html">
-            <img class="plan-logo" src="/assets/brand/rallybit-icon.png" alt="">
-            <span>Rallybit<small><?=htmlspecialchars((string)($plan['name'] ?? 'Free'))?> plan</small></span>
+            <img class="plan-logo" src="/assets/brand/rallybit-mark.svg" alt="">
+            <span>Rallybit<small>Community management</small></span>
         </a>
 
         <?php if ($loggedIn): ?>
@@ -52,6 +52,10 @@ function render_dashboard_sidebar(
                 <nav aria-label="Server navigation">
                     <?php $link('settings', '/dashboard/manage.php' . $guildQuery, 'bi-speedometer2', 'Server dashboard'); ?>
                     <?php $link('control', '/dashboard/control.php' . $guildQuery, 'bi-grid', 'Modules'); ?>
+                    <?php $link('moderation', '/dashboard/control.php' . $guildQuery . '#moderation', 'bi-shield', 'Moderation'); ?>
+                    <?php $link('tickets', '/dashboard/control.php' . $guildQuery . '#tickets', 'bi-ticket-perforated', 'Tickets'); ?>
+                    <?php $link('welcome', '/dashboard/control.php' . $guildQuery . '#welcome', 'bi-person-plus', 'Welcome'); ?>
+                    <?php $link('automation', '/dashboard/control.php' . $guildQuery . '#automation', 'bi-lightning-charge', 'Automations'); ?>
                     <?php $link('logs', '/dashboard/audit_logs.php' . $guildQuery, 'bi-journal-text', 'Action logs'); ?>
                 </nav>
             <?php endif; ?>
@@ -65,6 +69,8 @@ function render_dashboard_sidebar(
                 <?php $link('admin', '/dashboard/admin.php', 'bi-tools', 'Developer tools'); ?>
             <?php endif; ?>
         </nav>
+
+        <div class="sidebar-appearance"><button class="theme-toggle" type="button" data-theme-toggle><i class="bi bi-moon" aria-hidden="true"></i><span data-theme-label>Dark mode</span></button></div>
 
         <?php if ($loggedIn): ?>
             <div class="sidebar-user">

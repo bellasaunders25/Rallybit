@@ -21,20 +21,20 @@ $inviteUrl = 'https://discord.com/oauth2/authorize?' . $query;
   <meta property="og:title" content="Add Rallybit to Discord">
   <meta property="og:description" content="Activity checks, moderation, tickets, automation, and community tools in one configurable bot.">
   <meta property="og:url" content="https://rallybit.pages.dev/invite.php">
-  <meta property="og:image" content="https://rallybit.pages.dev/assets/brand/rallybit-social-card.png">
-  <meta property="og:image:secure_url" content="https://rallybit.pages.dev/assets/brand/rallybit-social-card.png">
+  <meta property="og:image" content="https://rallybit.pages.dev/assets/brand/rallybit-social-v2.png">
+  <meta property="og:image:secure_url" content="https://rallybit.pages.dev/assets/brand/rallybit-social-v2.png">
   <meta property="og:image:type" content="image/png">
-  <meta property="og:image:width" content="1730">
-  <meta property="og:image:height" content="909">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Rallybit — One dashboard for your Discord community">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Add Rallybit to Discord">
   <meta name="twitter:description" content="Activity checks, moderation, tickets, automation, and community tools in one configurable bot.">
-  <meta name="twitter:image" content="https://rallybit.pages.dev/assets/brand/rallybit-social-card.png">
+  <meta name="twitter:image" content="https://rallybit.pages.dev/assets/brand/rallybit-social-v2.png">
   <link rel="canonical" href="https://rallybit.pages.dev/invite.php">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <title>Add Rallybit to Discord</title>
-</head>
+<script src="/assets/theme.js?v=10.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
 <body>
   <main>
     <p>Opening the Rallybit invite…</p>

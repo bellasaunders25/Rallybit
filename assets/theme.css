@@ -1,0 +1,25 @@
+@import url("/assets/vendor/bootstrap-icons/bootstrap-icons.min.css?v=1.0");
+:root {
+  --rally-bg: #f8faf9; --rally-sidebar: #fff; --rally-surface: #fff;
+  --rally-surface-2: #f2f6f4; --rally-surface-3: #e7eeea; --rally-input: #fff;
+  --rally-border: #dfe6e2; --rally-border-strong: #b8c9bf;
+  --rally-text: #17251e; --rally-muted: #53665b; --rally-subtle: #687b70;
+  --rally-brand: #09623f; --rally-brand-hover: #074b30; --rally-soft: #e3f1e9;
+  --rally-positive: #147a46; --rally-negative: #b82e3d; --rally-warning: #926311;
+  --rally-shadow: 0 6px 24px rgb(20 49 33 / 5%);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --rally-bg: #111a16; --rally-sidebar: #15211b; --rally-surface: #19271f;
+  --rally-surface-2: #1e2f25; --rally-surface-3: #2a3d31; --rally-input: #142018;
+  --rally-border: #304439; --rally-border-strong: #496455;
+  --rally-text: #eaf3ed; --rally-muted: #b3c7ba; --rally-subtle: #90a99a;
+  --rally-brand: #53bd86; --rally-brand-hover: #75d09e; --rally-soft: #243e2e;
+  --rally-positive: #78d49d; --rally-negative: #ff9ba8; --rally-warning: #ecc77d;
+  --rally-shadow: 0 6px 24px rgb(0 0 0 / 12%);
+  color-scheme: dark;
+}
+.theme-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 38px; padding: 8px 11px; border: 1px solid var(--rally-border); border-radius: 7px; background: var(--rally-surface); color: var(--rally-muted); font: inherit; font-size: 12px; cursor: pointer; }
+.theme-toggle:hover { color: var(--rally-brand); border-color: var(--rally-border-strong); }
+:focus-visible { outline: 3px solid var(--rally-brand); outline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) { body { transition: background-color .15s, color .15s; } }

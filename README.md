@@ -1,17 +1,15 @@
 # Rallybit
 
-Rallybit is a Discord community toolkit for activity checks, recurring community quizzes, anonymous pulse checks, participation rankings, moderation workflows, audit logs, and a web dashboard. Every existing command remains free; advanced Community, Pro, and Network tools are available as developer previews while public plans are Coming soon.
+Rallybit is a Discord community toolkit for activity checks, recurring community quizzes, anonymous pulse checks, participation rankings, moderation workflows, audit logs, and a web dashboard. Every command and feature is free, without subscriptions or preview grants.
 
-## Plans and preview access
+## Free access
 
-- **Free** keeps every existing Rallybit command at no charge.
-- **Community** adds insights, searchable member case files, recent-case filters, and moderation workload statistics for one manually granted server.
-- **Pro** adds the AI-guided `/prettfy` naming wizard with per-phase previews and undo, filtered CSV exports, persistent staff shift tracking, ten retained configuration backups, drift reports, and transactional Rallybit-setting restores for one manually granted server.
-- **Network** follows one Discord owner across every server they own, adding an owned-server overview, configured announcement destinations, owner-only cross-server broadcasts, and network exports. It never follows a moderator or administrator into a server owned by someone else.
-- The bot's server-specific avatar follows the effective plan colour: Free keeps the shared violet logo, while Community, Pro, and Network use their matching guild avatar. Plan changes and expirations are synchronised automatically.
-- Paid checkout is not enabled. Bot developers can grant and revoke previews, with optional UTC expiration, from Dashboard → Developer tools.
-
-Use `/premium plans` and `/premium status` in Discord to view available tiers and effective access.
+All features are included for every server. Discord permissions, configured
+staff roles and server ownership still protect sensitive operations. Former
+subscription records are inactive; grant/revoke API routes return HTTP 410.
+The legacy `/premium status` and `/premium plans` aliases explain free access.
+The shared bot profile is managed in Developer tools. Plan-coloured server
+avatars are cleared so the shared bot identity is used consistently.
 
 ## Build 8.1 highlights
 
@@ -23,7 +21,7 @@ Use `/premium plans` and `/premium status` in Discord to view available tiers an
 - Added configurable logging for commands, dashboard changes, moderation, member lifecycle, message edits/deletions, roles, channels, voice, tickets, reports, staff and security. Event-specific Discord destinations can override one default channel.
 - Added a searchable dashboard action log with event filters and retained event statistics.
 - Welcome and goodbye delivery now uses process-safe idempotency markers, preventing duplicate posts during Discord event replays or a brief deployment overlap.
-- Refreshed the public site, documentation and dashboard with one consistent Rallybit navy/violet visual system and a clearer server workspace sidebar.
+- Refreshed the public site, documentation and dashboard with one consistent Rallybit green visual system with light and dark modes and a clearer server workspace sidebar.
 
 ## Build 7.2.2 highlights
 
@@ -272,7 +270,7 @@ The dashboard **Embeds** module is also an embed sender: administrators can comp
 
 ### Prettfy AI naming wizard
 
-`/prettfy` is a Pro preview command for administrators with Manage Channels and Manage Roles. The bot collects the design brief in DMs, proposes channel names first, and changes only explicitly approved names. Every channel ID is accounted for, including forum and media channels; large servers are generated in safe batches. Partial OpenRouter responses are merged across three attempts, then any still-missing channels receive conservative local suggestions so the run reaches review instead of failing. Non-voice channel names are normalised to lowercase, spaces become hyphens, ampersands become `and`, and decorative brackets use the supported `『example』` style. Channel changes open in a temporary HTML review that lists changed and unchanged channels, then is deleted when the user answers or after one hour. Roles retain the DM preview flow. A live checklist uses ✅ for complete, 🔁 for in progress, and ❎ for not completed. Setup answers are retained for 24 hours; use the failure-message retry button or `/prettfy retry_last:true` to rescan and retry without repeating the questionnaire. Prettfy never changes permission overwrites, role permissions, hierarchy, colours, topics, assignments, or channel types. Use `/prettfy undo_last:true` to preview and restore names from the latest active run.
+`/prettfy` is a free command for administrators with Manage Channels and Manage Roles. The bot collects the design brief in DMs, proposes channel names first, and changes only explicitly approved names. Every channel ID is accounted for, including forum and media channels; large servers are generated in safe batches. Partial OpenRouter responses are merged across three attempts, then any still-missing channels receive conservative local suggestions so the run reaches review instead of failing. Non-voice channel names are normalised to lowercase, spaces become hyphens, ampersands become `and`, and decorative brackets use the supported `『example』` style. Channel changes open in a temporary HTML review that lists changed and unchanged channels, then is deleted when the user answers or after one hour. Roles retain the DM preview flow. A live checklist uses ✅ for complete, 🔁 for in progress, and ❎ for not completed. Setup answers are retained for 24 hours; use the failure-message retry button or `/prettfy retry_last:true` to rescan and retry without repeating the questionnaire. Prettfy never changes permission overwrites, role permissions, hierarchy, colours, topics, assignments, or channel types. Use `/prettfy undo_last:true` to preview and restore names from the latest active run.
 
 Configure `OPENROUTER_API_KEY` only in the bot's private `.env` file. `OPENROUTER_MODEL` defaults to `openrouter/free` and can be pinned to another structured-output-compatible model. OpenRouter's free router is rate limited; the key must never be committed or entered through Discord.
 

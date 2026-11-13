@@ -1,19 +1,20 @@
+@import url("/assets/theme.css?v=10.0");
 :root {
-  --bg: #111725;
-  --bg-alt: #182033;
-  --surface: #161d2b;
-  --surface-2: #1c2537;
-  --surface-3: #253047;
-  --line: #2a354c;
-  --line-strong: #3b4965;
-  --text: #f4f6fb;
-  --muted: #a4afbf;
-  --muted-2: #748196;
-  --primary: #7567ee;
-  --primary-hover: #897cf5;
-  --primary-soft: rgba(117, 103, 238, .14);
-  --success: #45c486;
-  --danger: #f06a70;
+  --bg: var(--rally-bg);
+  --bg-alt: var(--rally-surface-2);
+  --surface: var(--rally-surface);
+  --surface-2: var(--rally-surface-2);
+  --surface-3: var(--rally-surface-3);
+  --line: var(--rally-border);
+  --line-strong: var(--rally-border-strong);
+  --text: var(--rally-text);
+  --muted: var(--rally-muted);
+  --muted-2: var(--rally-subtle);
+  --primary: var(--rally-brand);
+  --primary-hover: var(--rally-brand-hover);
+  --primary-soft: var(--rally-soft);
+  --success: var(--rally-positive);
+  --danger: var(--rally-negative);
   --container: 1180px;
 }
 
@@ -23,7 +24,7 @@ body { min-height: 100vh; background: var(--bg); color: var(--text); font-family
 a { color: inherit; }
 img { display: block; max-width: 100%; }
 button, input, textarea, select { font: inherit; }
-::selection { background: rgba(117, 103, 238, .42); color: #fff; }
+::selection { background: rgba(9, 98, 63, .42); color: #fff; }
 .container { width: min(calc(100% - 40px), var(--container)); margin-inline: auto; }
 
 .site-header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--line); background: rgba(24, 32, 51, .97); }
@@ -40,7 +41,7 @@ button, input, textarea, select { font: inherit; }
 
 .hero { padding: 86px 0 78px; border-bottom: 1px solid var(--line); background: var(--bg); }
 .hero-layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(480px, 1.1fr); align-items: center; gap: 72px; }
-.eyebrow { display: inline-flex; align-items: center; gap: 7px; color: #aaa1ff; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.eyebrow { display: inline-flex; align-items: center; gap: 7px; color: var(--rally-brand); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .eyebrow .bi-circle-fill { color: var(--success); font-size: 7px; }
 .hero h1 { max-width: 650px; margin: 16px 0 20px; font-size: clamp(42px, 5.2vw, 67px); line-height: 1.04; letter-spacing: -.055em; }
 .hero-copy > p { max-width: 620px; color: var(--muted); font-size: 17px; }
@@ -59,25 +60,25 @@ button, input, textarea, select { font: inherit; }
 .sample-header span, .sample-header strong { display: block; }
 .sample-header > div span { color: var(--muted-2); font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .sample-header > div strong { margin-top: 2px; font-size: 15px; }
-.status-badge { display: inline-flex !important; align-items: center; gap: 7px; color: #78d9a6; font-size: 10px; font-weight: 700; }
+.status-badge { display: inline-flex !important; align-items: center; gap: 7px; color: var(--rally-positive); font-size: 10px; font-weight: 700; }
 .status-badge i { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
 .sample-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
 .sample-stats > div { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-right: 1px solid var(--line); }
 .sample-stats > div:last-child { border-right: 0; }
-.sample-stats i { color: #aaa1ff; font-size: 18px; }
+.sample-stats i { color: var(--rally-brand); font-size: 18px; }
 .sample-stats span, .sample-stats strong { display: block; }
 .sample-stats span { color: var(--muted-2); font-size: 9px; text-transform: uppercase; }
 .sample-stats strong { margin-top: 1px; color: var(--text); font-size: 15px; }
 .sample-section-title { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 9px; }
 .sample-section-title span { font-size: 11px; font-weight: 800; text-transform: uppercase; }
-.sample-section-title a { color: #aaa1ff; font-size: 10px; text-decoration: none; }
+.sample-section-title a { color: var(--rally-brand); font-size: 10px; text-decoration: none; }
 .sample-modules { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; padding: 10px 20px 20px; }
 .sample-modules > div { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 9px; padding: 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg-alt); }
-.sample-modules > div > i { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 6px; background: rgba(117, 103, 238, .13); color: #aaa1ff; }
+.sample-modules > div > i { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 6px; background: rgba(9, 98, 63, .13); color: var(--rally-brand); }
 .sample-modules span, .sample-modules strong, .sample-modules small { display: block; }
 .sample-modules strong { font-size: 11px; }
 .sample-modules small { color: var(--muted-2); font-size: 8px; }
-.sample-modules b { padding: 3px 6px; border-radius: 999px; background: rgba(69, 196, 134, .11); color: #78d9a6; font-size: 8px; }
+.sample-modules b { padding: 3px 6px; border-radius: 999px; background: rgba(69, 196, 134, .11); color: var(--rally-positive); font-size: 8px; }
 
 .proof-bar { border-bottom: 1px solid var(--line); background: var(--bg); }
 .proof-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
@@ -96,16 +97,16 @@ button, input, textarea, select { font: inherit; }
 .section-heading .button { margin-top: 22px; }
 .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .module-card { display: flex; min-height: 240px; flex-direction: column; align-items: flex-start; padding: 22px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
-.module-card > i { display: grid; width: 40px; height: 40px; margin-bottom: 19px; place-items: center; border-radius: 7px; background: rgba(117, 103, 238, .13); color: #aaa1ff; font-size: 18px; }
+.module-card > i { display: grid; width: 40px; height: 40px; margin-bottom: 19px; place-items: center; border-radius: 7px; background: rgba(9, 98, 63, .13); color: var(--rally-brand); font-size: 18px; }
 .module-card h3 { margin-bottom: 7px; font-size: 16px; }
 .module-card p { color: var(--muted); font-size: 12px; }
-.module-card a { display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 20px; color: #aaa1ff; font-size: 11px; font-weight: 750; text-decoration: none; }
+.module-card a { display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 20px; color: var(--rally-brand); font-size: 11px; font-weight: 750; text-decoration: none; }
 .module-card a:hover { color: #fff; }
 .setup-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(460px, 1.15fr); gap: 80px; align-items: center; }
 .setup-steps { display: grid; list-style: none; }
 .setup-steps li { display: grid; grid-template-columns: 42px 1fr; gap: 15px; padding: 21px 0; border-bottom: 1px solid var(--line); }
 .setup-steps li:first-child { border-top: 1px solid var(--line); }
-.setup-steps > li > span { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--line-strong); border-radius: 7px; color: #aaa1ff; font-size: 12px; font-weight: 800; }
+.setup-steps > li > span { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--line-strong); border-radius: 7px; color: var(--rally-brand); font-size: 12px; font-weight: 800; }
 .setup-steps h3 { margin-bottom: 3px; font-size: 15px; }
 .setup-steps p { color: var(--muted); font-size: 12px; }
 .final-cta { display: flex; align-items: center; justify-content: space-between; gap: 50px; padding: 38px; border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface); }
@@ -118,7 +119,7 @@ button, input, textarea, select { font: inherit; }
 .content-wrap h2 { margin: 37px 0 9px; font-size: 23px; letter-spacing: -.025em; }
 .content-wrap h2:first-child { margin-top: 0; }
 .content-wrap p, .content-wrap li { color: var(--muted); }
-.content-wrap a { color: #aaa1ff; }
+.content-wrap a { color: var(--rally-brand); }
 .pricing-hero p { max-width: 690px; margin: 0 auto; color: var(--muted); }
 .pricing-section { padding-top: 48px; }
 .pricing-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; align-items: stretch; }
@@ -131,8 +132,8 @@ button, input, textarea, select { font: inherit; }
 .plan-community .plan-logo { filter: hue-rotate(70deg) saturate(1.25) brightness(1.08); }
 .plan-pro .plan-logo { filter: hue-rotate(285deg) saturate(1.45) brightness(1.12); }
 .plan-network .plan-logo { filter: hue-rotate(145deg) saturate(1.35) brightness(1.1); }
-.plan-state { padding: 5px 7px; border: 1px solid rgba(124, 108, 255, .28); border-radius: 5px; color: #aaa1ff; font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
-.plan-state.available { border-color: rgba(69, 196, 134, .3); color: #78d9a6; }
+.plan-state { padding: 5px 7px; border: 1px solid rgba(124, 108, 255, .28); border-radius: 5px; color: var(--rally-brand); font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.plan-state.available { border-color: rgba(69, 196, 134, .3); color: var(--rally-positive); }
 .price-card h2 { margin: 22px 0 6px; font-size: 23px; letter-spacing: -.03em; }
 .plan-description { min-height: 54px; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
 .price { display: flex; align-items: baseline; gap: 6px; margin-top: 21px; }
@@ -142,11 +143,11 @@ button, input, textarea, select { font: inherit; }
 .price-card ul { display: grid; gap: 10px; margin: 23px 0; padding: 20px 0 0; border-top: 1px solid var(--line); list-style: none; }
 .price-card li { display: flex; align-items: flex-start; gap: 8px; color: var(--muted); font-size: 10px; line-height: 1.55; }
 .price-card li i { margin-top: 2px; color: #8ce0b4; }
-.price-card li i.bi-clock { color: #aaa1ff; }
+.price-card li i.bi-clock { color: var(--rally-brand); }
 .price-action { width: 100%; margin-top: auto; }
 .button-disabled { justify-content: center; border-color: var(--line); background: var(--bg-alt); color: var(--muted-2); cursor: not-allowed; }
 .pricing-note { display: flex; align-items: flex-start; gap: 16px; margin-top: 22px; padding: 23px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg-alt); }
-.pricing-note > i { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: 8px; background: var(--primary-soft); color: #aaa1ff; }
+.pricing-note > i { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: 8px; background: var(--primary-soft); color: var(--rally-brand); }
 .pricing-note h2 { margin: 0 0 5px; font-size: 15px; }
 .pricing-note p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
 .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -208,3 +209,47 @@ button, input, textarea, select { font: inherit; }
   .footer-intro { grid-column: auto; }
   .footer-bottom { gap: 8px; flex-direction: column; }
 }
+
+/* Rallybit website: shared light and dark layouts. */
+.site-header { background: var(--surface); }
+.brand { color: var(--text); font-size: 21px; }
+.brand img { width: 38px; height: 38px; }
+.site-nav a { font-size: 13px; }
+.site-nav .nav-dashboard { background: var(--primary); color: var(--surface); }
+[data-theme="dark"] .button-primary, [data-theme="dark"] .site-nav .nav-dashboard { color: #10251a; }
+.hero { padding: 88px 0 80px; background: var(--surface); }
+.hero-layout { grid-template-columns: 1.15fr 1fr; gap: 68px; }
+.hero h1 { font-size: clamp(38px, 4.3vw, 58px); line-height: 1.12; letter-spacing: -.045em; }
+.hero-brand { display: block; margin-bottom: 8px; color: var(--primary); }
+.hero-copy > p { font-size: 16px; line-height: 1.8; }
+.hero-notes { font-size: 12px; color: var(--muted); }
+.dashboard-sample { box-shadow: var(--rally-shadow); border-color: var(--line); border-radius: 14px; }
+.sample-stats strong { font-size: 20px; }
+.sample-stats span, .sample-modules small { font-size: 11px; text-transform: none; }
+.sample-modules strong { font-size: 13px; }
+.sample-modules b { font-size: 10px; color: var(--success); }
+.sample-header > div span, .sample-section-title span { font-size: 12px; }
+.sample-section-title a { font-size: 12px; }
+.section { padding: 64px 0; }
+.section-heading { max-width: 800px; }
+.section-heading h2 { font-size: clamp(27px, 3vw, 38px); }
+.module-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.module-card { min-height: 220px; border-radius: 11px; padding: 24px; }
+.module-card > i { margin-bottom: 16px; width: 36px; height: 36px; background: var(--primary-soft); color: var(--primary); }
+.module-card p { font-size: 14px; line-height: 1.7; }
+.module-card a { font-size: 12px; }
+.module-card a:hover { color: var(--primary-hover); }
+.proof-grid strong { color: var(--primary); font-size: 21px; }
+.proof-grid span { font-size: 12px; }
+.setup-steps p { font-size: 14px; }
+.final-cta { background: var(--surface); border-radius: 12px; }
+.site-footer { background: var(--surface); }
+.footer-column a, .footer-intro p { font-size: 13px; }
+.footer-bottom { font-size: 12px; }
+.free-information { max-width: 790px; margin-inline: auto; border: 1px solid var(--line); padding: 40px; border-radius: 12px; background: var(--surface); }
+.free-information h2 { font-size: 29px; margin: 12px 0; }
+.free-information p { color: var(--muted); }
+.free-information ul { display: grid; gap: 14px; margin: 26px 0; padding-left: 20px; color: var(--muted); }
+.free-information .hero-actions { margin-bottom: 0; }
+@media (max-width: 960px) { .hero-layout { grid-template-columns: 1fr; gap: 36px; } .module-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 720px) { .hero { padding: 45px 0; } .module-grid { grid-template-columns: 1fr; } .free-information { padding: 24px; } }

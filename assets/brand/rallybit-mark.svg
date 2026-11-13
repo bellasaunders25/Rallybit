@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Rallybit">
+  <path fill="#07583b" fill-rule="evenodd" d="M24 37 65 13 105 36V65L81 79l25 19-25 15-31-24v10l-26 15Zm26 15v18l16 9 15-9V52L65 43Z"/>
+  <path fill="#2b9c67" d="m24 37 25-15 41 24-25 15Z"/>
+  <path fill="#168651" d="m49 22 16-9 40 23-24 14-16-9Z"/>
+  <path fill="#064a32" d="M24 67 50 82v17l-26 15Z"/>
+  <path fill="#218e5d" d="m50 70 26-15 30 43-25 15-31-24Z"/>
+  <path fill="#116642" d="m50 70 16 9 15-9V52l24-16v29L81 79l25 19-25 15-31-24Z"/>
+</svg>

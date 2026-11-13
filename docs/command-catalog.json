@@ -882,9 +882,9 @@
     {
       "path": "premium status",
       "root": "premium",
-      "description": "View the plan currently active in this server.",
+      "description": "Confirm that all Rallybit features are free.",
       "group_descriptions": [
-        "View Rallybit plans and preview access."
+        "Rallybit free access information."
       ],
       "guild_only": false,
       "default_permissions": null,
@@ -906,9 +906,9 @@
     {
       "path": "premium plans",
       "root": "premium",
-      "description": "Compare Free, Community, Pro, and Network previews.",
+      "description": "View Rallybit's free access information.",
       "group_descriptions": [
-        "View Rallybit plans and preview access."
+        "Rallybit free access information."
       ],
       "guild_only": false,
       "default_permissions": null,
@@ -932,7 +932,7 @@
       "root": "insights",
       "description": "View activity, ticket, moderation, and staff totals.",
       "group_descriptions": [
-        "Premium server operations and analytics."
+        "Server operations and analytics."
       ],
       "guild_only": true,
       "default_permissions": null,
@@ -968,7 +968,7 @@
       "root": "insights",
       "description": "Export detailed operational records as a CSV file.",
       "group_descriptions": [
-        "Premium server operations and analytics."
+        "Server operations and analytics."
       ],
       "guild_only": true,
       "default_permissions": null,
@@ -1004,7 +1004,7 @@
       "root": "staff",
       "description": "Start your staff shift.",
       "group_descriptions": [
-        "Premium staff shift tracking."
+        "Staff shift tracking."
       ],
       "guild_only": true,
       "default_permissions": null,
@@ -1040,7 +1040,7 @@
       "root": "staff",
       "description": "Finish your active staff shift.",
       "group_descriptions": [
-        "Premium staff shift tracking."
+        "Staff shift tracking."
       ],
       "guild_only": true,
       "default_permissions": null,
@@ -1064,7 +1064,7 @@
       "root": "staff",
       "description": "View your own or another staff member's shift status.",
       "group_descriptions": [
-        "Premium staff shift tracking."
+        "Staff shift tracking."
       ],
       "guild_only": true,
       "default_permissions": null,
@@ -1100,7 +1100,7 @@
       "root": "staff",
       "description": "Rank recorded staff time over a selected period.",
       "group_descriptions": [
-        "Premium staff shift tracking."
+        "Staff shift tracking."
       ],
       "guild_only": true,
       "default_permissions": null,

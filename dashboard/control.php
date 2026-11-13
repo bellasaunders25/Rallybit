@@ -561,9 +561,9 @@ function role_label(array $roles, mixed $roleId): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard/style.css?v=6.3">
+<link rel="stylesheet" href="/dashboard/style.css?v=10.0">
 <link rel="icon" href="/favicon.ico">
-</head>
+<script src="/assets/theme.js?v=10.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
 <body>
 <div class="dash-shell">
 <?php render_dashboard_sidebar('control', $guild_id, $guild_name); ?>
@@ -1333,7 +1333,9 @@ function openModule(name){
 }
 moduleButtons.forEach(function(button){button.addEventListener('click',function(){openModule(button.dataset.moduleTarget);});});
 var requested=location.hash.slice(1);
-if(requested && document.querySelector('[data-module-target="'+requested+'"]')) openModule(requested);
+function validModule(name){return Array.from(moduleButtons).some(function(button){return button.dataset.moduleTarget===name;});}
+if(requested && validModule(requested)) openModule(requested);
+window.addEventListener('hashchange',function(){var name=location.hash.slice(1);if(validModule(name))openModule(name);});
 var resourceEndpoint=<?=json_encode('/dashboard/resources.php?id='.$guild_id, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT)?>;
 var resourceRefreshPromise=null;
 function resourceRefreshState(state,message){

@@ -42,43 +42,11 @@ function save_json_data(string $filename, array $data): bool {
 }
 
 function get_premium_entitlements(): array {
-    $result = api_request('/api/premium/entitlements');
-    if (isset($result['data']) && is_array($result['data'])) return $result['data'];
     return ['users' => [], 'servers' => [], 'history' => []];
 }
 
-function premium_record_active(mixed $record): bool {
-    if (!is_array($record) || empty($record['plan'])) return false;
-    $expiresAt = trim((string)($record['expires_at'] ?? ''));
-    if ($expiresAt === '') return true;
-    $timestamp = strtotime($expiresAt);
-    return $timestamp !== false && $timestamp > time();
-}
-
 function dashboard_plan_for_guild(array $guild, array $entitlements, string $userId, bool $developer = false): array {
-    $plans = [
-        'free' => ['key' => 'free', 'name' => 'Free', 'rank' => 0],
-        'community' => ['key' => 'community', 'name' => 'Community', 'rank' => 10],
-        'pro' => ['key' => 'pro', 'name' => 'Pro', 'rank' => 20],
-        'network' => ['key' => 'network', 'name' => $developer ? 'Developer preview' : 'Network', 'rank' => 30],
-    ];
-    if ($developer) return $plans['network'];
-
-    $result = $plans['free'];
-    $guildId = (string)($guild['id'] ?? '');
-    $servers = is_array($entitlements['servers'] ?? null) ? $entitlements['servers'] : [];
-    $users = is_array($entitlements['users'] ?? null) ? $entitlements['users'] : [];
-    $serverRecord = $servers[$guildId] ?? null;
-    if (premium_record_active($serverRecord)) {
-        $serverPlan = strtolower((string)($serverRecord['plan'] ?? ''));
-        if (in_array($serverPlan, ['community', 'pro'], true)) $result = $plans[$serverPlan];
-    }
-
-    $userRecord = $users[$userId] ?? null;
-    if (!empty($guild['owner']) && premium_record_active($userRecord) && strtolower((string)($userRecord['plan'] ?? '')) === 'network') {
-        $result = $plans['network'];
-    }
-    return $result;
+    return ['key' => 'free', 'name' => 'Free', 'rank' => 0];
 }
 
 function discord_oauth_token_request(array $payload): array|false {

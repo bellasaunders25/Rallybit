@@ -21,11 +21,8 @@ SYNC_INTERVAL_SECONDS = 300
 
 
 def effective_guild_plan(guild: discord.Guild) -> str:
-    # Resolve as the owner so a developer-owned server receives the same
-    # unrestricted Network preview shown in the dashboard.
-    entitlement = resolve_entitlement(user_id=guild.owner_id, guild_id=guild.id, guild_owner_id=guild.owner_id)
-    plan = str(entitlement.get("plan") or "free").lower()
-    return plan if plan in {"community", "pro", "network"} else "free"
+    # Clear retired per-server avatars so the shared bot identity is shown.
+    return "free"
 
 
 def _avatar_payload(plan: str) -> tuple[bytes | None, str]:

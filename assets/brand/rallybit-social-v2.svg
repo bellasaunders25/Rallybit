@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<rect width="1200" height="630" fill="#f7faf8"/>
+<path fill="#e3f1e9" d="M800 0h400v630H980L720 330Z"/>
+<svg x="820" y="165" width="270" height="270" viewBox="0 0 128 128">
+<path fill="#07583b" fill-rule="evenodd" d="M24 37 65 13 105 36V65L81 79l25 19-25 15-31-24v10l-26 15Zm26 15v18l16 9 15-9V52L65 43Z"/>
+<path fill="#2b9c67" d="m24 37 25-15 41 24-25 15Z"/><path fill="#168651" d="m49 22 16-9 40 23-24 14-16-9Z"/>
+<path fill="#064a32" d="M24 67 50 82v17l-26 15Z"/><path fill="#218e5d" d="m50 70 26-15 30 43-25 15-31-24Z"/>
+<path fill="#116642" d="m50 70 16 9 15-9V52l24-16v29L81 79l25 19-25 15-31-24Z"/>
+</svg>
+<text x="80" y="215" font-family="Arial, sans-serif" font-size="82" font-weight="700" fill="#09623f">Rallybit</text>
+<text x="80" y="300" font-family="Arial, sans-serif" font-size="38" font-weight="700" fill="#17251e">Your community. All in one place.</text>
+<text x="80" y="370" font-family="Arial, sans-serif" font-size="27" fill="#53665b">Moderation · Tickets · Automations · Staff tools</text>
+<rect x="80" y="433" width="302" height="57" rx="8" fill="#09623f"/>
+<text x="109" y="470" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="white">Every feature is free.</text>
+</svg>

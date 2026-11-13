@@ -20,89 +20,36 @@ from core.presence import discord_presence_status, normalise_presence_status
 from storage.json_store import load_json, save_json
 
 
-class PremiumEntitlementTests(unittest.TestCase):
-    def setUp(self) -> None:
-        self.temp_dir = tempfile.TemporaryDirectory()
-        root = Path(self.temp_dir.name)
-        self.originals = {
-            "entitlements": premium.PREMIUM_ENTITLEMENTS_FILE,
-            "admins": premium.ADMINS_FILE,
-            "owner": premium.OWNER_ID,
-        }
-        premium.PREMIUM_ENTITLEMENTS_FILE = str(root / "premium.json")
-        premium.ADMINS_FILE = str(root / "admins.json")
-        premium.OWNER_ID = 999
+class FreeAccessTests(unittest.TestCase):
+    def test_all_features_are_free_without_preview_grants(self):
+        with patch.object(premium, 'load_entitlements', side_effect=AssertionError('Legacy grants must not be read')):
+            for uid, gid, owner in [(1, 2, 3), (999, 2, 999), (1, None, None)]:
+                access = premium.resolve_entitlement(user_id=uid, guild_id=gid, guild_owner_id=owner)
+                self.assertEqual(access['plan'], 'free')
+                self.assertIsNone(access['expires_at'])
+                for feature in ['community', 'pro', 'network']:
+                    self.assertTrue(premium.has_plan(access, feature))
+                    check = premium.premium_check(feature)
+                    async def exercise():
+                        from discord import app_commands
+                        @check
+                        async def callback(interaction):
+                            pass
+                        self.assertTrue(await callback.__discord_app_commands_checks__[0](None))
+                    asyncio.run(exercise())
 
-    def tearDown(self) -> None:
-        premium.PREMIUM_ENTITLEMENTS_FILE = self.originals["entitlements"]
-        premium.ADMINS_FILE = self.originals["admins"]
-        premium.OWNER_ID = self.originals["owner"]
-        self.temp_dir.cleanup()
+    def test_retired_plan_operations_cannot_create_grants(self):
+        with self.assertRaisesRegex(ValueError, 'retired'):
+            premium.grant_entitlement(subject_type='server', subject_id='123456789012345678', plan='pro', granted_by='1')
+        self.assertEqual(premium.load_entitlements()['servers'], {})
 
-    def test_server_and_network_ownership_rules(self) -> None:
-        premium.grant_entitlement(
-            subject_type="server",
-            subject_id="123456789012345678",
-            plan="community",
-            granted_by="999",
-        )
-        server = premium.resolve_entitlement(
-            user_id=5,
-            guild_id=123456789012345678,
-            guild_owner_id=6,
-        )
-        self.assertEqual(server["plan"], "community")
-
-        premium.grant_entitlement(
-            subject_type="user",
-            subject_id="111111111111111111",
-            plan="network",
-            expires_at=(datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
-            granted_by="999",
-        )
-        owned = premium.resolve_entitlement(
-            user_id=7,
-            guild_id=222222222222222222,
-            guild_owner_id=111111111111111111,
-        )
-        not_owned = premium.resolve_entitlement(
-            user_id=111111111111111111,
-            guild_id=222222222222222222,
-            guild_owner_id=333333333333333333,
-        )
-        self.assertEqual(owned["plan"], "network")
-        self.assertEqual(not_owned["plan"], "free")
-
-    def test_invalid_user_plan_expiry_history_and_revoke(self) -> None:
-        with self.assertRaises(ValueError):
-            premium.grant_entitlement(
-                subject_type="user",
-                subject_id="111111111111111111",
-                plan="pro",
-                granted_by="999",
-            )
-        with self.assertRaises(ValueError):
-            premium.grant_entitlement(
-                subject_type="server",
-                subject_id="222222222222222222",
-                plan="pro",
-                expires_at=(datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat(),
-                granted_by="999",
-            )
-
-        premium.grant_entitlement(
-            subject_type="server",
-            subject_id="222222222222222222",
-            plan="pro",
-            granted_by="999",
-        )
-        self.assertTrue(premium.revoke_entitlement(
-            subject_type="server",
-            subject_id="222222222222222222",
-            revoked_by="999",
-        ))
-        history = premium.load_entitlements()["history"]
-        self.assertEqual([entry["action"] for entry in history], ["granted", "revoked"])
+    def test_paid_plan_api_is_retired_but_still_authenticated(self):
+        from core import api
+        with api.app.test_client() as client, patch.object(api, 'auth', return_value=True):
+            self.assertEqual(client.post('/api/premium/grant', json={}).status_code, 410)
+            self.assertEqual(client.post('/api/premium/revoke', json={}).status_code, 410)
+        with api.app.test_client() as client, patch.object(api, 'auth', return_value=False):
+            self.assertEqual(client.post('/api/premium/grant', json={}).status_code, 401)
 
 
 class PremiumInsightTests(unittest.TestCase):
