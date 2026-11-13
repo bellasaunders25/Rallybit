@@ -34,7 +34,7 @@ $inviteUrl = 'https://discord.com/oauth2/authorize?' . $query;
   <link rel="canonical" href="https://rallybit.pages.dev/invite.php">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <title>Add Rallybit to Discord</title>
-<script src="/assets/theme.js?v=10.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
+<script src="/assets/theme.js?v=11.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
 <body>
   <main>
     <p>Opening the Rallybit invite…</p>

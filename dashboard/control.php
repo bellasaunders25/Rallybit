@@ -561,9 +561,9 @@ function role_label(array $roles, mixed $roleId): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard/style.css?v=10.0">
+<link rel="stylesheet" href="/dashboard/style.css?v=11.0">
 <link rel="icon" href="/favicon.ico">
-<script src="/assets/theme.js?v=10.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
+<script src="/assets/theme.js?v=11.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
 <body>
 <div class="dash-shell">
 <?php render_dashboard_sidebar('control', $guild_id, $guild_name); ?>

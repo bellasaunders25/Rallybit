@@ -409,6 +409,7 @@ async function initialiseCommandCatalogue() {
       applyFilter();
       search?.focus();
     });
+    if (search) search.value = new URLSearchParams(location.search).get('q') || '';
     applyFilter();
 
     if (location.hash) {

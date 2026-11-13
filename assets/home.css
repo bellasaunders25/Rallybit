@@ -1,0 +1,86 @@
+/* Homepage composition follows the Rallybit brand reference. */
+.reference-home { background: var(--surface); }
+.reference-home .container { max-width: 1190px; }
+.reference-home .hero { padding: 78px 0 54px; }
+.reference-home .hero-layout { grid-template-columns: 1.35fr 1fr; gap: 40px; }
+.reference-home .hero h1 { margin: 0 0 18px; font-size: clamp(30px, 3.15vw, 44px); line-height: 1.14; letter-spacing: -.04em; }
+.reference-home .hero-brand { font-size: 1.23em; line-height: 1.1; margin-bottom: 8px; }
+.reference-home .hero-copy > p { max-width: 535px; font-size: 15px; line-height: 1.65; }
+.reference-home .hero-actions { margin-top: 25px; }
+.reference-home .button { min-height: 42px; font-size: 13px; padding-inline: 20px; }
+.reference-home .hero-notes { margin-top: 19px; gap: 20px; font-size: 11px; }
+.welcome-illustration { position: relative; min-width: 0; height: 285px; display: grid; align-items: center; isolation: isolate; }
+.welcome-paper { position: absolute; width: 77%; height: 217px; left: 14%; border-radius: 24px; z-index: -1; background: var(--rally-soft); }
+.paper-back { transform: rotate(4deg) translateY(-10px); opacity: .75; }
+.paper-front { transform: rotate(-7deg) translateY(13px); opacity: .65; }
+.welcome-message { display: flex; gap: 12px; padding: 25px 22px; border: 1px solid #45484e; border-radius: 13px; background: #292d32; color: #f5f6f8; box-shadow: 0 12px 24px #102e2220; }
+.welcome-avatar { width: 43px; height: 43px; flex: 0 0 43px; border-radius: 50%; background: #145d3e; padding: 5px; }
+.welcome-message-meta { display: flex; align-items: center; gap: 5px; white-space: nowrap; margin: 0 0 8px; }
+.welcome-message-meta strong { font-size: 13px; }
+.discord-bot-tag { background: #6573d1; color: #fff; font-size: 8px; line-height: 14px; border-radius: 3px; padding: 0 4px; }
+.welcome-message-meta time { font-size: 9px; color: #bbc0c6; margin-left: auto; }
+.welcome-message-title { display: block; font-size: 12px; }
+.welcome-message p { font-size: 12px; line-height: 1.65; color: #d2d6db; margin-top: 5px; }
+.reference-home .section { padding: 34px 0 40px; }
+.reference-home .section-heading { margin-bottom: 24px; max-width: none; }
+.reference-home .section-heading h2 { font-size: clamp(23px, 2.15vw, 29px); margin: 0 0 6px; letter-spacing: -.035em; }
+.reference-home .section-heading p { font-size: 14px; }
+.reference-home .module-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.reference-home .module-card { min-height: 158px; padding: 19px 17px; border-radius: 12px; text-decoration: none; transition: border-color .15s, background .15s; }
+.reference-home .module-card:hover { border-color: var(--line-strong); background: var(--surface-2); }
+.reference-home .module-card > i { width: 30px; height: 30px; font-size: 23px; margin: 0 0 8px; border-radius: 6px; background: transparent; }
+.reference-home .module-card:first-child > i { background: var(--primary-soft); }
+.reference-home .module-card h3 { font-size: 14px; letter-spacing: -.02em; margin-bottom: 5px; }
+.reference-home .module-card p { font-size: 12px; line-height: 1.55; }
+.reference-home .management-section { border-top: 1px solid var(--line); padding-block: 42px; overflow: hidden; }
+.reference-home .setup-layout { grid-template-columns: .95fr 1fr; gap: 65px; }
+.reference-home .management-section .section-heading { margin: 0; }
+.management-checks { list-style: none; margin-top: 17px; display: grid; gap: 6px; font-size: 12px; color: var(--muted); }
+.management-checks i { color: var(--primary); margin-right: 5px; }
+.mini-dashboard { display: grid; grid-template-columns: 115px 1fr; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); box-shadow: var(--rally-shadow); transform: rotate(-1deg); }
+.mini-dashboard aside { padding: 18px 9px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.mini-brand { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 800; margin-bottom: 13px; }
+.mini-brand img { width: 19px; height: 19px; }
+.mini-dashboard aside > span { font-size: 8px; padding: 6px; border-radius: 4px; }
+.mini-dashboard aside i { margin-right: 4px; }
+.mini-dashboard .selected { background: var(--primary-soft); color: var(--primary); }
+.mini-main { padding: 20px 15px; min-width: 0; }
+.mini-topline { font-size: 13px; font-weight: 750; display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+.mini-topline small { color: var(--muted-2); font-size: 8px; font-weight: 400; }
+.mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 16px 0 12px; }
+.mini-stats > div { border: 1px solid var(--line); border-radius: 6px; padding: 9px; color: var(--muted); font-size: 8px; }
+.mini-stats strong { display: block; font-size: 19px; color: var(--text); margin-top: 3px; }
+.mini-chart { padding: 12px; border: 1px solid var(--line); border-radius: 6px; }
+.mini-chart strong { font-size: 10px; }
+.mini-chart svg { display: block; width: 100%; height: auto; margin-top: 6px; }
+.reference-home .final-cta { padding: 28px; }
+.reference-home .final-cta h2 { font-size: 25px; }
+.reference-home .final-cta p { font-size: 13px; }
+@media (max-width: 1000px) {
+  .reference-home .hero-layout { gap: 30px; grid-template-columns: 1.2fr 1fr; }
+  .reference-home .hero h1 { font-size: 31px; }
+  .hero-break { display: none; }
+  .welcome-message { padding: 22px 15px; gap: 9px; }
+  .welcome-message-meta time { display: none; }
+  .reference-home .hero-notes { gap: 11px; }
+  .reference-home .setup-layout { gap: 30px; }
+}
+@media (max-width: 760px) {
+  .reference-home .hero { padding: 40px 0 24px; }
+  .reference-home .hero-layout { grid-template-columns: 1fr; gap: 16px; }
+  .reference-home .hero h1 { font-size: clamp(30px, 6vw, 43px); max-width: 540px; }
+  .welcome-illustration { max-width: 410px; width: 100%; margin: 0 auto; height: 240px; }
+  .welcome-message-meta time { display: inline; }
+  .reference-home .module-grid { grid-template-columns: 1fr 1fr; }
+  .reference-home .setup-layout { grid-template-columns: 1fr; }
+  .mini-dashboard { max-width: 560px; width: 100%; margin: 0 auto; }
+  .reference-home .hero-notes { flex-direction: row; }
+}
+@media (max-width: 420px) {
+  .reference-home .module-grid { grid-template-columns: 1fr; }
+  .reference-home .module-card { min-height: 0; }
+  .reference-home .hero-notes { flex-direction: column; }
+  .mini-dashboard { grid-template-columns: 90px 1fr; }
+  .mini-main { padding: 14px 9px; }
+  .mini-stats strong { font-size: 15px; }
+}

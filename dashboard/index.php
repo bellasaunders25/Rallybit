@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/functions.php';
+require_once 'includes/overview_data.php';
 check_login();
 
 $allGuilds = discord_api_request('/users/@me/guilds', (string)$_SESSION['access_token']) ?: [];
@@ -29,6 +30,7 @@ foreach ($adminGuilds as $guild) {
 }
 
 $avatar = user_avatar_url(96);
+$_SESSION['dashboard_servers'] = array_column($joined, 'name', 'id');
 $displayName = (string)($_SESSION['global_name'] ?? $_SESSION['username'] ?? 'Member');
 $username = (string)($_SESSION['username'] ?? 'member');
 
@@ -116,6 +118,7 @@ foreach ($joinedIds as $guildId) {
 usort($recentChecks, fn(array $a, array $b): int => ($b['timestamp'] <=> $a['timestamp']));
 $recentChecks = array_slice($recentChecks, 0, 5);
 $maxActivity = max(1, ...array_values($activityByDay));
+$activityChart = overview_chart_points($activityByDay);
 $successRate = $totalChecks > 0 ? (int)round(($completedChecks / $totalChecks) * 100) : 100;
 
 function dashboard_status_label(string $status): string {
@@ -155,12 +158,12 @@ function dashboard_time_ago(int $timestamp, string $fallback): string {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/dashboard/style.css?v=10.0">
+  <link rel="stylesheet" href="/dashboard/style.css?v=11.0">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/rallybit-mark-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/brand/rallybit-mark-192.png">
   <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
-<script src="/assets/theme.js?v=10.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
+<script src="/assets/theme.js?v=11.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
 <body class="dashboard-home">
 <div class="dash-shell">
   <?php render_dashboard_sidebar('overview', null, null, count($joined), $highestPlan); ?>
@@ -211,21 +214,12 @@ function dashboard_time_ago(int $timestamp, string $fallback): string {
           </div>
           <span class="panel-filter">Last 7 days <i class="bi bi-chevron-down" aria-hidden="true"></i></span>
         </div>
-        <div class="activity-chart" aria-label="Seven-day activity chart">
-          <div class="chart-scale" aria-hidden="true"><span><?=$maxActivity?></span><span><?=max(1, (int)round($maxActivity / 2))?></span><span>0</span></div>
-          <div class="chart-bars">
-            <?php foreach ($dayKeys as $index => $dayKey):
-              $value = $activityByDay[$dayKey];
-              $height = $value > 0 ? max(12, (int)round(($value / $maxActivity) * 100)) : 5;
-            ?>
-              <div class="chart-column" title="<?=htmlspecialchars($dayLabels[$dayKey])?>: <?=number_format($value)?> activity points">
-                <span class="chart-value"><?=number_format($value)?></span>
-                <i style="--bar-height: <?=$height?>%; --delay: <?=($index * 70)?>ms"></i>
-                <small><?=htmlspecialchars(substr($dayLabels[$dayKey], 0, 1))?></small>
-              </div>
-            <?php endforeach; ?>
-          </div>
-        </div>
+        <svg class="server-activity-chart" viewBox="0 0 625 255" role="img" aria-label="Activity points recorded over the last seven days">
+          <defs><linearGradient id="account-activity-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--primary)" stop-opacity=".23"/><stop offset="100%" stop-color="var(--primary)" stop-opacity=".02"/></linearGradient></defs>
+          <?php for ($line = 0; $line <= 4; $line++): $y = 35 + $line * 43.75; ?><line x1="52" x2="600" y1="<?=$y?>" y2="<?=$y?>" class="chart-gridline"/><text x="38" y="<?=$y + 4?>" text-anchor="end"><?=number_format($maxActivity * (4 - $line) / 4, $maxActivity < 4 ? 1 : 0)?></text><?php endfor; ?>
+          <polygon points="52,210 <?=$activityChart['path']?> 600,210" fill="url(#account-activity-fill)"/><polyline points="<?=$activityChart['path']?>" fill="none" stroke="var(--primary)" stroke-width="2.5"/>
+          <?php foreach ($activityChart['points'] as $i => [$x,$y]): ?><circle cx="<?=$x?>" cy="<?=$y?>" r="3.5" fill="var(--primary)"><title><?=htmlspecialchars($dayLabels[$dayKeys[$i]])?>: <?=$activityByDay[$dayKeys[$i]]?> activity points</title></circle><text x="<?=$x?>" y="240" text-anchor="middle"><?=htmlspecialchars($dayLabels[$dayKeys[$i]])?></text><?php endforeach; ?>
+        </svg>
       </article>
 
       <article class="dashboard-panel recent-panel">
@@ -276,7 +270,7 @@ function dashboard_time_ago(int $timestamp, string $fallback): string {
                   <span><i class="inline-online-dot"></i> Rallybit connected</span>
                   <span class="server-plan plan-<?=htmlspecialchars((string)$plan['key'])?>"><img class="plan-logo" src="/assets/brand/rallybit-mark.svg" alt=""><?=htmlspecialchars((string)$plan['name'])?> plan</span>
                 </div>
-                <a class="button small primary" href="manage.php?id=<?=urlencode((string)$guild['id'])?>&name=<?=urlencode((string)$guild['name'])?>">Manage</a>
+                <a class="button small primary" href="overview.php?id=<?=urlencode((string)$guild['id'])?>">Manage</a>
               </div>
             </article>
           <?php endforeach; ?>

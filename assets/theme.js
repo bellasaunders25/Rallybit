@@ -1,5 +1,4 @@
 (() => {
-  const media = window.matchMedia('(prefers-color-scheme: dark)');
   let saved;
   try { saved = localStorage.getItem('rallybit-theme'); } catch {}
   if (saved !== 'light' && saved !== 'dark') saved = null;
@@ -15,7 +14,7 @@
       if (text && text.textContent !== label) text.textContent = label;
     });
   };
-  const preferred = () => saved === 'light' || saved === 'dark' ? saved : media.matches ? 'dark' : 'light';
+  const preferred = () => saved === 'dark' ? 'dark' : 'light';
   apply(preferred());
   document.addEventListener('click', event => {
     if (!event.target.closest('[data-theme-toggle]')) return;
@@ -27,6 +26,5 @@
     apply(preferred());
     new MutationObserver(() => apply(preferred())).observe(document.body, { childList: true, subtree: true });
   });
-  media.addEventListener('change', () => { if (!saved) apply(preferred()); });
   window.addEventListener('storage', event => { if (event.key === 'rallybit-theme') { saved = ['light','dark'].includes(event.newValue) ? event.newValue : null; apply(preferred()); } });
 })();

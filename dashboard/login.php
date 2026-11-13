@@ -42,7 +42,7 @@ $oauthUrl = 'https://discord.com/oauth2/authorize?' . http_build_query($params);
   <link rel="canonical" href="https://rallybit.pages.dev/dashboard/">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <title>Rallybit Dashboard</title>
-<script src="/assets/theme.js?v=10.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
+<script src="/assets/theme.js?v=11.0"></script><link rel="icon" type="image/svg+xml" href="/assets/brand/rallybit-mark.svg"></head>
 <body>
   <main>
     <p>Opening Rallybit sign-in…</p>
