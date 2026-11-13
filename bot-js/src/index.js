@@ -15,7 +15,7 @@ const leases = new LeaseStore(join(app.store.directory, 'runtime.sqlite'));
 const lease = leases.acquire('discord-runtime', 30000);
 if (!lease) { leases.close(); throw new Error('Another Rallybit JavaScript runtime owns this data directory'); }
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
-const dispatcher = createDispatcher(app.registry, app.store);
+const dispatcher = createDispatcher(app.registry, app.store, { components: app.components });
 client.on(Events.InteractionCreate, interaction => {
   if (stopped || !leases.held(lease)) { client.destroy(); return; }
   return dispatcher(interaction);

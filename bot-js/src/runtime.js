@@ -3,10 +3,11 @@ import { commandPath } from './registry.js';
 import { enforceAccess, UserError } from './access.js';
 import { createAudit } from './audit.js';
 
-export function createDispatcher(registry, store) {
+export function createDispatcher(registry, store, { components } = {}) {
   const audit = createAudit(store);
   return async interaction => {
-    if (!interaction.isChatInputCommand() && !interaction.isContextMenuCommand()) return;
+    const command = interaction.isChatInputCommand() || interaction.isContextMenuCommand();
+    if (!command && (!interaction.customId || !components)) return;
     try {
       // Notice precedes every command, including commands requiring a paid plan.
       const notice = await store.read('notice.json');
@@ -20,10 +21,11 @@ export function createDispatcher(registry, store) {
         });
         return;
       }
+      if (!command) { await components.dispatch(interaction); return; }
       const path = commandPath(interaction);
       const handler = registry.handler(path);
       if (!handler) throw new Error('This command has not passed migration verification.');
-      const privateReply = interaction.isChatInputCommand() ? interaction.options.getBoolean('private') ?? false : false;
+      const privateReply = registry.policy(path)?.private === true || (interaction.isChatInputCommand() ? interaction.options.getBoolean('private') ?? false : false);
       await interaction.deferReply(privateReply ? { flags: MessageFlags.Ephemeral } : {});
       await enforceAccess(interaction, registry.policy(path), store);
       const result = await handler(interaction);

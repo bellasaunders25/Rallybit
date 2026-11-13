@@ -48,9 +48,13 @@ Every native handler must register against that inventory; duplicate and unknown
 paths are rejected. Production startup refuses to connect to Discord until all
 202 paths have handlers. No migration placeholders are exposed as working commands.
 
-Currently implemented: **37 of 202 commands**. This includes dashboard, help,
+Currently implemented: **88 of 202 commands**. This includes dashboard, help,
 support, the three account-age-gate configuration commands, all 28 staff/workforce
-commands, and role give/remove/temp.
+commands, role give/remove/temp, moderation panels and warning tools, reports,
+reviews, channel archives/purges, logging configuration, activity/profile utilities,
+developer commands, insights/case exports, configuration backups and owner-network
+operations. The native HTTP API and shared bot-profile services are implemented
+and tested independently; full dashboard action compatibility is still pending.
 All commands are free; no subscription checks are applied. The staff ledger preserves active shifts, breaks, completed record IDs, HR
 corrections and LOA/ROA requests. Temporary-role timers survive restarts, enforce
 member/role hierarchy, and retain failed nickname restorations for retry.
@@ -76,6 +80,13 @@ disk-full failures, duplicate schedulers, uncertain sends and lease replacement.
 The live deployment stays on the corrected Python runtime while feature parity
 is implemented and verified. Handler coverage alone is not proof of full event,
 dashboard API, recovery or persistent-component compatibility.
+
+The current JavaScript suite has 45 passing tests. New checks cover moderation
+role revocation on existing panels, role hierarchy, atomic report claims, failed
+report delivery, inclusive large-ID purges, old-message deletion, authenticated
+dashboard JSON operations, storage-full failures, profile rollback, spreadsheet
+formula escaping and journaled backup recovery. CVMS work is paused until the
+existing discord.js migration and safe production cutover are complete.
 
 Remaining conversion work, in order:
 

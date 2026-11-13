@@ -22,13 +22,14 @@ export class JsonStore {
       throw error;
     }
   }
-  async update(name, change) {
+  async #transaction(name, change, replacement = false, fallback = {}) {
     const previous = this.#queues.get(name) ?? Promise.resolve();
     const operation = previous.catch(() => {}).then(async () => {
       const path = this.path(name);
       await mkdir(dirname(path), { recursive: true });
-      const data = await this.read(name);
+      let data = await this.read(name, fallback);
       const result = await change(data);
+      if (replacement) data = result;
       const temporary = `${path}.${randomUUID()}.tmp`;
       let handle;
       try {
@@ -46,6 +47,11 @@ export class JsonStore {
     this.#queues.set(name, operation);
     try { return await operation; }
     finally { if (this.#queues.get(name) === operation) this.#queues.delete(name); }
+  }
+  async update(name, change, fallback = {}) { return this.#transaction(name, change, false, fallback); }
+  async write(name, value) {
+    const copy = structuredClone(value);
+    return this.#transaction(name, () => copy, true);
   }
   async reserve(name, key, intervalMs, now = Date.now()) {
     return this.update(name, data => {
