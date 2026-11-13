@@ -100,8 +100,10 @@ export class CvmsService {
     this.lastCleanup = 0;
     this.sessions = new Map();
     this.paused = new Set();
+    this.pauseVersion = 0;
     this.queue = new KeyedQueue();
     this.requests = new Map();
+    this.waiting = new Map();
     this.closed = false;
     this.speech = new SpeechQueue(provider, {
       onError: (_error, row) => {
@@ -152,13 +154,22 @@ export class CvmsService {
         "Configure a private log channel and at least one phrase rule first.",
       );
   }
-  async eligible(guild, channel, cfg) {
-    if (
-      channel?.type !== ChannelType.GuildVoice ||
-      !cfg.channel_ids.includes(channel.id)
-    )
+  async voiceChannel(guild, selected) {
+    if (!selected?.id) throw new UserError("Choose a voice channel in this server.");
+    // Resolve the authoritative guild channel, not a partial interaction object.
+    const channel = await guild.channels.fetch(String(selected.id));
+    if (!channel || (channel.guild?.id ?? channel.guildId) !== guild.id)
+      throw new UserError("That channel is not available in this server.");
+    if (channel.type === ChannelType.GuildStageVoice)
+      throw Object.assign(new UserError("That is a Stage channel. Choose a standard voice channel; Stage channels are not supported in this beta."), { code: "CVMS_STAGE_CHANNEL" });
+    if (channel.type !== ChannelType.GuildVoice)
+      throw Object.assign(new UserError("That is not a standard voice channel. Choose a voice channel, not a text channel or category."), { code: "CVMS_NOT_VOICE" });
+    return channel;
+  }
+  async access(guild, channel, cfg) {
+    if (!cfg.channel_ids.includes(channel.id))
       throw new UserError(
-        "Choose a configured standard voice channel. Stage channels are not supported in the beta.",
+        "That voice channel has not been enabled for CVMS. An administrator can add it with /cvms channel action:add, or select it with /cvms start.",
       );
     const bot = await guild.members.fetchMe({ force: true });
     channelPermissions(channel, bot, [
@@ -171,6 +182,63 @@ export class CvmsService {
       throw new UserError(
         "Rallybit is server-deafened. A moderator must undeafen it first.",
       );
+    const log = await guild.channels.fetch(String(cfg.log_channel_id));
+    if (log?.type !== ChannelType.GuildText)
+      throw new UserError("The private CVMS log channel is unavailable.");
+    channelPermissions(log, bot, [P.ViewChannel, P.SendMessages, P.EmbedLinks]);
+    if (log.permissionsFor(guild.roles.everyone)?.has(P.ViewChannel))
+      throw new UserError(
+        "CVMS needs a staff log channel that is not visible to @everyone.",
+      );
+    return { bot, log };
+  }
+  async prepareChannel(guild, selected, user, { continuous = false } = {}) {
+    return this.queue.run("sessions", async () => {
+      const channel = await this.voiceChannel(guild, selected),
+        cfg = await this.config(guild.id),
+        actor = await guild.members.fetch({ user: user.id, force: true });
+      await this.gate(guild, cfg);
+      if (this.sessions.has(guild.id))
+        throw new UserError("CVMS is already active. Use /cvms stop before selecting a new session.");
+      channelPermissions(channel, actor, [P.ViewChannel, P.Connect]);
+      const adding = !cfg.channel_ids.includes(channel.id),
+        changingContinuous = continuous &&
+          (cfg.mode !== "always" || cfg.continuous_channel_id !== channel.id);
+      if ((adding || changingContinuous) && !actor.permissions.has(P.ManageGuild))
+        throw new UserError(adding
+          ? "That voice channel has not been enabled for CVMS. Ask an administrator to add it with /cvms channel action:add."
+          : "Enabling 24/7 monitoring for a channel requires Manage Server. Ask an administrator to configure it first.");
+      if (adding && cfg.channel_ids.length >= 20)
+        throw new UserError("The 20-channel CVMS limit has been reached. Remove an unused channel first.");
+      await this.access(guild, channel, { ...cfg, channel_ids: [...cfg.channel_ids, channel.id] });
+      if (adding || changingContinuous)
+        await this.update(guild.id, (current) => {
+          if (!current.channel_ids.includes(channel.id)) {
+            if (current.channel_ids.length >= 20)
+              throw new UserError("The 20-channel CVMS limit has been reached.");
+            current.channel_ids.push(channel.id);
+          }
+          if (continuous) {
+            current.mode = "always";
+            current.continuous_channel_id = channel.id;
+          }
+        });
+      if (continuous) {
+        // Arming does not join: eligibility and consent are checked by start.
+        await this.resume(guild.id);
+      }
+      this.waiting.delete(guild.id);
+      return channel;
+    });
+  }
+  async resume(guildId) {
+    await this.store.update("cvms_pauses.json", (data) => { delete data[guildId]; });
+    this.pauseVersion++;
+    this.paused.delete(guildId);
+  }
+  async eligible(guild, selected, cfg) {
+    const channel = await this.voiceChannel(guild, selected),
+      { log } = await this.access(guild, channel, cfg);
     // Voice state IDs are authoritative even when a member was not included in
     // the initial member cache. Do not mistake an uncached person for consent.
     for (const state of guild.voiceStates?.cache.values() ?? [])
@@ -188,14 +256,6 @@ export class CvmsService {
     )
       throw new UserError(
         "Monitoring is paused until every member in the voice channel gives current consent with /cvms consent enabled:true.",
-      );
-    const log = await guild.channels.fetch(String(cfg.log_channel_id));
-    if (log?.type !== ChannelType.GuildText)
-      throw new UserError("The private CVMS log channel is unavailable.");
-    channelPermissions(log, bot, [P.ViewChannel, P.SendMessages, P.EmbedLinks]);
-    if (log.permissionsFor(guild.roles.everyone)?.has(P.ViewChannel))
-      throw new UserError(
-        "CVMS needs a staff log channel that is not visible to @everyone.",
       );
     return { humans, records, log };
   }
@@ -275,9 +335,10 @@ export class CvmsService {
     guild,
     channel,
     actor,
-    { minutes = 30, source = "manual", targets = [], until = Infinity } = {},
+    { minutes = 30, source = "manual", targets = [], until = Infinity, continuous = false } = {},
   ) {
     return this.queue.run("sessions", async () => {
+      channel = await this.voiceChannel(guild, channel);
       const cfg = await this.config(guild.id);
       await this.gate(guild, cfg);
       if (this.sessions.has(guild.id))
@@ -309,6 +370,7 @@ export class CvmsService {
           channel,
           cfg,
           source,
+          continuous: continuous || source === "always",
           targets: new Set(targets),
           captured: new Set(),
           members: new Set(humans.map((m) => m.id)),
@@ -316,7 +378,9 @@ export class CvmsService {
             ...humans.map((m) => Number(records[m.id].expires_at)),
           ),
           endsAt: Math.min(
-            this.now() + Math.max(5, Math.min(60, minutes)) * 60000,
+            continuous || source === "always"
+              ? Infinity
+              : this.now() + Math.max(5, Math.min(60, minutes)) * 60000,
             until,
           ),
           initializing: true,
@@ -326,7 +390,7 @@ export class CvmsService {
         };
       const notice = embed(
         "CVMS voice monitoring",
-        `**${channel.name}** will be monitored using local speech recognition.\n${source === "manual" || source === "always" ? "Consenting participants" : "Selected consenting participants"} are in scope. Possible matches go to private staff review; no automatic punishments are enabled.\nAudio is not saved as recordings. Members can withdraw consent or stop monitoring.\nSession ends <t:${Math.floor(session.endsAt / 1000)}:R>.\nhttps://rallybit.pages.dev/privacy-policy`,
+        `**${channel.name}** will be monitored using local speech recognition.\n${source === "manual" || source === "always" ? "Consenting participants" : "Selected consenting participants"} are in scope. Possible matches go to private staff review; no automatic punishments are enabled.\nAudio is not saved as recordings. Members can withdraw consent or stop monitoring.\n${Number.isFinite(session.endsAt) ? `Session ends <t:${Math.floor(session.endsAt / 1000)}:R>.` : "24/7 monitoring is enabled while eligibility and everyone's current consent allow it."}\nhttps://rallybit.pages.dev/privacy-policy`,
       );
       const controls = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
@@ -353,10 +417,7 @@ export class CvmsService {
         });
         if (session.stopped || this.sessions.get(guild.id) !== session)
           throw new UserError("The pending session was stopped.");
-        this.paused.delete(guild.id);
-        await this.store.update("cvms_pauses.json", (data) => {
-          delete data[guild.id];
-        });
+        await this.resume(guild.id);
         const latest = await this.config(guild.id);
         await this.gate(guild, latest);
         const fresh = await this.eligible(guild, channel, latest);
@@ -440,6 +501,7 @@ export class CvmsService {
         await session.capture.start();
         if (!valid())
           throw new UserError("CVMS eligibility changed while joining.");
+        this.waiting.delete(guild.id);
         return session;
       } catch (error) {
         try {
@@ -466,7 +528,11 @@ export class CvmsService {
     });
   }
   async stop(guildId, reason, { pause = false } = {}) {
-    if (pause) this.paused.add(guildId);
+    if (pause) {
+      this.pauseVersion++;
+      this.paused.add(guildId);
+    }
+    this.waiting.delete(guildId);
     const session = this.sessions.get(guildId);
     // Invalidate first, including inference already in flight.
     if (session) {
@@ -813,21 +879,23 @@ export class CvmsService {
       if (session.initializing) continue;
       const guild = client.guilds.cache.get(gid);
       try {
-        if (!guild || notices || !session.valid())
+        if (!guild || notices)
           throw new Error("Session ended");
         const cfg = await this.config(gid);
         await this.gate(guild, cfg);
-        await this.eligible(guild, session.channel, cfg);
-        if (consentScope(cfg) !== consentScope(session.cfg))
+        const fresh = await this.eligible(guild, session.channel, cfg);
+        session.consentExpires = Math.min(...fresh.humans.map((m) => Number(fresh.records[m.id].expires_at)));
+        if (!session.valid() || consentScope(cfg) !== consentScope(session.cfg))
           throw new Error("Privacy settings changed");
       } catch {
         await this.stop(gid, "Monitoring paused or session expired.");
       }
     }
-    for (const [gid, row] of Object.entries(
-      await this.store.read("cvms_pauses.json"),
-    ))
-      this.paused.add(gid);
+    const pauseVersion = this.pauseVersion,
+      pauses = await this.store.read("cvms_pauses.json");
+    // Do not revive a stale pause if an explicit resume finished during this read.
+    if (pauseVersion === this.pauseVersion)
+      for (const gid of Object.keys(pauses)) this.paused.add(gid);
     const now = this.now();
     for (const [token, row] of this.requests)
       if (row.expires <= now) this.requests.delete(token);
@@ -877,13 +945,13 @@ export class CvmsService {
         }
       }
       if (!candidate && cfg.mode === "always")
-        for (const id of cfg.channel_ids) {
+        for (const id of cfg.continuous_channel_id ? [cfg.continuous_channel_id] : cfg.channel_ids) {
           const channel = await guild.channels.fetch(id).catch(() => null);
           if (
             channel?.members &&
             [...channel.members.values()].some((m) => !m.user.bot)
           ) {
-            candidate = { channel, targets: [], minutes: 60, source: "always" };
+            candidate = { channel, targets: [], continuous: true, source: "always" };
             break;
           }
         }
@@ -891,6 +959,10 @@ export class CvmsService {
         try {
           await this.start(guild, candidate.channel, client.user, candidate);
         } catch (error) {
+          const reason = error instanceof UserError ? error.message : "Voice monitoring could not start. Check Rallybit's service logs.";
+          if (this.waiting.get(gid) !== reason)
+            console.warn(JSON.stringify({ event: "cvms_waiting", guild_id: gid, channel_id: candidate.channel.id, channel_type: candidate.channel.type, code: error.code ?? null, reason: error instanceof UserError ? reason : undefined }));
+          this.waiting.set(gid, reason);
           if (!(error instanceof UserError))
             console.warn(
               JSON.stringify({
@@ -900,6 +972,8 @@ export class CvmsService {
               }),
             );
         }
+      else if (cfg.mode === "always")
+        this.waiting.set(gid, "Waiting for members to join the selected voice channel.");
     }
     if (now - this.lastCleanup >= 30000) {
       this.lastCleanup = now;
@@ -1047,5 +1121,6 @@ export class CvmsService {
       this.sessions.delete(id);
     }
     this.requests.clear();
+    this.waiting.clear();
   }
 }

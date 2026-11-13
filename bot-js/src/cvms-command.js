@@ -142,10 +142,11 @@ export const CVMS_COMMAND = {
         ),
         integer(
           "minutes",
-          "Session length, after which monitoring stops.",
+          "Timed session length; omit when using 24/7 monitoring.",
           5,
           60,
         ),
+        bool("continuous", "Monitor this channel 24/7 when consent allows (Manage Server)."),
       ],
     ),
     sub(

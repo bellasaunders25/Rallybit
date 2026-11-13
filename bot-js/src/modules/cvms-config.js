@@ -5,6 +5,7 @@ export const CVMS_DEFAULTS = {
   enabled: false,
   mode: "manual",
   channel_ids: [],
+  continuous_channel_id: null,
   log_channel_id: null,
   threshold: 75,
   retention_hours: 24,
@@ -20,6 +21,10 @@ export function cvmsConfig(row = {}) {
     ...new Set((result.channel_ids ?? []).map(String)),
   ].slice(0, 20);
   result.rules = Array.isArray(result.rules) ? result.rules.slice(0, 50) : [];
+  result.continuous_channel_id = result.continuous_channel_id
+    ? String(result.continuous_channel_id)
+    : null;
+  if (result.mode !== "always") result.continuous_channel_id = null;
   result.threshold = Math.max(50, Math.min(99, Number(result.threshold) || 75));
   result.retention_hours = Math.max(
     1,

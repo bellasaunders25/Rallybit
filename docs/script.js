@@ -66,7 +66,8 @@ function planFor() { return 'Free'; }
 function accessFor(path) {
   if (path === 'cvms beta') return 'Rallybit developer only';
   if (['cvms setup','cvms channel','cvms rule','cvms reports'].includes(path)) return 'Manage Server';
-  if (['cvms watch','cvms start','cvms cases','cvms review'].includes(path)) return 'Configured warning role and Manage Messages';
+    if (path === 'cvms start') return 'Configured warning role and Manage Messages; Manage Server to add channels or enable 24/7';
+    if (['cvms watch','cvms cases','cvms review'].includes(path)) return 'Configured warning role and Manage Messages';
   if (path === 'cvms stop') return 'Current monitored-channel participant or authorised staff';
   if (['addadmin', 'banuser', 'banserver', 'syncguilds'].includes(path)) return 'Rallybit developer only';
   if (path.startsWith('network ')) return 'Server owner';
@@ -299,7 +300,7 @@ async function initialiseSidebar() {
   const holder = document.querySelector('[data-doc-sidebar]');
   if (holder) {
     try {
-      const response = await fetch('/docs/includes/sidebar.html?v=cvms-1');
+      const response = await fetch('/docs/includes/sidebar.html?v=cvms-2');
       if (!response.ok) throw new Error('Sidebar unavailable');
       holder.outerHTML = await response.text();
     } catch (error) {
@@ -333,7 +334,7 @@ async function initialiseCommandCatalogue() {
   const clear = document.querySelector('[data-command-clear]');
 
   try {
-    const response = await fetch('/docs/command-catalog.json?v=cvms-1');
+    const response = await fetch('/docs/command-catalog.json?v=cvms-2');
     if (!response.ok) throw new Error(`Catalogue request failed with ${response.status}`);
     const catalogue = await response.json();
     const commands = Array.isArray(catalogue.commands) ? catalogue.commands : [];

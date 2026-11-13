@@ -9512,12 +9512,24 @@
         },
         {
           "name": "minutes",
-          "description": "Session length, after which monitoring stops.",
+          "description": "Timed session length; omit when using 24/7 monitoring.",
           "required": false,
           "type": "integer",
           "default": null,
           "min_value": 5,
           "max_value": 60,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "continuous",
+          "description": "Monitor this channel 24/7 when consent allows (Manage Server).",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
           "min_length": null,
           "max_length": null,
           "choices": []

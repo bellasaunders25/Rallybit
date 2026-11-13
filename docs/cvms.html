@@ -19,6 +19,13 @@
 /cvms stop
 /cvms consent enabled:false</code></pre>
 <p>Starting requires your configured warning role and Manage Messages. A notice is posted in the voice channel’s text chat before the receiver opens. Participants can stop the session using its button or withdraw consent. These opt-outs work during maintenance too. A new human joining pauses the session for a fresh consent check; moving, disconnecting or server-deafening Rallybit stops it. A deliberate stop stays paused until staff explicitly starts again.</p>
+<h3>24/7 monitoring</h3>
+<pre><code>/cvms start channel:General continuous:true
+/cvms status
+/cvms stop</code></pre>
+<p>An administrator with Manage Server can select a standard voice channel through Start; it is added to the allowed channel list automatically if necessary. Other authorised staff can start only channels an administrator has already allowed. Stage-channel errors apply only to real Stage channels; an unconfigured voice channel now has its own explanation.</p>
+<p>Use <code>continuous:true</code> without <code>minutes</code> to save 24/7 mode and pin it to the selected channel. The selection survives restarts and has no hourly session limit. If the channel is empty or anyone lacks current consent, monitoring waits without opening a receiver. It can resume when everyone present has consented. Consent still expires after 24 hours and must be renewed individually. Status shows the selected channel, a deliberate pause or the current waiting reason.</p>
+<p><code>/cvms stop</code> or withdrawing consent pauses automatic restarts until staff explicitly resumes with Start. To return to timed sessions, use Setup with <code>mode:manual</code>. Removing the pinned channel also switches back to manual mode. 24/7 is a persistent monitoring schedule, not a guarantee of uninterrupted coverage: maintenance, outages, capacity limits, participant changes and privacy controls still apply.</p>
 <h2>4. Review cases</h2>
 <pre><code>/cvms cases
 /cvms review case_id:CASE_ID action:confirm
@@ -42,4 +49,4 @@
 <li>Platform changes can break Discord voice receiving. CVMS is not an emergency service or a replacement for human moderation.</li></ul>
 <h2>Self-hosting</h2><p>Start the optional local engine with <code>docker compose -p rallybit-js -f bot-js/compose.yaml --profile cvms up -d --build</code>. It uses pinned whisper.cpp and an integrity-checked English model on an isolated internal network, with one CPU core, limited memory and no persisted inference logs. No API key, paid plan or external inference account is required. Your existing machine still uses electricity, storage and bandwidth; processing capacity is not unlimited.</p>
 <p>Review your applicable privacy and recording obligations before enabling the feature. Consent controls do not guarantee legal compliance. Read the <a href="/privacy-policy">privacy policy</a> and <a href="/terms">terms</a>.</p>
-</main></div><script src="/docs/script.js?v=cvms-1"></script></body></html>
+</main></div><script src="/docs/script.js?v=cvms-2"></script></body></html>

@@ -28,12 +28,13 @@ export function registerCvms(registry, services, options) {
     async (i) => {
       const cfg = await service.config(i.guildId),
         session = service.sessions.get(i.guildId),
-        engine = await service.provider.health();
+        engine = await service.provider.health(),
+        pause = (await services.store.read("cvms_pauses.json"))[i.guildId];
       return {
         embeds: [
           embed(
             "CVMS beta status",
-            `Beta access: ${(await service.beta(i.guildId)) ? "Granted" : "Not granted"}\nEnabled: ${cfg.enabled ? "Yes" : "No"}\nMode: ${cfg.mode}\nLocal speech service: ${engine ? "Ready" : "Unavailable"}\nActive coverage: ${session ? `<#${session.channel.id}>` : "None"}\nConfigured channels: ${cfg.channel_ids.length}\nPhrase rules: ${cfg.rules.length}\nDropped clips (capacity limit): ${service.speech.dropped}\n\nOne voice channel per server, up to two active sessions across this instance. English speech only in this beta. No automatic punishments. Accuracy and continuous coverage are not guaranteed.`,
+            `Beta access: ${(await service.beta(i.guildId)) ? "Granted" : "Not granted"}\nEnabled: ${cfg.enabled ? "Yes" : "No"}\nMode: ${cfg.mode === "always" ? "24/7 (consent required)" : cfg.mode}\n24/7 channel: ${cfg.continuous_channel_id ? `<#${cfg.continuous_channel_id}>` : "Not pinned"}\nLocal speech service: ${engine ? "Ready" : "Unavailable"}\nActive coverage: ${session ? `<#${session.channel.id}>` : "None"}\nState: ${session ? session.continuous ? "Monitoring continuously" : "Timed session" : pause ? `Paused: ${text(pause.reason, 300)} — use /cvms start to resume.` : service.waiting.get(i.guildId) || "Not monitoring"}\nConfigured channels: ${cfg.channel_ids.length}\nPhrase rules: ${cfg.rules.length}\nDropped clips (capacity limit): ${service.speech.dropped}\n\nOne voice channel per server, up to two active sessions across this instance. English speech only in this beta. No automatic punishments. Accuracy and continuous coverage are not guaranteed.`,
           ),
         ],
       };
@@ -103,7 +104,7 @@ export function registerCvms(registry, services, options) {
     "cvms channel",
     async (i) => {
       const action = i.options.getString("action", true),
-        channel = i.options.getChannel("channel");
+        selected = i.options.getChannel("channel");
       if (action === "list")
         return {
           content:
@@ -111,12 +112,7 @@ export function registerCvms(registry, services, options) {
               .map((id) => `<#${id}>`)
               .join("\n") || "No configured CVMS voice channels.",
         };
-      if (
-        !channel ||
-        channel.type !== ChannelType.GuildVoice ||
-        channel.guild.id !== i.guildId
-      )
-        throw new UserError("Choose a standard voice channel in this server.");
+      const channel = await service.voiceChannel(i.guild, selected);
       const actor = await i.guild.members.fetch({
         user: i.user.id,
         force: true,
@@ -128,7 +124,13 @@ export function registerCvms(registry, services, options) {
       await service.update(i.guildId, (cfg) => {
         const ids = new Set(cfg.channel_ids);
         if (action === "add") ids.add(channel.id);
-        else if (action === "remove") ids.delete(channel.id);
+        else if (action === "remove") {
+          ids.delete(channel.id);
+          if (cfg.continuous_channel_id === channel.id) {
+            cfg.continuous_channel_id = null;
+            cfg.mode = "manual";
+          }
+        }
         else throw new UserError("Choose add or remove.");
         if (ids.size > 20)
           throw new UserError(
@@ -291,15 +293,34 @@ export function registerCvms(registry, services, options) {
           user: i.user.id,
           force: true,
         }),
-        channel = i.options.getChannel("channel") ?? actor.voice.channel;
-      if (!channel)
+        selected = i.options.getChannel("channel") ?? actor.voice.channel,
+        minutes = i.options.getInteger("minutes"),
+        cfg = await service.config(i.guildId),
+        continuous = i.options.getBoolean("continuous") === true || (cfg.mode === "always" && minutes === null && i.options.getBoolean("continuous") !== false);
+      if (!selected)
         throw new UserError("Choose a voice channel or join one first.");
-      channelPermissions(channel, actor, [P.ViewChannel, P.Connect]);
-      const session = await service.start(i.guild, channel, i.user, {
-        minutes: i.options.getInteger("minutes") ?? 30,
-      });
+      if (continuous && minutes !== null)
+        throw new UserError("Choose either 24/7 monitoring or a timed session. Omit minutes when continuous is true.");
+      if (!continuous && cfg.mode === "always")
+        throw new UserError("This server is in 24/7 mode. Omit minutes to resume it, or use /cvms setup mode:manual before starting a timed session.");
+      const channel = await service.prepareChannel(i.guild, selected, i.user, { continuous });
+      let session;
+      try {
+        session = await service.start(i.guild, channel, i.user, {
+          minutes: minutes ?? 30,
+          continuous,
+          source: "manual",
+        });
+      } catch (error) {
+        session = service.sessions.get(i.guildId);
+        if (!session || session.channel.id !== channel.id) {
+          if (!continuous || !(error instanceof UserError)) throw error;
+          service.waiting.set(i.guildId, error.message);
+          return { content: `24/7 monitoring is configured for <#${channel.id}>, but no receiver is active yet. ${error.message} Check /cvms status. It can start automatically when eligibility allows; /cvms stop pauses it.` };
+        }
+      }
       return {
-        content: `CVMS is active in <#${channel.id}> until <t:${Math.floor(session.endsAt / 1000)}:R>. Matches go to private staff review.`,
+        content: `CVMS is active in <#${channel.id}>${session.continuous ? " in 24/7 mode while everyone's consent remains current" : ` until <t:${Math.floor(session.endsAt / 1000)}:R>`}. Matches go to private staff review. Use /cvms stop to pause it.`,
       };
     },
     staff,

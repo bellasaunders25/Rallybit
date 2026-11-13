@@ -28,6 +28,7 @@ import {
   localEndpoint,
 } from "../src/modules/cvms-audio.js";
 import { createDispatcher } from "../src/runtime.js";
+import { registerCvms } from "../src/modules/cvms-commands.js";
 
 const G = "123456789012345678",
   U = "123456789012345679",
@@ -660,4 +661,157 @@ test("an uncached voice-state participant cannot be treated as consented", async
   };
   await assert.rejects(f.service.start(f.guild, f.voice, f.i.user));
   assert.equal(f.captured, 0);
+});
+
+test("unconfigured normal voice channels are not misreported as Stage channels", async (t) => {
+  const f = await setup(t);
+  await f.service.update(G, (cfg) => { cfg.channel_ids = []; });
+  await assert.rejects(f.service.start(f.guild, f.voice, f.i.user), (error) => {
+    assert.match(error.message, /not been enabled/);
+    assert.doesNotMatch(error.message, /Stage/);
+    return true;
+  });
+  assert.equal(f.captured, 0);
+});
+
+test("voice validation resolves the real channel and reserves Stage errors for actual Stage channels", async (t) => {
+  const f = await setup(t);
+  assert.equal(await f.service.voiceChannel(f.guild, { id: C, type: ChannelType.GuildStageVoice }), f.voice);
+  f.voice.type = ChannelType.GuildStageVoice;
+  await assert.rejects(f.service.voiceChannel(f.guild, { id: C }), { code: "CVMS_STAGE_CHANNEL" });
+  f.voice.type = ChannelType.GuildText;
+  await assert.rejects(f.service.voiceChannel(f.guild, { id: C }), { code: "CVMS_NOT_VOICE" });
+});
+
+test("administrators can select an unconfigured voice channel through Start without bypassing consent", async (t) => {
+  const f = await setup(t);
+  await f.service.update(G, (cfg) => { cfg.channel_ids = []; });
+  const channel = await f.service.prepareChannel(f.guild, { id: C }, f.i.user);
+  assert.equal(channel, f.voice);
+  assert.deepEqual((await f.service.config(G)).channel_ids, [C]);
+  assert.equal(f.captured, 0);
+  await f.service.withdraw(G, U);
+  await assert.rejects(f.service.start(f.guild, channel, f.i.user), /consent/);
+  assert.equal(f.captured, 0);
+});
+
+test("staff without Manage Server cannot add channels or enable persistent monitoring", async (t) => {
+  const f = await setup(t);
+  f.members.get(U).permissions = new PermissionsBitField([P.ViewChannel, P.Connect, P.ManageMessages]);
+  await assert.rejects(f.service.prepareChannel(f.guild, f.voice, f.members.get(U).user, { continuous: true }), /Manage Server/);
+  await f.service.update(G, (cfg) => { cfg.channel_ids = []; });
+  await assert.rejects(f.service.prepareChannel(f.guild, f.voice, f.members.get(U).user), /administrator/);
+  assert.deepEqual((await f.service.config(G)).channel_ids, []);
+});
+
+test("24/7 monitoring persists its selected channel but waits when the channel is empty", async (t) => {
+  const f = await setup(t);
+  f.voice.members.clear();
+  await f.service.stop(G, "Configuration changed", { pause: true });
+  await f.service.prepareChannel(f.guild, f.voice, f.i.user, { continuous: true });
+  const cfg = await f.service.config(G);
+  assert.equal(cfg.mode, "always");
+  assert.equal(cfg.continuous_channel_id, C);
+  assert.equal(f.service.paused.has(G), false);
+  await f.service.tick(f.client);
+  assert.equal(f.captured, 0);
+  assert.match(f.service.waiting.get(G), /Waiting for members/);
+});
+
+test("24/7 sessions have no hourly disconnect and display a valid continuous disclosure", async (t) => {
+  const f = await setup(t);
+  await f.service.prepareChannel(f.guild, f.voice, f.i.user, { continuous: true });
+  await f.service.tick(f.client);
+  const session = f.service.sessions.get(G);
+  assert.equal(session.continuous, true);
+  assert.equal(session.endsAt, Infinity);
+  assert.match(session.notice.payload.embeds[0].data.description, /24\/7/);
+  assert.doesNotMatch(session.notice.payload.embeds[0].data.description, /<t:Infinity/);
+  f.advance(61 * 60000);
+  await f.service.tick(f.client);
+  assert.equal(f.service.sessions.get(G).id, session.id);
+  assert.equal(f.captured, 1);
+});
+
+test("24/7 resumes after consent renewal, but a deliberate stop prevents automatic restarts", async (t) => {
+  const f = await setup(t);
+  await f.service.prepareChannel(f.guild, f.voice, f.i.user, { continuous: true });
+  await f.service.tick(f.client);
+  f.advance(24 * 3600000 + 1);
+  await f.service.tick(f.client);
+  assert.equal(f.service.sessions.size, 0);
+  assert.match(f.service.waiting.get(G), /consent/);
+  const cfg = await f.service.config(G);
+  await f.store.write("cvms_consents.json", { [G]: Object.fromEntries([U, A].map(id => [id, { scope: consentScope(cfg), expires_at: f.service.now() + 86400000 }])) });
+  await f.service.tick(f.client);
+  assert.equal(f.captured, 2);
+  await f.service.stop(G, "A participant stopped monitoring.", { pause: true });
+  await f.service.tick(f.client);
+  assert.equal(f.service.sessions.size, 0);
+  assert.equal(f.captured, 2);
+});
+
+test("24/7 selection survives a runtime restart without losing a deliberate pause", async (t) => {
+  const f = await setup(t);
+  await f.service.prepareChannel(f.guild, f.voice, f.i.user, { continuous: true });
+  f.service.close();
+  let captures = 0;
+  const restarted = new CvmsService({ store: f.store }, {
+    provider: { health: async () => true },
+    capture: () => ({ start: async () => { captures++; }, stop: () => {} }),
+  });
+  t.after(() => restarted.close());
+  await restarted.tick(f.client);
+  assert.equal(captures, 1);
+  assert.equal(restarted.sessions.get(G).channel.id, C);
+  await restarted.stop(G, "Stopped by participant", { pause: true });
+  restarted.paused.clear(); // Simulate a fresh in-memory cache reading the durable pause.
+  await restarted.tick(f.client);
+  assert.equal(captures, 1);
+  assert.equal(restarted.sessions.size, 0);
+});
+
+test("a stale pause read cannot undo an explicit 24/7 resume", async (t) => {
+  const f = await setup(t);
+  await f.service.prepareChannel(f.guild, f.voice, f.i.user, { continuous: true });
+  await f.service.stop(G, "Paused", { pause: true });
+  const read = f.store.read.bind(f.store);
+  let intercept = true;
+  f.store.read = async (file, ...rest) => {
+    const snapshot = await read(file, ...rest);
+    if (file === "cvms_pauses.json" && intercept) {
+      intercept = false;
+      await f.service.resume(G);
+    }
+    return snapshot;
+  };
+  await f.service.tick(f.client);
+  assert.equal(f.service.paused.has(G), false);
+  assert.equal(f.captured, 1);
+});
+
+test("Start command supports administrator channel selection and explains consent waits for 24/7", async (t) => {
+  const f = await setup(t), handlers = new Map();
+  const service = registerCvms({ register: (path, handler) => handlers.set(path, handler) }, {
+    store: f.store, components: { register: () => {} }, audit: async () => {},
+  }, { provider: { health: async () => true }, capture: () => ({ start: async () => {}, stop: () => {} }) });
+  t.after(() => service.close());
+  await service.update(G, cfg => { cfg.channel_ids = []; });
+  const i = { ...f.i, options: {
+    getChannel: () => ({ id: C }), getInteger: () => null,
+    getBoolean: name => name === "continuous" ? true : null,
+  } };
+  const started = await handlers.get("cvms start")(i);
+  assert.match(started.content, /24\/7 mode/);
+  assert.doesNotMatch(started.content, /Infinity/);
+  assert.deepEqual((await service.config(G)).channel_ids, [C]);
+  await service.stop(G, "Test pause", { pause: true });
+  await service.withdraw(G, U);
+  const waiting = await handlers.get("cvms start")(i);
+  assert.match(waiting.content, /no receiver is active yet/);
+  assert.match(waiting.content, /consent/);
+  assert.equal(service.sessions.size, 0);
+  assert.equal((await service.config(G)).continuous_channel_id, C);
+  const conflicting = { ...i, options: { ...i.options, getInteger: () => 30 } };
+  await assert.rejects(handlers.get("cvms start")(conflicting), /Omit minutes/);
 });

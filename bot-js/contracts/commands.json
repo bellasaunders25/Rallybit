@@ -6456,10 +6456,16 @@
             {
               "type": 4,
               "name": "minutes",
-              "description": "Session length, after which monitoring stops.",
+              "description": "Timed session length; omit when using 24/7 monitoring.",
               "required": false,
               "min_value": 5,
               "max_value": 60
+            },
+            {
+              "type": 5,
+              "name": "continuous",
+              "description": "Monitor this channel 24/7 when consent allows (Manage Server).",
+              "required": false
             },
             {
               "type": 5,
