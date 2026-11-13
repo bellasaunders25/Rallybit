@@ -98,6 +98,10 @@ async def automation_loop(bot: discord.Client) -> None:
                 next_run = 0
             if next_run > now:
                 continue
+            # Claim the next interval before producing an external side effect.
+            schedule["next_run"] = _next_time(int(schedule.get("interval_minutes", 60)))
+            schedules[schedule_id] = schedule
+            save_json(AUTOMATION_SCHEDULES_FILE, data)
             try:
                 result = await run_schedule(bot, guild, schedule_id, schedule)
                 schedule["last_result"] = result
@@ -123,6 +127,7 @@ async def before_automation() -> None:
 
 
 def setup_automation_task(bot: discord.Client) -> None:
+    automation_loop.add_exception_type(RuntimeError, OSError)
     if not automation_loop.is_running():
         automation_loop.start(bot)
 

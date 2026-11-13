@@ -4,6 +4,7 @@ import asyncio
 import random
 import time
 import uuid
+from pathlib import Path
 from datetime import datetime, timezone
 from typing import Any
 
@@ -410,6 +411,16 @@ async def start_quiz(
 ) -> QuizSession:
     if guild.id in active_quizzes or str(guild.id) in _active_quiz_store():
         raise RuntimeError("A quiz is already active in this server.")
+    if automatic:
+        # Shared by legacy automatic quizzes AND independent automation schedules.
+        # Persist before sending; do not retry an uncertain send after a restart.
+        dispatch_file = Path(QUIZ_SETTINGS_FILE).with_name("quiz_dispatch.json")
+        dispatches = load_json(dispatch_file) or {}
+        previous = float(dispatches.get(str(guild.id), 0))
+        if time.time() - previous < 300:
+            raise RuntimeError("An automatic quiz ran recently. The next scheduled interval will be used.")
+        dispatches[str(guild.id)] = time.time()
+        save_json(dispatch_file, dispatches)
     if category != "mixed" and category not in CATEGORIES:
         category = "mixed"
     duration = max(15, min(120, int(duration)))

@@ -367,7 +367,16 @@ class BotClient(discord.AutoShardedClient):
 
     async def _cache_loop(self):
         while not self.is_closed():
-            self.save_guilds_to_file()
+            try:
+                self.save_guilds_to_file()
+                from commands.tickets import reconcile_ticket_support_roles
+                for guild in self.guilds:
+                    try:
+                        await reconcile_ticket_support_roles(guild)
+                    except Exception as exc:
+                        print(f"[TICKET ACCESS] {guild.id}: {exc}")
+            except Exception as exc:
+                print(f"[CACHE] Persistence failed; will retry: {exc}")
             await asyncio.sleep(60)
 
     async def on_ready(self):

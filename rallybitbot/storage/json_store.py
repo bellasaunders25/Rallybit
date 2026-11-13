@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import threading
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -30,10 +31,12 @@ def load_json(path: str | os.PathLike[str], default: Any = None) -> Any:
 def save_json(path: str | os.PathLike[str], data: Any) -> bool:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    temp = target.with_suffix(target.suffix + ".tmp")
     with _lock_for(target):
+        temp = None
         try:
-            with temp.open("w", encoding="utf-8") as handle:
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=target.parent,
+                                             prefix=target.name + ".", suffix=".tmp", delete=False) as handle:
+                temp = Path(handle.name)
                 json.dump(data, handle, indent=2, ensure_ascii=False)
                 handle.flush()
                 os.fsync(handle.fileno())
@@ -42,7 +45,8 @@ def save_json(path: str | os.PathLike[str], data: Any) -> bool:
         except OSError as exc:
             print(f"[STORAGE] Could not write {target}: {exc}")
             try:
-                temp.unlink(missing_ok=True)
+                if temp is not None:
+                    temp.unlink(missing_ok=True)
             except OSError:
                 pass
-            return False
+            raise RuntimeError("Rallybit could not save this change. Check server storage and try again; the change was not saved.") from exc

@@ -142,7 +142,8 @@ def _ticket_support_role_ids(guild_id: int, record: dict[str, Any] | None) -> se
         panel_id = str(record.get("panel_id") or "")
         panel = _panels().get(str(guild_id), {}).get(panel_id)
         if isinstance(panel, dict):
-            values.extend(panel.get("support_role_ids", []))
+            if not panel.get("options"):
+                values.extend(panel.get("support_role_ids", []))
             option = _panel_option(panel, str(record.get("option_id") or ""))
             if option:
                 values.extend(option.get("support_role_ids", []))
@@ -274,7 +275,9 @@ def _effective_ticket_panel(panel: dict[str, Any], option_id: str | None) -> tup
         raise RuntimeError("This ticket option is currently closed.")
     effective = dict(panel)
     effective.update(option)
-    common_roles = panel.get("support_role_ids", []) if isinstance(panel.get("support_role_ids"), list) else []
+    # In dropdown panels this top-level field is a legacy mirror of option one,
+    # not an additional grant shared by every category.
+    common_roles = [] if panel.get("options") else panel.get("support_role_ids", [])
     effective["support_role_ids"] = list(dict.fromkeys([*common_roles, *option.get("support_role_ids", [])]))
     return effective, option
 
@@ -639,6 +642,7 @@ async def create_ticket(
         "option_id": str(selected_option.get("option_id") or ""), "claimed_by": None,
         "status": "Open", "priority": "Medium", "reason": (reason or "").strip()[:1000],
         "case_id": case_id,
+        "managed_support_role_ids": [str(role.id) for role in support_roles],
         "created_at": datetime.now(timezone.utc).isoformat(), "updated_at": datetime.now(timezone.utc).isoformat(),
     }
     open_data[str(guild.id)] = guild_open; _save_open(open_data)
@@ -1113,7 +1117,7 @@ async def update_ticket_panel(
         "category_id": first_option.get("category_id"),
         "title": title.strip()[:256],
         "description": description.strip()[:4000],
-        "support_role_ids": list(first_option.get("support_role_ids", [])),
+        "support_role_ids": [],
         "select_placeholder": select_placeholder.strip()[:150] or "Select a ticket type…",
         "options": normalised_options,
         "color": f"#{_panel_colour(color):06X}",
@@ -1138,7 +1142,59 @@ async def update_ticket_panel(
         _save_panels(data)
         await _refresh_ticket_panel_message(guild, panel_id, previous, TicketPanelView(guild.id, panel_id, previous))
         raise RuntimeError("Rallybit could not update the original ticket message, so the saved panel was restored.")
+    await reconcile_ticket_support_roles(guild, panel_id, previous)
     return updated
+
+
+async def reconcile_ticket_support_roles(guild, panel_id=None, previous_panel=None) -> None:
+    """Revoke obsolete bot-created grants without changing unrelated overwrites."""
+    data = _open()
+    changed = False
+    for channel_id, record in data.get(str(guild.id), {}).items():
+        if panel_id and record.get("panel_id") != panel_id:
+            continue
+        channel = guild.get_channel(int(channel_id))
+        if not isinstance(channel, discord.TextChannel):
+            continue
+        desired = _ticket_support_role_ids(guild.id, record)
+        old = {int(value) for value in record.get("managed_support_role_ids", []) if str(value).isdigit()}
+        if previous_panel:
+            old.update(int(value) for value in previous_panel.get("support_role_ids", []) if str(value).isdigit())
+            option = _panel_option(previous_panel, str(record.get("option_id") or ""))
+            if option:
+                old.update(int(value) for value in option.get("support_role_ids", []) if str(value).isdigit())
+        # Pre-ledger tickets: recognise only the exact support grant Rallybit made.
+        if "managed_support_role_ids" not in record:
+            for target, overwrite in channel.overwrites.items():
+                if isinstance(target, discord.Role) and all(getattr(overwrite, key) is True for key in
+                    ("view_channel", "send_messages", "read_message_history", "manage_messages")):
+                    old.add(target.id)
+        for role_id in old - desired:
+            role = guild.get_role(role_id)
+            if role is None or role.is_default():
+                continue
+            overwrite = channel.overwrites_for(role)
+            for key in ("view_channel", "send_messages", "read_message_history", "manage_messages"):
+                setattr(overwrite, key, None)
+            await channel.set_permissions(role, overwrite=None if overwrite.is_empty() else overwrite,
+                                          reason="Rallybit ticket support role removed")
+        for role_id in desired:
+            role = guild.get_role(role_id)
+            if role is None or role.is_default():
+                continue
+            overwrite = channel.overwrites_for(role)
+            expected = {"view_channel": True, "read_message_history": True, "manage_messages": True,
+                        "send_messages": str(record.get("status", "Open")).lower() != "closed"}
+            if any(getattr(overwrite, key) != value for key, value in expected.items()):
+                for key, value in expected.items():
+                    setattr(overwrite, key, value)
+                await channel.set_permissions(role, overwrite=overwrite, reason="Rallybit ticket support roles updated")
+        current = sorted(str(value) for value in desired)
+        if record.get("managed_support_role_ids") != current:
+            record["managed_support_role_ids"] = current
+            changed = True
+    if changed:
+        _save_open(data)
 
 
 async def add_ticket_panel_option(

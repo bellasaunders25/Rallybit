@@ -69,7 +69,9 @@ async def auto_quiz_loop() -> None:
 
         settings["last_run"] = now.isoformat()
         settings_data[gid] = settings
-        changed = True
+        # Reserve the interval durably BEFORE any Discord message or role ping.
+        # A full disk must pause automation, never turn it into a retry flood.
+        save_json(QUIZ_SETTINGS_FILE, settings_data)
 
         async def launch(target_guild=guild, target_channel=channel, cfg=dict(settings)) -> None:
             try:
@@ -95,12 +97,11 @@ async def auto_quiz_loop() -> None:
 
         asyncio.create_task(launch(), name=f"rallybit-auto-quiz-{guild.id}")
 
-    if changed:
-        save_json(QUIZ_SETTINGS_FILE, settings_data)
 
 
 def setup_auto_quiz(bot) -> None:
     global _bot
     _bot = bot
+    auto_quiz_loop.add_exception_type(RuntimeError, OSError)
     if not auto_quiz_loop.is_running():
         auto_quiz_loop.start()

@@ -16,6 +16,8 @@ function secure_session_init(): void {
         $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
             (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https');
 
+        // Keep Rallybit separate from other PHP apps on the same host.
+        session_name('RALLYBIT_SESSION');
         ini_set('session.cookie_httponly', '1');
         ini_set('session.use_only_cookies', '1');
         ini_set('session.use_strict_mode', '1');

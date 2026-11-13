@@ -1,9 +1,11 @@
 <?php
 require_once 'includes/functions.php';
-if (empty($_GET['code']) || empty($_GET['state']) || !hash_equals((string)($_SESSION['oauth_state'] ?? ''), (string)$_GET['state'])) {
+$state = is_string($_GET['state'] ?? null) ? $_GET['state'] : '';
+$validState = $state !== '' && (int)($_SESSION['oauth_states'][$state] ?? 0) > time();
+if (empty($_GET['code']) || !$validState) {
     http_response_code(400); exit('Invalid OAuth request. Please try signing in again.');
 }
-unset($_SESSION['oauth_state']);
+unset($_SESSION['oauth_state'], $_SESSION['oauth_states'][$state]);
 $token = discord_oauth_token_request([
     'grant_type' => 'authorization_code',
     'code' => (string)$_GET['code'],

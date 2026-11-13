@@ -27,6 +27,7 @@ from core.bot_settings import get_bot_settings, save_bot_settings
 from core.plan_branding import sync_plan_avatars
 from core.premium import grant_entitlement, load_entitlements, revoke_entitlement
 from core.presence import normalise_presence_status
+from storage.json_store import save_json
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
@@ -295,9 +296,10 @@ def write_json_route():
     payload = request.get_json(silent=True) or {}
     path = get_file_path(payload.get("file"))
     if not path: return jsonify({"error": "invalid file"}), 400
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(json.dumps(payload.get("data", {}), indent=2), encoding="utf-8")
-    temp.replace(path)
+    try:
+        save_json(path, payload.get("data", {}))
+    except RuntimeError as exc:
+        return jsonify({"error": str(exc)}), 507
     return jsonify({"ok": True})
 
 

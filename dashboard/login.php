@@ -7,6 +7,12 @@ if (isset($_GET['redirect'])) {
 }
 $state = bin2hex(random_bytes(24));
 $_SESSION['oauth_state'] = $state;
+// Allow parallel sign-in tabs without replacing another valid state.
+$_SESSION['oauth_states'] = array_filter($_SESSION['oauth_states'] ?? [], fn($expiry) => (int)$expiry > time());
+$_SESSION['oauth_states'][$state] = time() + 600;
+$_SESSION['oauth_states'] = array_slice($_SESSION['oauth_states'], -8, null, true);
+header('Cache-Control: no-store, private');
+session_write_close();
 $params = ['client_id'=>DISCORD_CLIENT_ID,'redirect_uri'=>DISCORD_REDIRECT_URI,'response_type'=>'code','scope'=>'identify guilds','state'=>$state];
 $oauthUrl = 'https://discord.com/oauth2/authorize?' . http_build_query($params);
 ?>

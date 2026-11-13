@@ -97,7 +97,7 @@ class TicketPanelTests(unittest.TestCase):
         effective, selected = tickets._effective_ticket_panel(panel, "staff")
         self.assertEqual(selected["option_id"], "STAFF")
         self.assertEqual(effective["category_id"], "300")
-        self.assertEqual(effective["support_role_ids"], ["200", "400"])
+        self.assertEqual(effective["support_role_ids"], ["400"])
         self.assertEqual(effective["ticket_name"], "staff-{username}")
 
     def test_option_limit_and_invalid_text_icon_are_safe(self) -> None:
