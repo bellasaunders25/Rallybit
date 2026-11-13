@@ -48,25 +48,48 @@ Every native handler must register against that inventory; duplicate and unknown
 paths are rejected. Production startup refuses to connect to Discord until all
 202 paths have handlers. No migration placeholders are exposed as working commands.
 
-Currently implemented: dashboard, help, support, and the three account-age-gate
-configuration commands. Shared services provide a serialised atomic JSON store,
-durable schedule reservations, command dispatch, service-notice embeds, reply
-visibility, and errors. The live deployment stays on the corrected Python runtime
-while feature parity is implemented and verified.
+Currently implemented: **37 of 202 commands**. This includes dashboard, help,
+support, the three account-age-gate configuration commands, all 28 staff/workforce
+commands (including the four Pro staff commands), and role give/remove/temp.
+The staff ledger preserves active shifts, breaks, completed record IDs, HR
+corrections and LOA/ROA requests. Temporary-role timers survive restarts, enforce
+member/role hierarchy, and retain failed nickname restorations for retry.
+
+Shared services now provide a serialised atomic JSON store, safe legacy Discord
+ID parsing, a SQLite runtime/job lease, durable schedule reservations, command
+dispatch, current member/role checks, UTC entitlement expiry, service-notice
+embeds, reply visibility, and bounded audit records. A central access policy is
+required for every registered handler. Permission failures are private.
+
+The complete Discord registration contract has been exported to
+`bot-js/contracts/commands.json`. The tests compare all 202 paths, option names,
+types, choices, required flags and boundaries against the reference inventory.
+The export tool creates no additional gateway connection and performs no Discord
+registration writes. The comparison also corrected 22 string-length metadata
+fields in the public command reference.
+
+The JavaScript tests cover concurrent clock-ins, break timing across restarts,
+record deletion confirmation, request ownership, Network ownership and expiry,
+role hierarchy, timed-role expiry, permanent conversion, nickname recovery,
+disk-full failures, duplicate schedulers, uncertain sends and lease replacement.
+
+The live deployment stays on the corrected Python runtime while feature parity
+is implemented and verified. Handler coverage alone is not proof of full event,
+dashboard API, recovery or persistent-component compatibility.
 
 Remaining conversion work, in order:
 
-1. Command registration schemas, full permission/entitlement guards, authenticated
-   dashboard API compatibility, single-instance ownership and health reporting.
-2. Moderation, manual and temporary roles, reports, reviews and channel archives.
+1. Complete authenticated dashboard API compatibility and health reporting;
+   expand guard and registration tests alongside each migrated module.
+2. Moderation, reports, reviews and channel archives.
 3. Tickets: existing persistent component IDs, forms, transcripts, claim/close/
    reopen/delete workflows, permission reconciliation, and timed deletion.
 4. Quizzes, community pulses, activity checks, giveaways and automation recovery.
    One durable scheduler must own all dispatches; do not replay a missed backlog.
 5. Security listeners, audit events, welcome/goodbye, invites, levels, autoroles,
    reaction roles and verification.
-6. Workforce, LOA/ROA, premium analytics, backups, Network, Prettfy and developer
-   tools, with the existing state formats preserved or explicitly migrated.
+6. Premium analytics, backups, Network, Prettfy and developer tools, with the
+   existing state formats preserved or explicitly migrated.
 7. Compare all commands, arguments, choices, checks and persistent components to
    the old runtime, test recovery and failure cases, back up data, stop the old
    gateway/schedulers, and perform a single-instance cutover with rollback.

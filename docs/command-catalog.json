@@ -1015,10 +1015,10 @@
           "required": false,
           "type": "string",
           "default": null,
-          "min_value": 1,
-          "max_value": 300,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 300,
           "choices": []
         },
         {
@@ -1453,10 +1453,10 @@
           "required": false,
           "type": "string",
           "default": null,
-          "min_value": 1,
-          "max_value": 80,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 80,
           "choices": []
         },
         {
@@ -1741,10 +1741,10 @@
           "required": true,
           "type": "string",
           "default": "...",
-          "min_value": 1,
-          "max_value": 100,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 100,
           "choices": []
         },
         {
@@ -1753,10 +1753,10 @@
           "required": true,
           "type": "string",
           "default": "...",
-          "min_value": 1,
-          "max_value": 2000,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 2000,
           "choices": []
         },
         {
@@ -4620,10 +4620,10 @@
           "required": false,
           "type": "string",
           "default": null,
-          "min_value": 1,
-          "max_value": 300,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 300,
           "choices": []
         },
         {
@@ -4680,10 +4680,10 @@
           "required": false,
           "type": "string",
           "default": null,
-          "min_value": 1,
-          "max_value": 300,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 300,
           "choices": []
         },
         {
@@ -4781,10 +4781,10 @@
           "required": false,
           "type": "string",
           "default": null,
-          "min_value": 1,
-          "max_value": 32,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 32,
           "choices": []
         },
         {
@@ -4793,10 +4793,10 @@
           "required": false,
           "type": "string",
           "default": null,
-          "min_value": 1,
-          "max_value": 300,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 300,
           "choices": []
         },
         {
@@ -5641,10 +5641,10 @@
           "required": false,
           "type": "string",
           "default": null,
-          "min_value": 1,
-          "max_value": 400,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 400,
           "choices": []
         },
         {
@@ -8936,10 +8936,10 @@
           "required": true,
           "type": "string",
           "default": "...",
-          "min_value": 1,
-          "max_value": 300,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 300,
           "choices": []
         },
         {
@@ -8984,10 +8984,10 @@
           "required": true,
           "type": "string",
           "default": "...",
-          "min_value": 1,
-          "max_value": 300,
-          "min_length": null,
-          "max_length": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 1,
+          "max_length": 300,
           "choices": []
         },
         {

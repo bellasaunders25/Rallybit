@@ -332,7 +332,7 @@ async function initialiseCommandCatalogue() {
   const clear = document.querySelector('[data-command-clear]');
 
   try {
-    const response = await fetch('/docs/command-catalog.json?v=9.0');
+    const response = await fetch('/docs/command-catalog.json?v=9.1');
     if (!response.ok) throw new Error(`Catalogue request failed with ${response.status}`);
     const catalogue = await response.json();
     const commands = Array.isArray(catalogue.commands) ? catalogue.commands : [];

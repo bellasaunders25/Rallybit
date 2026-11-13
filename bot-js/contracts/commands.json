@@ -1,0 +1,6131 @@
+{
+  "version": 1,
+  "root_count": 77,
+  "command_count": 202,
+  "paths": [
+    "about",
+    "activitycheck",
+    "addadmin",
+    "afk",
+    "automation add",
+    "automation clear",
+    "automation list",
+    "automation remove",
+    "automation run",
+    "automation toggle",
+    "autorole add",
+    "autorole clear",
+    "autorole list",
+    "autorole remove",
+    "backup create",
+    "backup delete",
+    "backup drift",
+    "backup inspect",
+    "backup list",
+    "backup restore",
+    "banserver",
+    "banuser",
+    "break end",
+    "break start",
+    "case export",
+    "case member",
+    "case recent",
+    "case stats",
+    "channel purge",
+    "channel transcript",
+    "checkinactive",
+    "clearsnipes",
+    "clockin",
+    "clockout",
+    "community icebreaker",
+    "community pingrole",
+    "community pulse",
+    "community pulsehistory",
+    "community settings",
+    "community stoppulse",
+    "dashboard",
+    "duty",
+    "editsnipe",
+    "endactivitycheck",
+    "forceclockout",
+    "giveaway end",
+    "giveaway list",
+    "giveaway reroll",
+    "giveaway settings",
+    "giveaway start",
+    "goodbye disable",
+    "goodbye setup",
+    "help",
+    "inactive",
+    "insights export",
+    "insights overview",
+    "invites leaderboard",
+    "invites user",
+    "leaderboard",
+    "level leaderboard",
+    "level rank",
+    "level reward add",
+    "level reward list",
+    "level reward remove",
+    "level setup",
+    "level setxp",
+    "loa cancel",
+    "loa end",
+    "loa request",
+    "loa setstatus",
+    "loa settings",
+    "loa status",
+    "logs channel",
+    "logs overview",
+    "logs test",
+    "logs toggle",
+    "mod panel",
+    "mod unban",
+    "mod unwarn",
+    "mod warn",
+    "mod warnings",
+    "network broadcast",
+    "network channel",
+    "network export",
+    "network overview",
+    "premium plans",
+    "premium status",
+    "prettfy",
+    "profile",
+    "quiz auto",
+    "quiz leaderboard",
+    "quiz pingrole",
+    "quiz settings",
+    "quiz setup",
+    "quiz start",
+    "quiz stop",
+    "reactionrole add",
+    "reactionrole list",
+    "reactionrole remove",
+    "report claim",
+    "report close",
+    "report history",
+    "report list",
+    "report reopen",
+    "report setstatus",
+    "report settings",
+    "report status",
+    "report user",
+    "review",
+    "roa cancel",
+    "roa end",
+    "roa request",
+    "roa setstatus",
+    "roa settings",
+    "roa status",
+    "role give",
+    "role remove",
+    "role temp",
+    "security audit",
+    "security clearinvites",
+    "security history",
+    "security lockdown",
+    "security overview",
+    "security panic",
+    "security purgeuser",
+    "security quarantine",
+    "security release",
+    "security system",
+    "security-agegate configure",
+    "security-agegate disable",
+    "security-agegate status",
+    "security-antibot configure",
+    "security-antispam configure",
+    "security-automod addterm",
+    "security-automod configure",
+    "security-automod removeterm",
+    "security-automod terms",
+    "security-logs channel",
+    "security-logs events",
+    "security-logs ownerdm",
+    "security-modules set",
+    "security-modules threshold",
+    "security-trap disable",
+    "security-trap repair",
+    "security-trap setup",
+    "security-trap status",
+    "security-trust add",
+    "security-trust adminbypass",
+    "security-trust list",
+    "security-trust remove",
+    "setactivitytext",
+    "setauto",
+    "setbuttontext",
+    "setduration",
+    "setlogs",
+    "setmode",
+    "setperm",
+    "setping",
+    "setreactor",
+    "settings",
+    "setwinner",
+    "shift",
+    "shifts clear",
+    "shifts list",
+    "shifts remove",
+    "snipe",
+    "staff clockin",
+    "staff clockout",
+    "staff leaderboard",
+    "staff status",
+    "staffhours",
+    "startauto",
+    "stopauto",
+    "support",
+    "syncguilds",
+    "ticket add",
+    "ticket claim",
+    "ticket close",
+    "ticket create",
+    "ticket panel add-option",
+    "ticket panel create",
+    "ticket panel delete",
+    "ticket panel list",
+    "ticket panel remove-option",
+    "ticket priority",
+    "ticket remove",
+    "ticket rename",
+    "ticket reopen",
+    "ticket setstatus",
+    "ticket settings",
+    "ticket setup",
+    "ticket status",
+    "ticket transcript",
+    "ticket unclaim",
+    "timesheet",
+    "userleaderboard",
+    "verification disable",
+    "verification setup",
+    "verification status",
+    "welcome disable",
+    "welcome preview",
+    "welcome setup"
+  ],
+  "registration": [
+    {
+      "name": "activitycheck",
+      "description": "Start an activity check in the server.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "setlogs",
+      "description": "Set the channel used for activity reports.",
+      "type": 1,
+      "options": [
+        {
+          "type": 7,
+          "name": "channel",
+          "description": "…",
+          "required": true,
+          "channel_types": [
+            0,
+            5
+          ]
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "setactivitytext",
+      "description": "Set high-fidelity custom activity check text (Modal).",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "setreactor",
+      "description": "Set reaction emoji.",
+      "type": 1,
+      "options": [
+        {
+          "type": 3,
+          "name": "emoji",
+          "description": "…",
+          "required": true
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "setping",
+      "description": "Set who to ping (@everyone or Role).",
+      "type": 1,
+      "options": [
+        {
+          "type": 8,
+          "name": "role",
+          "description": "…",
+          "required": false
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "setwinner",
+      "description": "Set the number of participants required to finish a check.",
+      "type": 1,
+      "options": [
+        {
+          "type": 4,
+          "name": "count",
+          "description": "…",
+          "required": true
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "setduration",
+      "description": "Set how long an activity check remains open.",
+      "type": 1,
+      "options": [
+        {
+          "type": 4,
+          "name": "minutes",
+          "description": "…",
+          "required": true
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "setperm",
+      "description": "Set role permission for non-admins.",
+      "type": 1,
+      "options": [
+        {
+          "type": 8,
+          "name": "role",
+          "description": "…",
+          "required": true
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "setauto",
+      "description": "Schedule recurring activity checks.",
+      "type": 1,
+      "options": [
+        {
+          "type": 4,
+          "name": "hours",
+          "description": "…",
+          "required": true
+        },
+        {
+          "type": 7,
+          "name": "channel",
+          "description": "…",
+          "required": true,
+          "channel_types": [
+            0,
+            5
+          ]
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "startauto",
+      "description": "Resume scheduled activity checks.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "stopauto",
+      "description": "Pause scheduled activity checks.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "endactivitycheck",
+      "description": "Manually stop the current check.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "setmode",
+      "description": "Choose between emoji reactions and buttons.",
+      "type": 1,
+      "options": [
+        {
+          "type": 3,
+          "name": "mode",
+          "description": "…",
+          "required": true,
+          "choices": [
+            {
+              "name": "Emoji Reactions (Classic)",
+              "value": "reaction"
+            },
+            {
+              "name": "Buttons (Modern)",
+              "value": "button"
+            }
+          ]
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "setbuttontext",
+      "description": "Customize the activity check button text.",
+      "type": 1,
+      "options": [
+        {
+          "type": 3,
+          "name": "text",
+          "description": "The label for the button. Use {count} for live participant numbers.",
+          "required": true
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "logs",
+      "description": "Configure complete Dyno-style server action logging.",
+      "type": 1,
+      "options": [
+        {
+          "name": "channel",
+          "description": "Choose the default or event-specific log channel.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "event",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Default for every event",
+                  "value": "default"
+                },
+                {
+                  "name": "Commands",
+                  "value": "commands"
+                },
+                {
+                  "name": "Configuration",
+                  "value": "configuration"
+                },
+                {
+                  "name": "Moderation",
+                  "value": "moderation"
+                },
+                {
+                  "name": "Members",
+                  "value": "members"
+                },
+                {
+                  "name": "Messages",
+                  "value": "messages"
+                },
+                {
+                  "name": "Roles",
+                  "value": "roles"
+                },
+                {
+                  "name": "Channels",
+                  "value": "channels"
+                },
+                {
+                  "name": "Voice",
+                  "value": "voice"
+                },
+                {
+                  "name": "Tickets",
+                  "value": "tickets"
+                },
+                {
+                  "name": "Reports",
+                  "value": "reports"
+                },
+                {
+                  "name": "Staff operations",
+                  "value": "staff"
+                },
+                {
+                  "name": "Security",
+                  "value": "security"
+                }
+              ]
+            },
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "…",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "toggle",
+          "description": "Enable or disable one category of event logging.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "event",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Commands",
+                  "value": "commands"
+                },
+                {
+                  "name": "Configuration",
+                  "value": "configuration"
+                },
+                {
+                  "name": "Moderation",
+                  "value": "moderation"
+                },
+                {
+                  "name": "Members",
+                  "value": "members"
+                },
+                {
+                  "name": "Messages",
+                  "value": "messages"
+                },
+                {
+                  "name": "Roles",
+                  "value": "roles"
+                },
+                {
+                  "name": "Channels",
+                  "value": "channels"
+                },
+                {
+                  "name": "Voice",
+                  "value": "voice"
+                },
+                {
+                  "name": "Tickets",
+                  "value": "tickets"
+                },
+                {
+                  "name": "Reports",
+                  "value": "reports"
+                },
+                {
+                  "name": "Staff operations",
+                  "value": "staff"
+                },
+                {
+                  "name": "Security",
+                  "value": "security"
+                }
+              ]
+            },
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "overview",
+          "description": "View every configured logging category and destination.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "test",
+          "description": "Send a test entry through the configured logging system.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "event",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Commands",
+                  "value": "commands"
+                },
+                {
+                  "name": "Configuration",
+                  "value": "configuration"
+                },
+                {
+                  "name": "Moderation",
+                  "value": "moderation"
+                },
+                {
+                  "name": "Members",
+                  "value": "members"
+                },
+                {
+                  "name": "Messages",
+                  "value": "messages"
+                },
+                {
+                  "name": "Roles",
+                  "value": "roles"
+                },
+                {
+                  "name": "Channels",
+                  "value": "channels"
+                },
+                {
+                  "name": "Voice",
+                  "value": "voice"
+                },
+                {
+                  "name": "Tickets",
+                  "value": "tickets"
+                },
+                {
+                  "name": "Reports",
+                  "value": "reports"
+                },
+                {
+                  "name": "Staff operations",
+                  "value": "staff"
+                },
+                {
+                  "name": "Security",
+                  "value": "security"
+                }
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "afk",
+      "description": "Set your AFK status and optional reason.",
+      "type": 1,
+      "options": [
+        {
+          "type": 3,
+          "name": "reason",
+          "description": "Why you are away",
+          "required": false
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "leaderboard",
+      "description": "Show the server activity or staff-hours leaderboard.",
+      "type": 1,
+      "options": [
+        {
+          "type": 3,
+          "name": "category",
+          "description": "…",
+          "required": false,
+          "choices": [
+            {
+              "name": "Activity check-ins",
+              "value": "activity"
+            },
+            {
+              "name": "Staff hours",
+              "value": "staff"
+            }
+          ]
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "userleaderboard",
+      "description": "Show the global top 10 for activity wins.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "profile",
+      "description": "Show a user's global Rallybit profile.",
+      "type": 1,
+      "options": [
+        {
+          "type": 6,
+          "name": "user",
+          "description": "Select a user to view their profile.",
+          "required": true
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "premium",
+      "description": "View Rallybit plans and preview access.",
+      "type": 1,
+      "options": [
+        {
+          "name": "status",
+          "description": "View the plan currently active in this server.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "plans",
+          "description": "Compare Free, Community, Pro, and Network previews.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "insights",
+      "description": "Premium server operations and analytics.",
+      "type": 1,
+      "options": [
+        {
+          "name": "overview",
+          "description": "View activity, ticket, moderation, and staff totals.",
+          "type": 1,
+          "options": [
+            {
+              "type": 4,
+              "name": "days",
+              "description": "Reporting period from 7 to 365 days",
+              "required": false,
+              "min_value": 7,
+              "max_value": 365
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "export",
+          "description": "Export detailed operational records as a CSV file.",
+          "type": 1,
+          "options": [
+            {
+              "type": 4,
+              "name": "days",
+              "description": "Reporting period from 7 to 365 days",
+              "required": false,
+              "min_value": 7,
+              "max_value": 365
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "staff",
+      "description": "Premium staff shift tracking.",
+      "type": 1,
+      "options": [
+        {
+          "name": "clockin",
+          "description": "Start your staff shift.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "note",
+              "description": "Optional note describing your shift",
+              "required": false,
+              "min_length": 1,
+              "max_length": 300
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "clockout",
+          "description": "Finish your active staff shift.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "View your own or another staff member's shift status.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "Staff member to inspect; leave empty for yourself",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "leaderboard",
+          "description": "Rank recorded staff time over a selected period.",
+          "type": 1,
+          "options": [
+            {
+              "type": 4,
+              "name": "days",
+              "description": "Reporting period from 7 to 365 days",
+              "required": false,
+              "min_value": 7,
+              "max_value": 365
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "case",
+      "description": "Search and export the server's moderation case history.",
+      "type": 1,
+      "options": [
+        {
+          "name": "member",
+          "description": "View a member's complete moderation record.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "Member whose cases you want to inspect",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "limit",
+              "description": "Number of recent actions to show",
+              "required": false,
+              "min_value": 1,
+              "max_value": 20
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "recent",
+          "description": "Search recent moderation actions by type or moderator.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "action",
+              "description": "…",
+              "required": false,
+              "choices": [
+                {
+                  "name": "Warn",
+                  "value": "warn"
+                },
+                {
+                  "name": "Unwarn",
+                  "value": "unwarn"
+                },
+                {
+                  "name": "Timeout",
+                  "value": "timeout"
+                },
+                {
+                  "name": "Untimeout",
+                  "value": "untimeout"
+                },
+                {
+                  "name": "Kick",
+                  "value": "kick"
+                },
+                {
+                  "name": "Ban",
+                  "value": "ban"
+                },
+                {
+                  "name": "Unban",
+                  "value": "unban"
+                },
+                {
+                  "name": "Clear",
+                  "value": "clear"
+                },
+                {
+                  "name": "Nickname",
+                  "value": "nickname"
+                },
+                {
+                  "name": "Role Add",
+                  "value": "role_add"
+                },
+                {
+                  "name": "Role Remove",
+                  "value": "role_remove"
+                }
+              ]
+            },
+            {
+              "type": 6,
+              "name": "moderator",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 4,
+              "name": "limit",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 20
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "stats",
+          "description": "See moderation workload, action types, and top moderators.",
+          "type": 1,
+          "options": [
+            {
+              "type": 4,
+              "name": "days",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 365
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "export",
+          "description": "Export filtered moderation cases as a CSV audit file.",
+          "type": 1,
+          "options": [
+            {
+              "type": 4,
+              "name": "days",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 365
+            },
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 6,
+              "name": "moderator",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "action",
+              "description": "…",
+              "required": false,
+              "choices": [
+                {
+                  "name": "Warn",
+                  "value": "warn"
+                },
+                {
+                  "name": "Unwarn",
+                  "value": "unwarn"
+                },
+                {
+                  "name": "Timeout",
+                  "value": "timeout"
+                },
+                {
+                  "name": "Untimeout",
+                  "value": "untimeout"
+                },
+                {
+                  "name": "Kick",
+                  "value": "kick"
+                },
+                {
+                  "name": "Ban",
+                  "value": "ban"
+                },
+                {
+                  "name": "Unban",
+                  "value": "unban"
+                },
+                {
+                  "name": "Clear",
+                  "value": "clear"
+                },
+                {
+                  "name": "Nickname",
+                  "value": "nickname"
+                },
+                {
+                  "name": "Role Add",
+                  "value": "role_add"
+                },
+                {
+                  "name": "Role Remove",
+                  "value": "role_remove"
+                }
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "backup",
+      "description": "Create and restore Rallybit configuration snapshots.",
+      "type": 1,
+      "options": [
+        {
+          "name": "create",
+          "description": "Save a restorable snapshot of every Rallybit server setting.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "label",
+              "description": "…",
+              "required": false,
+              "min_length": 1,
+              "max_length": 80
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "description": "List the server's retained configuration backups.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "inspect",
+          "description": "Inspect a backup before restoring it.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "backup_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "drift",
+          "description": "Compare current settings, channels, and roles with a backup.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "backup_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "restore",
+          "description": "Restore every Rallybit setting from a backup.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "backup_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "confirm",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "delete",
+          "description": "Permanently delete a retained configuration backup.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "backup_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "confirm",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "network",
+      "description": "Operate every Discord server you own from one place.",
+      "type": 1,
+      "options": [
+        {
+          "name": "channel",
+          "description": "Set this owned server's Network announcement destination.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "destination",
+              "description": "…",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "overview",
+          "description": "View every owned server and its Network readiness.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "broadcast",
+          "description": "Send one announcement to every configured server you own.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "title",
+              "description": "…",
+              "required": true,
+              "min_length": 1,
+              "max_length": 100
+            },
+            {
+              "type": 3,
+              "name": "message",
+              "description": "…",
+              "required": true,
+              "min_length": 1,
+              "max_length": 2000
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "export",
+          "description": "Export owned-server size and announcement readiness as CSV.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "prettfy",
+      "description": "Safely redesign channel and role names through a guided DM preview.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "undo_last",
+          "description": "Restore names from the most recent Prettfy run",
+          "required": false
+        },
+        {
+          "type": 5,
+          "name": "retry_last",
+          "description": "Retry with your saved setup without answering the DM questions again",
+          "required": false
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": false,
+      "default_member_permissions": null,
+      "contexts": [
+        0
+      ],
+      "integration_types": null
+    },
+    {
+      "name": "help",
+      "description": "View Rallybit commands and setup links.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "about",
+      "description": "View Rallybit information and live statistics.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "support",
+      "description": "Get help with Rallybit.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "ticket",
+      "description": "Ticket Tool-style support tickets.",
+      "type": 1,
+      "options": [
+        {
+          "name": "panel",
+          "description": "Create and manage ticket panels.",
+          "type": 2,
+          "options": [
+            {
+              "name": "create",
+              "description": "Create and send a ticket panel.",
+              "type": 1,
+              "options": [
+                {
+                  "type": 3,
+                  "name": "name",
+                  "description": "…",
+                  "required": true
+                },
+                {
+                  "type": 7,
+                  "name": "channel",
+                  "description": "…",
+                  "required": true,
+                  "channel_types": [
+                    0,
+                    5
+                  ]
+                },
+                {
+                  "type": 7,
+                  "name": "category",
+                  "description": "…",
+                  "required": true,
+                  "channel_types": [
+                    4
+                  ]
+                },
+                {
+                  "type": 3,
+                  "name": "title",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 3,
+                  "name": "description",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 8,
+                  "name": "support_role",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 3,
+                  "name": "option_description",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 3,
+                  "name": "option_icon",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 3,
+                  "name": "placeholder",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 3,
+                  "name": "header_image",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 3,
+                  "name": "thumbnail",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 3,
+                  "name": "image",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 3,
+                  "name": "footer_text",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 3,
+                  "name": "footer_icon",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 5,
+                  "name": "show_option_details",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 5,
+                  "name": "show_workload",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 5,
+                  "name": "show_guidance",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 5,
+                  "name": "private",
+                  "description": "Show Rallybit's command replies only to you.",
+                  "required": false
+                }
+              ]
+            },
+            {
+              "name": "add-option",
+              "description": "Add another category to an existing ticket dropdown.",
+              "type": 1,
+              "options": [
+                {
+                  "type": 3,
+                  "name": "panel_id",
+                  "description": "…",
+                  "required": true
+                },
+                {
+                  "type": 3,
+                  "name": "name",
+                  "description": "…",
+                  "required": true
+                },
+                {
+                  "type": 3,
+                  "name": "description",
+                  "description": "…",
+                  "required": true
+                },
+                {
+                  "type": 7,
+                  "name": "category",
+                  "description": "…",
+                  "required": true,
+                  "channel_types": [
+                    4
+                  ]
+                },
+                {
+                  "type": 3,
+                  "name": "icon",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 8,
+                  "name": "support_role",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 5,
+                  "name": "private",
+                  "description": "Show Rallybit's command replies only to you.",
+                  "required": false
+                }
+              ]
+            },
+            {
+              "name": "remove-option",
+              "description": "Remove a category from a ticket dropdown.",
+              "type": 1,
+              "options": [
+                {
+                  "type": 3,
+                  "name": "panel_id",
+                  "description": "…",
+                  "required": true
+                },
+                {
+                  "type": 3,
+                  "name": "option_id",
+                  "description": "…",
+                  "required": true
+                },
+                {
+                  "type": 5,
+                  "name": "private",
+                  "description": "Show Rallybit's command replies only to you.",
+                  "required": false
+                }
+              ]
+            },
+            {
+              "name": "list",
+              "description": "List ticket panels in this server.",
+              "type": 1,
+              "options": [
+                {
+                  "type": 5,
+                  "name": "private",
+                  "description": "Show Rallybit's command replies only to you.",
+                  "required": false
+                }
+              ]
+            },
+            {
+              "name": "delete",
+              "description": "Delete a ticket panel configuration.",
+              "type": 1,
+              "options": [
+                {
+                  "type": 3,
+                  "name": "panel_id",
+                  "description": "…",
+                  "required": true
+                },
+                {
+                  "type": 5,
+                  "name": "delete_message",
+                  "description": "…",
+                  "required": false
+                },
+                {
+                  "type": 5,
+                  "name": "private",
+                  "description": "Show Rallybit's command replies only to you.",
+                  "required": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "create",
+          "description": "Create a support ticket with a category and reason.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "category",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                4
+              ]
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "setup",
+          "description": "Configure default ticket settings.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "category",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                4
+              ]
+            },
+            {
+              "type": 7,
+              "name": "log_channel",
+              "description": "…",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 8,
+              "name": "support_role",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "one_ticket_per_member",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "settings",
+          "description": "Configure ticket categories, staff roles, logs, and transcripts.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "category",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                4
+              ]
+            },
+            {
+              "type": 7,
+              "name": "log_channel",
+              "description": "…",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 8,
+              "name": "support_role",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 4,
+              "name": "transcript_limit",
+              "description": "…",
+              "required": false,
+              "min_value": 50,
+              "max_value": 2000
+            },
+            {
+              "type": 4,
+              "name": "auto_delete_minutes",
+              "description": "…",
+              "required": false,
+              "min_value": 0,
+              "max_value": 10080
+            },
+            {
+              "type": 5,
+              "name": "one_ticket_per_member",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "close",
+          "description": "Close the current ticket.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "claim",
+          "description": "Claim the current ticket.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "unclaim",
+          "description": "Remove your assignment from the current ticket.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "priority",
+          "description": "Set the current ticket priority.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "priority",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Low",
+                  "value": "Low"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "High",
+                  "value": "High"
+                },
+                {
+                  "name": "Critical",
+                  "value": "Critical"
+                }
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "View the current ticket status and assignment.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "setstatus",
+          "description": "Update the current ticket workflow status.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "status",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Open",
+                  "value": "Open"
+                },
+                {
+                  "name": "Claimed",
+                  "value": "Claimed"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Waiting for User",
+                  "value": "Waiting for User"
+                },
+                {
+                  "name": "Resolved",
+                  "value": "Resolved"
+                },
+                {
+                  "name": "Closed",
+                  "value": "Closed"
+                }
+              ]
+            },
+            {
+              "type": 3,
+              "name": "note",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "reopen",
+          "description": "Reopen a previously closed ticket channel.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "add",
+          "description": "Add a member to the current ticket.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "remove",
+          "description": "Remove a member from the current ticket.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "rename",
+          "description": "Rename the current ticket.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "name",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "transcript",
+          "description": "Export the current ticket transcript.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "inactive",
+      "description": "Find members who haven't used the bot or reacted recently.",
+      "type": 1,
+      "options": [
+        {
+          "type": 4,
+          "name": "days",
+          "description": "Days of inactivity (default 7)",
+          "required": false
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "automation",
+      "description": "Run community tools automatically in multiple channels.",
+      "type": 1,
+      "options": [
+        {
+          "name": "add",
+          "description": "Add an independent recurring schedule for a channel.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "kind",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Activity",
+                  "value": "activity"
+                },
+                {
+                  "name": "Quiz",
+                  "value": "quiz"
+                },
+                {
+                  "name": "Pulse",
+                  "value": "pulse"
+                },
+                {
+                  "name": "Icebreaker",
+                  "value": "icebreaker"
+                },
+                {
+                  "name": "Giveaway",
+                  "value": "giveaway"
+                }
+              ]
+            },
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 4,
+              "name": "interval_minutes",
+              "description": "…",
+              "required": true,
+              "min_value": 5,
+              "max_value": 10080
+            },
+            {
+              "type": 8,
+              "name": "ping_role",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "message_or_prize",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "category",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 4,
+              "name": "duration",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 1440
+            },
+            {
+              "type": 4,
+              "name": "winners",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 20
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "remove",
+          "description": "Delete an automation schedule.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "schedule_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "toggle",
+          "description": "Enable or pause an automation schedule.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "schedule_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "description": "List every automation schedule for this server.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "run",
+          "description": "Run a configured schedule immediately.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "schedule_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "clear",
+          "description": "Delete all automation schedules for this server.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "dashboard",
+      "description": "Get your Rallybit dashboard link.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "settings",
+      "description": "View the current server configuration and permission checks.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "checkinactive",
+      "description": "List members who have not participated in a recorded activity check.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "addadmin",
+      "description": "Add a Rallybit bot administrator.",
+      "type": 1,
+      "options": [
+        {
+          "type": 6,
+          "name": "user",
+          "description": "The user to grant bot administration access.",
+          "required": true
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "banuser",
+      "description": "Block a user from using Rallybit.",
+      "type": 1,
+      "options": [
+        {
+          "type": 6,
+          "name": "user",
+          "description": "…",
+          "required": true
+        },
+        {
+          "type": 3,
+          "name": "reason",
+          "description": "…",
+          "required": false
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "banserver",
+      "description": "Block a server from using Rallybit.",
+      "type": 1,
+      "options": [
+        {
+          "type": 3,
+          "name": "server_id",
+          "description": "…",
+          "required": true
+        },
+        {
+          "type": 3,
+          "name": "reason",
+          "description": "…",
+          "required": false
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "syncguilds",
+      "description": "Refresh the dashboard server cache.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "giveaway",
+      "description": "Create and manage server giveaways.",
+      "type": 1,
+      "options": [
+        {
+          "name": "start",
+          "description": "Start a button giveaway.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "prize",
+              "description": "Prize description",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "duration_minutes",
+              "description": "How long it runs",
+              "required": true,
+              "min_value": 1,
+              "max_value": 10080
+            },
+            {
+              "type": 4,
+              "name": "winners",
+              "description": "Number of winners",
+              "required": false,
+              "min_value": 1,
+              "max_value": 20
+            },
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "…",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 8,
+              "name": "required_role",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 8,
+              "name": "ping_role",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "end",
+          "description": "End an active giveaway early.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "giveaway_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "reroll",
+          "description": "Choose new winners from a completed giveaway.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "giveaway_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "winners",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 20
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "description": "List active giveaways in this server.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "settings",
+          "description": "Set default giveaway channel and ping role.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "…",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 8,
+              "name": "ping_role",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "level",
+      "description": "Server levelling, XP and reward roles.",
+      "type": 1,
+      "options": [
+        {
+          "name": "rank",
+          "description": "Show a member's level and XP.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "leaderboard",
+          "description": "Show the server XP leaderboard.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "setup",
+          "description": "Enable or configure server levelling.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 7,
+              "name": "announce_channel",
+              "description": "…",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 4,
+              "name": "cooldown_seconds",
+              "description": "…",
+              "required": false,
+              "min_value": 10,
+              "max_value": 600
+            },
+            {
+              "type": 4,
+              "name": "xp_min",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 100
+            },
+            {
+              "type": 4,
+              "name": "xp_max",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 200
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "reward",
+          "description": "Configure level reward roles.",
+          "type": 2,
+          "options": [
+            {
+              "name": "add",
+              "description": "Give a role when members reach a level.",
+              "type": 1,
+              "options": [
+                {
+                  "type": 4,
+                  "name": "level",
+                  "description": "…",
+                  "required": true,
+                  "min_value": 1,
+                  "max_value": 1000
+                },
+                {
+                  "type": 8,
+                  "name": "role",
+                  "description": "…",
+                  "required": true
+                },
+                {
+                  "type": 5,
+                  "name": "private",
+                  "description": "Show Rallybit's command replies only to you.",
+                  "required": false
+                }
+              ]
+            },
+            {
+              "name": "remove",
+              "description": "Remove a level reward.",
+              "type": 1,
+              "options": [
+                {
+                  "type": 4,
+                  "name": "level",
+                  "description": "…",
+                  "required": true,
+                  "min_value": 1,
+                  "max_value": 1000
+                },
+                {
+                  "type": 5,
+                  "name": "private",
+                  "description": "Show Rallybit's command replies only to you.",
+                  "required": false
+                }
+              ]
+            },
+            {
+              "name": "list",
+              "description": "List configured level rewards.",
+              "type": 1,
+              "options": [
+                {
+                  "type": 5,
+                  "name": "private",
+                  "description": "Show Rallybit's command replies only to you.",
+                  "required": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "setxp",
+          "description": "Set a member's XP.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "xp",
+              "description": "…",
+              "required": true,
+              "min_value": 0,
+              "max_value": 100000000
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "quiz",
+      "description": "Community quizzes, schedules and rankings.",
+      "type": 1,
+      "options": [
+        {
+          "name": "start",
+          "description": "Start a random community quiz in this channel.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "category",
+              "description": "mixed, general, science, geography, gaming, internet, discord or logic",
+              "required": false
+            },
+            {
+              "type": 4,
+              "name": "duration",
+              "description": "How long members have to answer (15–120 seconds).",
+              "required": false,
+              "min_value": 15,
+              "max_value": 120
+            },
+            {
+              "type": 5,
+              "name": "notify_role",
+              "description": "Ping the configured quiz role for this manual round",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "stop",
+          "description": "End the active quiz and reveal its results now.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "setup",
+          "description": "Configure recurring automatic quizzes.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "Channel for automatic quizzes",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 4,
+              "name": "interval_hours",
+              "description": "Hours between quizzes",
+              "required": false,
+              "min_value": 1,
+              "max_value": 168
+            },
+            {
+              "type": 3,
+              "name": "category",
+              "description": "Question category",
+              "required": false
+            },
+            {
+              "type": 4,
+              "name": "duration",
+              "description": "Answer time in seconds",
+              "required": false,
+              "min_value": 15,
+              "max_value": 120
+            },
+            {
+              "type": 8,
+              "name": "ping_role",
+              "description": "Optional role to ping when an automatic quiz starts",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "auto",
+          "description": "Enable or pause recurring automatic quizzes.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "pingrole",
+          "description": "Set or clear the role pinged by automatic quizzes.",
+          "type": 1,
+          "options": [
+            {
+              "type": 8,
+              "name": "role",
+              "description": "Role to ping, or leave empty to disable quiz pings",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "settings",
+          "description": "View this server's automatic quiz configuration.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "leaderboard",
+          "description": "Show this server's top community quiz players.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "mod",
+      "description": "Rallybit moderation panel and warning tools.",
+      "type": 1,
+      "options": [
+        {
+          "name": "panel",
+          "description": "Open an interactive moderation panel for a member.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "Member to manage",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "warn",
+          "description": "Add a warning to a member.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "warnings",
+          "description": "View a member's Rallybit warnings.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "unwarn",
+          "description": "Remove a warning by its ID, or remove the latest warning.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "warning_id",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "unban",
+          "description": "Unban a Discord user by ID.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "user_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "role",
+      "description": "Safely give, remove, or temporarily assign roles.",
+      "type": 1,
+      "options": [
+        {
+          "name": "give",
+          "description": "Give a member a role below your highest role.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "Member receiving the role",
+              "required": true
+            },
+            {
+              "type": 8,
+              "name": "role",
+              "description": "Role to give",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "Optional audit-log reason",
+              "required": false,
+              "min_length": 1,
+              "max_length": 300
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "remove",
+          "description": "Remove a role below your highest role from a member.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "Member losing the role",
+              "required": true
+            },
+            {
+              "type": 8,
+              "name": "role",
+              "description": "Role to remove",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "Optional audit-log reason",
+              "required": false,
+              "min_length": 1,
+              "max_length": 300
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "temp",
+          "description": "Give a timed role with a live nickname countdown.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "Member receiving the temporary role",
+              "required": true
+            },
+            {
+              "type": 8,
+              "name": "role",
+              "description": "Role to assign temporarily",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "amount",
+              "description": "Number of selected time units",
+              "required": true,
+              "min_value": 1,
+              "max_value": 365
+            },
+            {
+              "type": 3,
+              "name": "unit",
+              "description": "Days, weeks, 30-day months, or 365-day years",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Days",
+                  "value": "days"
+                },
+                {
+                  "name": "Weeks",
+                  "value": "weeks"
+                },
+                {
+                  "name": "Months (30 days)",
+                  "value": "months"
+                },
+                {
+                  "name": "Years (365 days)",
+                  "value": "years"
+                }
+              ]
+            },
+            {
+              "type": 3,
+              "name": "nickname",
+              "description": "Optional base nickname shown before the countdown",
+              "required": false,
+              "min_length": 1,
+              "max_length": 32
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "Optional audit-log reason",
+              "required": false,
+              "min_length": 1,
+              "max_length": 300
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "report",
+      "description": "Submit and manage member reports with the moderation team.",
+      "type": 1,
+      "options": [
+        {
+          "name": "user",
+          "description": "Report a member to the server moderation team.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "Member being reported",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "Rule violation or concern",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "details",
+              "description": "Additional context",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "evidence",
+              "description": "Message link or evidence URL",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "settings",
+          "description": "Choose the staff channel that receives member reports.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "description": "View reports that are awaiting staff action.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "claim",
+          "description": "Claim a report for investigation.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "report_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "setstatus",
+          "description": "Update a report's moderation status.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "report_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "status",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Claimed",
+                  "value": "Claimed"
+                },
+                {
+                  "name": "Under Review",
+                  "value": "Under Review"
+                },
+                {
+                  "name": "Resolved",
+                  "value": "Resolved"
+                },
+                {
+                  "name": "Dismissed",
+                  "value": "Dismissed"
+                },
+                {
+                  "name": "Closed",
+                  "value": "Closed"
+                }
+              ]
+            },
+            {
+              "type": 3,
+              "name": "note",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "close",
+          "description": "Close a report with an optional resolution note.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "report_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "resolution",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "reopen",
+          "description": "Reopen a previously closed report.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "report_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "history",
+          "description": "View reports submitted against a member.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "View the current status of a report you submitted.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "report_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "review",
+      "description": "Post a staff or member review to the configured review channel.",
+      "type": 1,
+      "options": [
+        {
+          "type": 3,
+          "name": "type",
+          "description": "Choose whether this is a staff or member review.",
+          "required": true,
+          "choices": [
+            {
+              "name": "Staff",
+              "value": "staff"
+            },
+            {
+              "name": "Member",
+              "value": "member"
+            }
+          ]
+        },
+        {
+          "type": 6,
+          "name": "user",
+          "description": "The person you are reviewing.",
+          "required": true
+        },
+        {
+          "type": 4,
+          "name": "stars",
+          "description": "Your rating from 1 to 5 stars.",
+          "required": true,
+          "min_value": 1,
+          "max_value": 5
+        },
+        {
+          "type": 3,
+          "name": "reason",
+          "description": "Explain the rating clearly and respectfully.",
+          "required": true
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "community",
+      "description": "Conversation starters and anonymous community pulses.",
+      "type": 1,
+      "options": [
+        {
+          "name": "icebreaker",
+          "description": "Post a conversation starter for your community.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "category",
+              "description": "casual, gaming, creative, debate or mixed",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "notify_role",
+              "description": "Ping the configured Chat Revive role (staff only)",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "pulse",
+          "description": "Start an anonymous mood pulse in this channel.",
+          "type": 1,
+          "options": [
+            {
+              "type": 4,
+              "name": "duration_minutes",
+              "description": "How long the pulse stays open",
+              "required": false,
+              "min_value": 1,
+              "max_value": 60
+            },
+            {
+              "type": 3,
+              "name": "prompt",
+              "description": "Optional custom question",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "notify_role",
+              "description": "Ping the configured Chat Revive role",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "pingrole",
+          "description": "Set or clear the role used for pulse and icebreaker notifications.",
+          "type": 1,
+          "options": [
+            {
+              "type": 8,
+              "name": "role",
+              "description": "Chat Revive role, or leave empty to disable community pings",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "settings",
+          "description": "View community notification settings for this server.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "stoppulse",
+          "description": "Close the active community pulse now.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "pulsehistory",
+          "description": "View recent anonymous pulse trends.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "channel",
+      "description": "Archive and manage server channels.",
+      "type": 1,
+      "options": [
+        {
+          "name": "transcript",
+          "description": "Archive every available message from a channel.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "source",
+              "description": "Text channel whose complete history should be archived",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 7,
+              "name": "destination",
+              "description": "Text or forum channel that should receive the archive",
+              "required": true,
+              "channel_types": [
+                0,
+                5,
+                15,
+                16
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "purge",
+          "description": "Delete messages by range, member, or amount.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "Channel to purge; defaults to the current channel",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 3,
+              "name": "start_message_id",
+              "description": "First message ID or message link in an inclusive range",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "finish_message_id",
+              "description": "Last message ID or message link in an inclusive range",
+              "required": false
+            },
+            {
+              "type": 6,
+              "name": "member",
+              "description": "Delete messages sent by this member",
+              "required": false
+            },
+            {
+              "type": 4,
+              "name": "amount",
+              "description": "Latest messages to delete, or maximum messages when a member is selected",
+              "required": false,
+              "min_value": 1,
+              "max_value": 1000
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "Reason recorded in the server audit log",
+              "required": false,
+              "min_length": 1,
+              "max_length": 400
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": false,
+      "default_member_permissions": 8192,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "autorole",
+      "description": "Assign roles automatically when members join.",
+      "type": 1,
+      "options": [
+        {
+          "name": "add",
+          "description": "Add a role to the join autorole list.",
+          "type": 1,
+          "options": [
+            {
+              "type": 8,
+              "name": "role",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "remove",
+          "description": "Remove a join autorole.",
+          "type": 1,
+          "options": [
+            {
+              "type": 8,
+              "name": "role",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "description": "List roles assigned on join.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "clear",
+          "description": "Remove every configured autorole.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "reactionrole",
+      "description": "Configure reaction role messages.",
+      "type": 1,
+      "options": [
+        {
+          "name": "add",
+          "description": "Add an emoji-to-role mapping to an existing message.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 3,
+              "name": "message_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "emoji",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 8,
+              "name": "role",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "remove",
+          "description": "Remove a reaction role mapping.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "message_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "emoji",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "description": "List configured reaction roles.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "verification",
+      "description": "Configure button verification.",
+      "type": 1,
+      "options": [
+        {
+          "name": "setup",
+          "description": "Create a verification panel.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 8,
+              "name": "verified_role",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 8,
+              "name": "remove_role",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "title",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "description",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "button_label",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "disable",
+          "description": "Disable button verification.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "Show verification settings.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "security",
+      "description": "Core Rallybit security controls.",
+      "type": 1,
+      "options": [
+        {
+          "name": "system",
+          "description": "Enable or disable all automatic Rallybit security listeners for this server.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "overview",
+          "description": "View the server's complete security configuration.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "audit",
+          "description": "Scan permissions and security configuration for weaknesses.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "history",
+          "description": "View recent security triggers and actions.",
+          "type": 1,
+          "options": [
+            {
+              "type": 4,
+              "name": "limit",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 15
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "lockdown",
+          "description": "Disable or restore basic @everyone chat and voice permissions.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "panic",
+          "description": "Lock basic permissions and delete all active server invites.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "confirmation",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "clearinvites",
+          "description": "Delete every active invite in the server.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "confirmation",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "quarantine",
+          "description": "Strip manageable roles and isolate a member.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "release",
+          "description": "Release a member and restore saved manageable roles.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "purgeuser",
+          "description": "Soft-ban and immediately unban a member to purge recent messages.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "delete_days",
+              "description": "…",
+              "required": false,
+              "min_value": 0,
+              "max_value": 7
+            },
+            {
+              "type": 3,
+              "name": "confirmation",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "security-trap",
+      "description": "Configure the scam-detection trap.",
+      "type": 1,
+      "options": [
+        {
+          "name": "setup",
+          "description": "Create or update the top-level do-not-text-here security trap.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "action",
+              "description": "…",
+              "required": false,
+              "choices": [
+                {
+                  "name": "ban",
+                  "value": "ban"
+                },
+                {
+                  "name": "kick",
+                  "value": "kick"
+                }
+              ]
+            },
+            {
+              "type": 3,
+              "name": "channel_name",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "appeal_url",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "bypass_trusted_roles",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "warning_message",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "repair",
+          "description": "Repair permissions, position and warning text for the trap channel.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "disable",
+          "description": "Disable the trap and optionally delete its channel.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "delete_channel",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "View the scam-trap configuration.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "security-agegate",
+      "description": "Configure the account-age gate.",
+      "type": 1,
+      "options": [
+        {
+          "name": "configure",
+          "description": "Enable and configure the Discord account-age gate.",
+          "type": 1,
+          "options": [
+            {
+              "type": 4,
+              "name": "minimum_days",
+              "description": "…",
+              "required": true,
+              "min_value": 1,
+              "max_value": 3650
+            },
+            {
+              "type": 5,
+              "name": "dm_member",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "appeal_url",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 3,
+              "name": "dm_message",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "disable",
+          "description": "Disable the Discord account-age gate.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "View the account-age gate configuration.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "security-modules",
+      "description": "Configure automatic protection modules.",
+      "type": 1,
+      "options": [
+        {
+          "name": "set",
+          "description": "Enable or disable a protection module and choose its punishment.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "module",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Unauthorized bot additions",
+                  "value": "anti_bot"
+                },
+                {
+                  "name": "Webhook protection",
+                  "value": "anti_webhook"
+                },
+                {
+                  "name": "Server update protection",
+                  "value": "anti_guild_update"
+                },
+                {
+                  "name": "Integration protection",
+                  "value": "anti_integration"
+                },
+                {
+                  "name": "Dangerous permission grants",
+                  "value": "anti_dangerous_permissions"
+                },
+                {
+                  "name": "Mass bans",
+                  "value": "mass_ban"
+                },
+                {
+                  "name": "Mass kicks",
+                  "value": "mass_kick"
+                },
+                {
+                  "name": "Mass channel deletion",
+                  "value": "mass_channel_delete"
+                },
+                {
+                  "name": "Mass role deletion",
+                  "value": "mass_role_delete"
+                },
+                {
+                  "name": "Mass emoji deletion",
+                  "value": "anti_emoji_delete"
+                },
+                {
+                  "name": "Mass sticker deletion",
+                  "value": "anti_sticker_delete"
+                },
+                {
+                  "name": "Anti-spam",
+                  "value": "anti_spam"
+                },
+                {
+                  "name": "Automod",
+                  "value": "automod"
+                },
+                {
+                  "name": "Account age gate",
+                  "value": "age_gate"
+                },
+                {
+                  "name": "Scam trap",
+                  "value": "scam_trap"
+                }
+              ]
+            },
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "punishment",
+              "description": "…",
+              "required": false,
+              "choices": [
+                {
+                  "name": "Ban",
+                  "value": "ban"
+                },
+                {
+                  "name": "Kick",
+                  "value": "kick"
+                },
+                {
+                  "name": "Quarantine / strip roles",
+                  "value": "strip"
+                }
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "threshold",
+          "description": "Set the action count and time window for an anti-nuke module.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "module",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Mass bans",
+                  "value": "mass_ban"
+                },
+                {
+                  "name": "Mass kicks",
+                  "value": "mass_kick"
+                },
+                {
+                  "name": "Mass channel deletion",
+                  "value": "mass_channel_delete"
+                },
+                {
+                  "name": "Mass role deletion",
+                  "value": "mass_role_delete"
+                },
+                {
+                  "name": "Mass emoji deletion",
+                  "value": "anti_emoji_delete"
+                },
+                {
+                  "name": "Mass sticker deletion",
+                  "value": "anti_sticker_delete"
+                }
+              ]
+            },
+            {
+              "type": 4,
+              "name": "count",
+              "description": "…",
+              "required": true,
+              "min_value": 1,
+              "max_value": 50
+            },
+            {
+              "type": 4,
+              "name": "seconds",
+              "description": "…",
+              "required": true,
+              "min_value": 5,
+              "max_value": 86400
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "security-antispam",
+      "description": "Configure rapid-message protection.",
+      "type": 1,
+      "options": [
+        {
+          "name": "configure",
+          "description": "Configure rapid-message detection and timeout length.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "message_limit",
+              "description": "…",
+              "required": false,
+              "min_value": 3,
+              "max_value": 30
+            },
+            {
+              "type": 4,
+              "name": "window_seconds",
+              "description": "…",
+              "required": false,
+              "min_value": 2,
+              "max_value": 60
+            },
+            {
+              "type": 4,
+              "name": "timeout_minutes",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 40320
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "security-automod",
+      "description": "Configure invite and term filtering.",
+      "type": 1,
+      "options": [
+        {
+          "name": "configure",
+          "description": "Enable automod and choose whether Discord invites are blocked.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "block_invites",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "addterm",
+          "description": "Add a whole word or phrase to the automod block list.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "term",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "removeterm",
+          "description": "Remove a word or phrase from the automod block list.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "term",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "terms",
+          "description": "View the configured automod block list.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "security-trust",
+      "description": "Configure trusted security roles.",
+      "type": 1,
+      "options": [
+        {
+          "name": "add",
+          "description": "Allow a role to bypass automatic security punishments.",
+          "type": 1,
+          "options": [
+            {
+              "type": 8,
+              "name": "role",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "remove",
+          "description": "Remove a role from the automatic-security trust list.",
+          "type": 1,
+          "options": [
+            {
+              "type": 8,
+              "name": "role",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "description": "View roles trusted by automatic security modules.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "adminbypass",
+          "description": "Choose whether all server administrators bypass automatic protection.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "security-logs",
+      "description": "Configure security logging.",
+      "type": 1,
+      "options": [
+        {
+          "name": "channel",
+          "description": "Set the channel used for security alerts and event logs.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "…",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "ownerdm",
+          "description": "DM the server owner whenever an automatic security action triggers.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "events",
+          "description": "Choose which optional server events are copied to the security log.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "member_events",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "message_events",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "voice_events",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "structure_events",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "security-antibot",
+      "description": "Configure bot-add protection.",
+      "type": 1,
+      "options": [
+        {
+          "name": "configure",
+          "description": "Configure unauthorised bot-add protection.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "punishment",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Ban",
+                  "value": "ban"
+                },
+                {
+                  "name": "Kick",
+                  "value": "kick"
+                },
+                {
+                  "name": "Quarantine / strip roles",
+                  "value": "strip"
+                }
+              ]
+            },
+            {
+              "type": 5,
+              "name": "ban_added_bot",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "snipe",
+      "description": "Show a recently deleted message in this channel.",
+      "type": 1,
+      "options": [
+        {
+          "type": 4,
+          "name": "index",
+          "description": "1 is the most recent deleted message",
+          "required": false,
+          "min_value": 1,
+          "max_value": 10
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "editsnipe",
+      "description": "Show a recently edited message in this channel.",
+      "type": 1,
+      "options": [
+        {
+          "type": 4,
+          "name": "index",
+          "description": "…",
+          "required": false,
+          "min_value": 1,
+          "max_value": 10
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "clearsnipes",
+      "description": "Clear cached snipes in this channel.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "welcome",
+      "description": "Configure welcome messages and invite tracking.",
+      "type": 1,
+      "options": [
+        {
+          "name": "setup",
+          "description": "Enable and configure welcome messages.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 3,
+              "name": "message",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "embed",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "dm_member",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "track_invites",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "disable",
+          "description": "Disable welcome messages.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "preview",
+          "description": "Preview the configured welcome message.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "goodbye",
+      "description": "Configure goodbye messages.",
+      "type": 1,
+      "options": [
+        {
+          "name": "setup",
+          "description": "Enable and configure goodbye messages.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 3,
+              "name": "message",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "embed",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "disable",
+          "description": "Disable goodbye messages.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "invites",
+      "description": "View invite tracking statistics.",
+      "type": 1,
+      "options": [
+        {
+          "name": "user",
+          "description": "View a member's tracked invites.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "leaderboard",
+          "description": "Show the server invite leaderboard.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "clockin",
+      "description": "Start your staff work shift.",
+      "type": 1,
+      "options": [
+        {
+          "type": 3,
+          "name": "note",
+          "description": "…",
+          "required": false
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": false,
+      "default_member_permissions": null,
+      "contexts": [
+        0
+      ],
+      "integration_types": null
+    },
+    {
+      "name": "clockout",
+      "description": "End your active staff work shift.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": false,
+      "default_member_permissions": null,
+      "contexts": [
+        0
+      ],
+      "integration_types": null
+    },
+    {
+      "name": "shift",
+      "description": "View your current shift duration and break state.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "timesheet",
+      "description": "View your worked hours during the last seven days.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "staffhours",
+      "description": "View another staff member's recorded hours. HR access required.",
+      "type": 1,
+      "options": [
+        {
+          "type": 6,
+          "name": "member",
+          "description": "…",
+          "required": true
+        },
+        {
+          "type": 4,
+          "name": "days",
+          "description": "…",
+          "required": false,
+          "min_value": 1,
+          "max_value": 365
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "duty",
+      "description": "Display every staff member currently on duty.",
+      "type": 1,
+      "options": [
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "forceclockout",
+      "description": "Force a staff member off duty. HR access required.",
+      "type": 1,
+      "options": [
+        {
+          "type": 6,
+          "name": "member",
+          "description": "…",
+          "required": true
+        },
+        {
+          "type": 3,
+          "name": "reason",
+          "description": "…",
+          "required": false
+        },
+        {
+          "type": 5,
+          "name": "private",
+          "description": "Show Rallybit's command replies only to you.",
+          "required": false
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "loa",
+      "description": "Request and manage staff leave of absence.",
+      "type": 1,
+      "options": [
+        {
+          "name": "request",
+          "description": "Submit a Leave of Absence request.",
+          "type": 1,
+          "options": [
+            {
+              "type": 4,
+              "name": "duration_days",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "start_date",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "View the status of your LOA request.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "request_id",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "cancel",
+          "description": "Cancel your pending or approved LOA.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "request_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "setstatus",
+          "description": "Update an LOA request status.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "request_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "status",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Approved",
+                  "value": "Approved"
+                },
+                {
+                  "name": "Denied",
+                  "value": "Denied"
+                }
+              ]
+            },
+            {
+              "type": 3,
+              "name": "note",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "end",
+          "description": "End an approved LOA early.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "request_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "settings",
+          "description": "Configure LOA channels, access roles, duration, and logging.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "request_channel",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 7,
+              "name": "history_channel",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 8,
+              "name": "staff_role",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 8,
+              "name": "hr_role",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "maximum_days",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 365
+            },
+            {
+              "type": 7,
+              "name": "shift_log_channel",
+              "description": "…",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "roa",
+      "description": "Request and manage staff release of activity.",
+      "type": 1,
+      "options": [
+        {
+          "name": "request",
+          "description": "Submit a Release of Activity request.",
+          "type": 1,
+          "options": [
+            {
+              "type": 4,
+              "name": "duration_days",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "start_date",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "View the status of your ROA request.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "request_id",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "cancel",
+          "description": "Cancel your pending or approved ROA.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "request_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "setstatus",
+          "description": "Update an ROA request status.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "request_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "status",
+              "description": "…",
+              "required": true,
+              "choices": [
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Approved",
+                  "value": "Approved"
+                },
+                {
+                  "name": "Denied",
+                  "value": "Denied"
+                }
+              ]
+            },
+            {
+              "type": 3,
+              "name": "note",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "end",
+          "description": "End an approved ROA early.",
+          "type": 1,
+          "options": [
+            {
+              "type": 3,
+              "name": "request_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "settings",
+          "description": "Configure ROA channels, access roles, duration, and logging.",
+          "type": 1,
+          "options": [
+            {
+              "type": 7,
+              "name": "request_channel",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 7,
+              "name": "history_channel",
+              "description": "…",
+              "required": true,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 8,
+              "name": "staff_role",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 8,
+              "name": "hr_role",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "maximum_days",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 365
+            },
+            {
+              "type": 7,
+              "name": "shift_log_channel",
+              "description": "…",
+              "required": false,
+              "channel_types": [
+                0,
+                5
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "break",
+      "description": "Pause and resume your active staff shift.",
+      "type": 1,
+      "options": [
+        {
+          "name": "start",
+          "description": "Begin a break and pause your active shift timer.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "end",
+          "description": "End your break and resume the active shift timer.",
+          "type": 1,
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    },
+    {
+      "name": "shifts",
+      "description": "Inspect and correct staff shift records.",
+      "type": 1,
+      "options": [
+        {
+          "name": "list",
+          "description": "List a staff member's completed shifts and record IDs. HR access required.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 4,
+              "name": "limit",
+              "description": "…",
+              "required": false,
+              "min_value": 1,
+              "max_value": 20
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "remove",
+          "description": "Remove one completed shift by its record ID. HR access required.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "shift_id",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": true,
+              "min_length": 1,
+              "max_length": 300
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "name": "clear",
+          "description": "Clear a staff member's saved shift account. HR access required.",
+          "type": 1,
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "…",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "…",
+              "required": true,
+              "min_length": 1,
+              "max_length": 300
+            },
+            {
+              "type": 5,
+              "name": "include_active",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "confirm",
+              "description": "…",
+              "required": false
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show Rallybit's command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ],
+      "nsfw": false,
+      "dm_permission": true,
+      "default_member_permissions": null,
+      "contexts": null,
+      "integration_types": null
+    }
+  ]
+}

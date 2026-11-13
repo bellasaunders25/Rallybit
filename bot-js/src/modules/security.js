@@ -1,9 +1,11 @@
 import { PermissionFlagsBits } from 'discord.js';
+import { UserError } from '../access.js';
 
 export function registerSecurity(registry, { store }) {
+  const policy = { guildOnly: true, permissions: ['ManageGuild'] };
   const requireManager = interaction => {
     if (!interaction.inGuild() || !interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-      throw new Error('You need Manage Server to configure security.');
+      throw new UserError('You need Manage Server to configure security.');
     }
   };
   registry.register('security-agegate disable', async interaction => {
@@ -14,11 +16,11 @@ export function registerSecurity(registry, { store }) {
       (modules.age_gate ??= {}).enabled = false;
     });
     return { content: 'Account age gate disabled and saved.' };
-  });
+  }, policy);
   registry.register('security-agegate configure', async interaction => {
     requireManager(interaction);
     const days = interaction.options.getInteger('minimum_days', true);
-    if (days < 1 || days > 3650) throw new Error('Choose an account age between 1 and 3650 days.');
+    if (days < 1 || days > 3650) throw new UserError('Choose an account age between 1 and 3650 days.');
     await store.update('security_settings.json', data => {
       const settings = data[interaction.guildId] ??= {};
       const modules = settings.modules ??= {};
@@ -30,11 +32,11 @@ export function registerSecurity(registry, { store }) {
       };
     });
     return { content: `Account age gate enabled at ${days} days and saved.` };
-  });
+  }, policy);
   registry.register('security-agegate status', async interaction => {
     requireManager(interaction);
     const data = await store.read('security_settings.json');
     const age = data[interaction.guildId]?.modules?.age_gate;
     return { content: `Account age gate: ${age?.enabled ? 'Enabled' : 'Disabled'}\nMinimum age: ${age?.min_days ?? 7} days` };
-  });
+  }, policy);
 }
