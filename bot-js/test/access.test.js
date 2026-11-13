@@ -139,8 +139,9 @@ test("all existing command paths, option names, types, choices and boundaries ar
     else leaves.set(path.join(" "), command.options ?? []);
   }
   contract.registration.forEach((command) => walk(command));
-  assert.equal(contract.root_count, 77);
-  assert.equal(leaves.size, 202);
+  assert.equal(contract.root_count, 78);
+  assert.equal(leaves.size, 216);
+  assert.equal([...leaves.keys()].filter(path=>!path.startsWith('cvms ')).length,202);
   assert.deepEqual([...leaves.keys()].sort(), [...contract.paths].sort());
   const types = {
     string: 3,

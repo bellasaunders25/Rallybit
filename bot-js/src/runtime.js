@@ -10,6 +10,37 @@ export function createDispatcher(registry, store, { components } = {}) {
       interaction.isChatInputCommand() || interaction.isContextMenuCommand();
     if (!command && (!interaction.customId || !components)) return;
     try {
+      const privacyStop =
+        !command && interaction.customId?.startsWith("cvms:stop:");
+      const cvmsPath =
+        command && interaction.commandName === "cvms"
+          ? commandPath(interaction)
+          : null;
+      const privacyWithdraw =
+        cvmsPath === "cvms stop" ||
+        (cvmsPath === "cvms consent" &&
+          interaction.options.getBoolean("enabled") === false);
+      // Privacy opt-outs must remain available during maintenance/global bans.
+      // These routes can only stop monitoring or remove the caller's consent.
+      if (privacyStop) {
+        await components.dispatch(interaction);
+        return;
+      }
+      if (privacyWithdraw) {
+        if (!interaction.guild)
+          throw new UserError("Use this command in a server.");
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        await interaction.guild.members.fetch({
+          user: interaction.user.id,
+          force: true,
+        });
+        const result = await registry.handler(cvmsPath)(interaction);
+        await interaction.editReply({
+          ...result,
+          allowedMentions: { parse: [] },
+        });
+        return;
+      }
       // Notice precedes every command, including commands requiring a paid plan.
       const notice = await store.read("notice.json");
       if (notice.active) {

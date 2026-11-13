@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "root_count": 77,
-  "command_count": 202,
+  "root_count": 78,
+  "command_count": 216,
   "paths": [
     "about",
     "activitycheck",
@@ -43,6 +43,20 @@
     "community pulsehistory",
     "community settings",
     "community stoppulse",
+    "cvms beta",
+    "cvms cases",
+    "cvms channel",
+    "cvms consent",
+    "cvms privacy",
+    "cvms report",
+    "cvms reports",
+    "cvms review",
+    "cvms rule",
+    "cvms setup",
+    "cvms start",
+    "cvms status",
+    "cvms stop",
+    "cvms watch",
     "dashboard",
     "duty",
     "editsnipe",
@@ -3426,6 +3440,12 @@
             },
             {
               "type": 5,
+              "name": "voice",
+              "description": "Mark this as a report about your current voice channel.",
+              "required": false
+            },
+            {
+              "type": 5,
               "name": "private",
               "description": "Show Rallybit's command replies only to you.",
               "required": false
@@ -6126,6 +6146,432 @@
       "default_member_permissions": null,
       "contexts": null,
       "integration_types": null
+    },
+    {
+      "type": 1,
+      "name": "cvms",
+      "description": "Free local Community Voice Moderation Services beta.",
+      "dm_permission": false,
+      "contexts": [
+        0
+      ],
+      "integration_types": [
+        0
+      ],
+      "default_member_permissions": null,
+      "options": [
+        {
+          "type": 1,
+          "name": "status",
+          "description": "Show CVMS configuration, current coverage and local engine readiness.",
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "beta",
+          "description": "Developer: admit or remove this server from the free beta.",
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "Whether this server has beta access.",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "setup",
+          "description": "Configure CVMS. It remains review-only and requires member consent.",
+          "options": [
+            {
+              "type": 7,
+              "name": "log_channel",
+              "description": "A private staff text channel for short-lived cases.",
+              "required": true,
+              "channel_types": [
+                0
+              ]
+            },
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "Enable CVMS for this beta server.",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "mode",
+              "description": "How eligible sessions begin.",
+              "required": false,
+              "choices": [
+                {
+                  "name": "manual",
+                  "value": "manual"
+                },
+                {
+                  "name": "watch",
+                  "value": "watch"
+                },
+                {
+                  "name": "always",
+                  "value": "always"
+                }
+              ]
+            },
+            {
+              "type": 4,
+              "name": "threshold",
+              "description": "Minimum approximate recognition score; not proof of misconduct.",
+              "required": false,
+              "min_value": 50,
+              "max_value": 99
+            },
+            {
+              "type": 4,
+              "name": "retention_hours",
+              "description": "Keep staff case excerpts for this many hours.",
+              "required": false,
+              "min_value": 1,
+              "max_value": 24
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "channel",
+          "description": "Manage the voice channels CVMS may monitor.",
+          "options": [
+            {
+              "type": 3,
+              "name": "action",
+              "description": "Operation to perform.",
+              "required": true,
+              "choices": [
+                {
+                  "name": "add",
+                  "value": "add"
+                },
+                {
+                  "name": "remove",
+                  "value": "remove"
+                },
+                {
+                  "name": "list",
+                  "value": "list"
+                }
+              ]
+            },
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "A standard voice channel in this server.",
+              "required": false,
+              "channel_types": [
+                2
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "rule",
+          "description": "Manage literal phrase rules; matches always require human review.",
+          "options": [
+            {
+              "type": 3,
+              "name": "action",
+              "description": "Operation to perform.",
+              "required": true,
+              "choices": [
+                {
+                  "name": "add",
+                  "value": "add"
+                },
+                {
+                  "name": "remove",
+                  "value": "remove"
+                },
+                {
+                  "name": "list",
+                  "value": "list"
+                }
+              ]
+            },
+            {
+              "type": 3,
+              "name": "phrase",
+              "description": "Phrase to flag, not a regular expression.",
+              "required": false,
+              "min_length": 3,
+              "max_length": 120
+            },
+            {
+              "type": 3,
+              "name": "rule_id",
+              "description": "ID of the rule to remove.",
+              "required": false,
+              "max_length": 32
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "watch",
+          "description": "Manage time-limited, consent-based voice watches.",
+          "options": [
+            {
+              "type": 3,
+              "name": "action",
+              "description": "Operation to perform.",
+              "required": true,
+              "choices": [
+                {
+                  "name": "add",
+                  "value": "add"
+                },
+                {
+                  "name": "remove",
+                  "value": "remove"
+                },
+                {
+                  "name": "list",
+                  "value": "list"
+                }
+              ]
+            },
+            {
+              "type": 6,
+              "name": "member",
+              "description": "The member concerned.",
+              "required": false
+            },
+            {
+              "type": 4,
+              "name": "minutes",
+              "description": "Watch duration, with no secret monitoring.",
+              "required": false,
+              "min_value": 5,
+              "max_value": 1440
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "Moderation reason for the watch.",
+              "required": false,
+              "min_length": 3,
+              "max_length": 500
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "reports",
+          "description": "Enable or disable consent-based voice-report sessions.",
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "Enable the voice reporting integration.",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "consent",
+          "description": "Read the disclosure and consent for 24 hours, or withdraw immediately.",
+          "options": [
+            {
+              "type": 5,
+              "name": "enabled",
+              "description": "True opens the disclosure; false withdraws consent.",
+              "required": true
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "start",
+          "description": "Start a disclosed session after all present members consent.",
+          "options": [
+            {
+              "type": 7,
+              "name": "channel",
+              "description": "Voice channel; omitted uses your current channel.",
+              "required": false,
+              "channel_types": [
+                2
+              ]
+            },
+            {
+              "type": 4,
+              "name": "minutes",
+              "description": "Session length, after which monitoring stops.",
+              "required": false,
+              "min_value": 5,
+              "max_value": 60
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "stop",
+          "description": "Stop monitoring; available to current participants and authorised staff.",
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "report",
+          "description": "Report a member in your current configured voice channel.",
+          "options": [
+            {
+              "type": 6,
+              "name": "member",
+              "description": "The member concerned.",
+              "required": true
+            },
+            {
+              "type": 3,
+              "name": "reason",
+              "description": "Explain what happened; a report is not proof.",
+              "required": true,
+              "min_length": 3,
+              "max_length": 1000
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "cases",
+          "description": "Staff: list recent CVMS cases privately.",
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "review",
+          "description": "Staff: mark a case reviewed or dismiss it without automatic punishment.",
+          "options": [
+            {
+              "type": 3,
+              "name": "case_id",
+              "description": "Case ID.",
+              "required": true,
+              "max_length": 32
+            },
+            {
+              "type": 3,
+              "name": "action",
+              "description": "Operation to perform.",
+              "required": true,
+              "choices": [
+                {
+                  "name": "confirm",
+                  "value": "confirm"
+                },
+                {
+                  "name": "dismiss",
+                  "value": "dismiss"
+                }
+              ]
+            },
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        },
+        {
+          "type": 1,
+          "name": "privacy",
+          "description": "Explain voice consent, local processing and evidence retention.",
+          "options": [
+            {
+              "type": 5,
+              "name": "private",
+              "description": "Show command replies only to you.",
+              "required": false
+            }
+          ]
+        }
+      ]
     }
   ]
 }

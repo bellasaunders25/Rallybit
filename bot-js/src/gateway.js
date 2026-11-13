@@ -74,6 +74,10 @@ export function bindGateway(
   app.logging.bind(client, assertOwner);
   app.security.bind(client, assertOwner);
   app.prettfy.assertOwner = assertOwner;
+  if (app.cvms) app.cvms.assertOwner = assertOwner;
+  on(Events.VoiceStateUpdate, (before, after) =>
+    app.cvms?.voiceChanged(before, after),
+  );
   on(Events.ClientReady, async () => {
     await onReady();
   });
@@ -159,6 +163,7 @@ export async function maintenance(
   };
   if (kind === "fast") {
     await run("events", () => app.campaigns.events.tick(client, assertOwner));
+    if (app.cvms) await run("cvms", () => app.cvms.tick(client));
     return;
   }
   await run("roles", () => app.roles.tick(client, assertOwner));

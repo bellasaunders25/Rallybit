@@ -19,6 +19,7 @@ import { registerSnipes } from "./modules/snipes.js";
 import { registerSecurityEngine } from "./modules/security-engine.js";
 import { registerCampaigns } from "./modules/campaigns.js";
 import { registerPrettfy } from "./modules/prettfy.js";
+import { registerCvms } from "./modules/cvms-commands.js";
 
 export function createApp({
   dataDirectory,
@@ -45,6 +46,9 @@ export function createApp({
   const security = registerSecurityEngine(registry, services);
   const campaigns = registerCampaigns(registry, services);
   const prettfy = registerPrettfy(registry, services, { dashboardUrl });
+  const cvms = registerCvms(registry, { ...services, moderation, reports });
+  reports.onVoiceReport = (interaction, report) =>
+    cvms.addReport(interaction, report);
   return {
     store,
     registry,
@@ -64,5 +68,6 @@ export function createApp({
     security,
     campaigns,
     prettfy,
+    cvms,
   };
 }

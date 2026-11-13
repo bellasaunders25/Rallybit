@@ -68,14 +68,14 @@ test("Python numeric Discord IDs survive JavaScript reads and writes exactly", a
 
 test("partial command coverage blocks production startup", () => {
   const registry = new CommandRegistry();
-  assert.equal(registry.coverage().total, 202);
+  assert.equal(registry.coverage().total, 216);
   assert.throws(() => registry.assertComplete(), /Migration incomplete/);
 });
 
 test("native app registers every existing command with its access policy", () => {
   const { registry } = createApp({ dataDirectory: "./unused" });
   registry.assertComplete();
-  assert.equal(registry.coverage().implemented, 202);
+  assert.equal(registry.coverage().implemented, 216);
 });
 
 test("notice blocks execution before deferring with a private embed", async () => {

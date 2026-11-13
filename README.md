@@ -13,6 +13,19 @@ avatars are cleared so the shared bot identity is used consistently.
 
 ## Build 8.1 highlights
 
+### CVMS local voice moderation beta
+
+The discord.js runtime includes 14 free `/cvms` commands, local English speech
+recognition, literal phrase rules, time-limited watches, optional voice-report
+integration and private staff cases. Monitoring is disabled by default and requires
+developer beta admission, server setup and informed consent from every participant.
+No paid inference API is used. Cases require human review; no automatic punishments
+are enabled. Staff can then warn, disconnect or temporarily restrict access to the
+specific voice channel using existing moderation permissions and hierarchy checks.
+
+Run the optional isolated speech engine with the Docker Compose `cvms` profile.
+See [the complete CVMS guide](docs/cvms.html) for setup, privacy and coverage limits.
+
 ### Staff operations and complete action logging
 
 - Added free LOA and ROA request workflows with configured staff roles, HR-only review controls, HR request pings, maximum durations and a complete history channel.

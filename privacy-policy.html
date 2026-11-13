@@ -33,7 +33,7 @@
       <div class="container">
         <span class="eyebrow">Legal</span>
         <h1>Privacy policy</h1>
-        <p style="color:var(--muted)">Last updated: 4 September 2026</p>
+        <p style="color:var(--muted)">Last updated: 13 November 2026</p>
       </div>
     </section>
     <article class="content-wrap" data-reveal>
@@ -54,6 +54,11 @@
 
       <h2>6. AI-assisted features</h2>
       <p>When an authorised administrator uses Prettfy, the design prompt and relevant channel or role naming information may be sent to the configured AI provider, currently OpenRouter, to produce suggestions. Permission overwrites and private credentials are not intentionally included. Administrators should avoid placing personal or confidential information in an AI prompt.</p>
+
+      <h3>CVMS voice processing beta</h3>
+      <p>CVMS is disabled by default. It requires beta admission, server configuration and individual informed consent from every person present in the monitored voice channel. A notice is posted before receiving begins. Consent lasts up to 24 hours and can be withdrawn with <code>/cvms consent enabled:false</code>. Current participants can also stop monitoring. New participants, expired consent, maintenance, or voice/processing failure pause the session.</p>
+      <p>The beta processes short English speech clips locally on Rallybit’s existing machine using a fixed speech-recognition model. Raw clips are briefly buffered in memory, not saved as recordings, not sent to OpenRouter or another external AI provider, and not used for model training. Overload discards clips instead of retaining a conversation backlog. Coverage and recognition accuracy are limited.</p>
+      <p>Potential phrase matches retain only a short excerpt with user, channel, rule, approximate recognition score, timestamps and staff review details. Excerpts expire after the server’s configured 1–24 hours; dismissal removes the retained excerpt earlier. Staff log messages are deleted where Discord access permits. If access is lost, server staff must remove remaining messages; independent copies, screenshots and archives are outside Rallybit’s control. Minimal expired-message deletion metadata may remain for retry for up to 30 days, subject to capacity limits. Manually submitted reports and human-applied moderation actions follow the separate report/moderation retention practices below. Watches are time limited and cannot bypass consent or enable secret monitoring.</p>
 
       <h2>7. Service providers and sharing</h2>
       <p>Rallybit does not sell personal information. Information may be handled by essential providers that help operate the service, including Discord for bot and OAuth functions, Cloudflare for secure delivery, the hosting provider for application storage and processing, and an AI provider when an AI-assisted feature is deliberately used. Information may also be disclosed where required by law or needed to protect users, the service, or its legal rights.</p>

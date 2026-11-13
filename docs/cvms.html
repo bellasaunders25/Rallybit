@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="The free Rallybit CVMS beta: local voice processing, member consent, phrase rules and private staff review."><title>CVMS beta — Rallybit Docs</title><link rel="stylesheet" href="/docs/style.css?v=11.0"><link rel="icon" href="/favicon.ico"><script src="/assets/theme.js?v=11.0"></script></head>
+<body><div class="docs-shell"><div data-doc-sidebar></div><main class="docs-main">
+<span class="eyebrow">Community Voice Moderation Services · Free beta</span><h1>CVMS voice moderation</h1>
+<p class="lead">Local speech recognition flags configured phrases for staff review. CVMS is off until an admitted server configures it and every person in the selected voice channel gives informed consent.</p>
+<div class="callout"><strong>The beta is review-only.</strong><span>A phrase match is not proof of misconduct. Staff must assess context before any warning, disconnection or temporary voice restriction. CVMS never issues automatic punishments.</span></div>
+<h2>1. Prepare the server</h2><p>A Rallybit developer must run <code>/cvms beta enabled:true</code> in your server. Admission is free and does not start monitoring. Create a private staff case channel, hide it from @everyone, and check every other role that can read it.</p>
+<pre><code>/cvms setup log_channel:#cvms-cases enabled:true mode:manual threshold:75 retention_hours:24
+/cvms channel action:add channel:General
+/cvms rule action:add phrase:your restricted phrase</code></pre>
+<p>These commands require Manage Server. Rules are literal words or phrases, not regular expressions or a context-aware hate-speech classifier. Use them only for legitimate moderation; do not use CVMS to infer personal characteristics or target protected groups. Settings changes pause monitoring until staff explicitly starts a session.</p>
+<h2>2. Obtain individual consent</h2><p>Each person in the voice channel must run the consent command, read the disclosure and press <strong>I agree for 24 hours</strong>. Administrators cannot consent for other people.</p>
+<pre><code>/cvms privacy
+/cvms consent enabled:true</code></pre>
+<p>Consent is server-specific and expires after 24 hours. Changing excerpt-retention settings requires new consent. A session cannot start when any current participant has missing or expired consent.</p>
+<h2>3. Start and stop</h2>
+<pre><code>/cvms start channel:General minutes:30
+/cvms status
+/cvms stop
+/cvms consent enabled:false</code></pre>
+<p>Starting requires your configured warning role and Manage Messages. A notice is posted in the voice channel’s text chat before the receiver opens. Participants can stop the session using its button or withdraw consent. These opt-outs work during maintenance too. A new human joining pauses the session for a fresh consent check; moving, disconnecting or server-deafening Rallybit stops it. A deliberate stop stays paused until staff explicitly starts again.</p>
+<h2>4. Review cases</h2>
+<pre><code>/cvms cases
+/cvms review case_id:CASE_ID action:confirm
+/cvms review case_id:CASE_ID action:dismiss</code></pre>
+<p>Possible matches create private cases containing a short excerpt, member, channel, approximate recognition score and expiry. The score concerns transcription, not whether a violation occurred. Mark reviewed only after assessing context. Reviewed cases offer human-operated Warn member, Disconnect and Restrict this VC (10m) controls. A reason is required; disconnection and restriction require typed confirmation.</p>
+<p>Existing moderation-role checks and actor/bot hierarchy apply. Restriction also needs the configured timeout permission, Move Members and Manage Channels. It changes only the member’s Connect overwrite in that voice channel, then restores its previous value without overwriting unrelated permissions.</p>
+<p>Dismissal removes the retained excerpt. Case excerpts expire after 1–24 hours. Associated Discord log messages are deleted where the bot still has access; otherwise server staff must delete them. Independent screenshots, archives, ordinary moderation records and manually submitted reports have their own retention practices.</p>
+<h2>5. Watches and voice reports</h2>
+<pre><code>/cvms watch action:add member:@member minutes:60 reason:Recent voice incident
+/cvms watch action:list
+/cvms watch action:remove member:@member
+/cvms reports enabled:true
+/cvms report member:@member reason:Describe the incident
+/report user member:@member reason:Describe the incident voice:true</code></pre>
+<p>Watch mode considers time-limited watched members. A voice report must concern someone in the reporter’s current configured channel. Reports request a short eligible session, are rate limited, are not proof of misconduct, and cannot bypass consent. Watch/report sessions process selected consenting members only and never exceed the watch/report expiry. Enable the appropriate mode through Setup, then explicitly Start to resume after configuration changes.</p>
+<h2>Coverage and accuracy limits</h2><ul>
+<li>One monitored channel per server, up to two sessions across this instance, and two simultaneous speaker streams per session.</li>
+<li>Local inference handles one request at a time with a bounded queue. Overload drops clips rather than building a recording backlog. Other configured channels are not simultaneously covered.</li>
+<li>English only in this beta. Noise, accents, music, quotations and overlapping speech can cause missed or false matches. Human context review is essential.</li>
+<li>Raw clips are at most eight seconds, processed locally in memory, and not saved as recordings or sent to external AI services. There is no conversation-wide transcript or model training.</li>
+<li>Platform changes can break Discord voice receiving. CVMS is not an emergency service or a replacement for human moderation.</li></ul>
+<h2>Self-hosting</h2><p>Start the optional local engine with <code>docker compose -p rallybit-js -f bot-js/compose.yaml --profile cvms up -d --build</code>. It uses pinned whisper.cpp and an integrity-checked English model on an isolated internal network, with one CPU core, limited memory and no persisted inference logs. No API key, paid plan or external inference account is required. Your existing machine still uses electricity, storage and bandwidth; processing capacity is not unlimited.</p>
+<p>Review your applicable privacy and recording obligations before enabling the feature. Consent controls do not guarantee legal compliance. Read the <a href="/privacy-policy">privacy policy</a> and <a href="/terms">terms</a>.</p>
+</main></div><script src="/docs/script.js?v=cvms-1"></script></body></html>

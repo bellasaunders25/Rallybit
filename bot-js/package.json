@@ -13,7 +13,9 @@
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.92",
+    "@discordjs/voice": "^0.19.2",
     "ai": "^7.0.172",
-    "discord.js": "14.28.1"
+    "discord.js": "14.28.1",
+    "opusscript": "^0.1.1"
   }
 }

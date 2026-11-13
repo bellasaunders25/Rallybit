@@ -61,6 +61,20 @@ export class ReportService {
     if (member.id === i.user.id || member.bot)
       throw new UserError("You cannot report yourself or a bot.");
     await i.guild.members.fetch({ user: member.id, force: true });
+    const voiceReport = i.options.getBoolean?.("voice") ?? false;
+    if (voiceReport) {
+      const [reporter, target] = await Promise.all([
+        i.guild.members.fetch({ user: i.user.id, force: true }),
+        i.guild.members.fetch({ user: member.id, force: true }),
+      ]);
+      if (
+        !reporter.voice?.channelId ||
+        reporter.voice.channelId !== target.voice?.channelId
+      )
+        throw new UserError(
+          "A voice report must concern somebody in your current voice channel.",
+        );
+    }
     const settings = await guildSettings(
       this.store,
       "report_settings.json",
@@ -88,6 +102,7 @@ export class ReportService {
       updated_at: nowISO(),
       updated_by: i.user.id,
       request_id: i.id,
+      voice: voiceReport,
     };
     if (!row.reason) throw new UserError("Provide a reason for the report.");
     await this.store.update("reports.json", (data) => {
@@ -127,8 +142,18 @@ export class ReportService {
       `Report ${id} submitted for staff review.`,
       member.id,
     );
+    let cvms = "";
+    if (voiceReport && this.onVoiceReport)
+      try {
+        cvms = await this.onVoiceReport(i, row);
+      } catch (error) {
+        cvms =
+          error instanceof UserError
+            ? error.message
+            : "CVMS could not start a report session; the staff report was still saved.";
+      }
     return {
-      content: `Your report was submitted privately. Reference: \`${id}\``,
+      content: `Your report was submitted privately. Reference: \`${id}\`${cvms ? "\n" + cvms : ""}`,
     };
   }
   async change(i, operation) {

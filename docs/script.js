@@ -1,4 +1,5 @@
 const COMMAND_CATEGORIES = [
+  { id: 'cvms', label: 'CVMS voice moderation', roots: ['cvms'] },
   { id: 'getting-started', label: 'Getting started', roots: ['about', 'help', 'support', 'dashboard', 'settings'] },
   { id: 'activity', label: 'Activity & profiles', roots: ['activitycheck', 'endactivitycheck', 'setactivitytext', 'setreactor', 'setping', 'setwinner', 'setduration', 'setperm', 'setlogs', 'setauto', 'startauto', 'stopauto', 'setmode', 'setbuttontext', 'leaderboard', 'userleaderboard', 'profile', 'inactive', 'checkinactive', 'afk'] },
   { id: 'community', label: 'Community', roots: ['quiz', 'community', 'giveaway', 'automation'] },
@@ -63,6 +64,10 @@ function categoryFor(root) {
 function planFor() { return 'Free'; }
 
 function accessFor(path) {
+  if (path === 'cvms beta') return 'Rallybit developer only';
+  if (['cvms setup','cvms channel','cvms rule','cvms reports'].includes(path)) return 'Manage Server';
+  if (['cvms watch','cvms start','cvms cases','cvms review'].includes(path)) return 'Configured warning role and Manage Messages';
+  if (path === 'cvms stop') return 'Current monitored-channel participant or authorised staff';
   if (['addadmin', 'banuser', 'banserver', 'syncguilds'].includes(path)) return 'Rallybit developer only';
   if (path.startsWith('network ')) return 'Server owner';
   if (ADMINISTRATOR_PATHS.has(path)) return 'Administrator';
@@ -228,6 +233,7 @@ function renderCommand(command) {
   const steps = el('section', 'command-howto');
   steps.append(el('h3', '', 'How to use it'));
   const list = document.createElement('ol');
+  if (command.root === 'cvms') list.append(el('li', '', 'Read the CVMS beta guide first. Monitoring requires free beta admission, server setup, phrase rules and informed consent from every person in the voice channel. No automatic punishments are enabled.'));
   const commandChoice = command.path.includes(' ')
     ? `Type /${command.root}, then choose ${command.path.slice(command.root.length + 1)}.`
     : `Type /${command.path} in a server channel.`;
@@ -327,7 +333,7 @@ async function initialiseCommandCatalogue() {
   const clear = document.querySelector('[data-command-clear]');
 
   try {
-    const response = await fetch('/docs/command-catalog.json?v=10.0');
+    const response = await fetch('/docs/command-catalog.json?v=cvms-1');
     if (!response.ok) throw new Error(`Catalogue request failed with ${response.status}`);
     const catalogue = await response.json();
     const commands = Array.isArray(catalogue.commands) ? catalogue.commands : [];

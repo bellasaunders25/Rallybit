@@ -10,6 +10,7 @@ services:
     stop_grace_period: 25s
     init: true
     mem_limit: 768m
+    memswap_limit: 768m
     cpus: 1.0
     pids_limit: 128
     read_only: true
@@ -30,8 +31,36 @@ services:
       - "127.0.0.1:8080:8080"
     volumes:
       - ../rallybitbot/data:/data
+    networks:
+      - default
+      - cvms_private
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+  cvms-asr:
+    profiles: [cvms]
+    build:
+      context: ..
+      dockerfile: bot-js/cvms/Dockerfile
+    image: rallybit-cvms-asr:local
+    restart: unless-stopped
+    init: true
+    read_only: true
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.0
+    pids_limit: 64
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    networks:
+      - cvms_private
+    logging:
+      # Do not persist potential speech output from the inference process.
+      driver: none
+networks:
+  cvms_private:
+    internal: true

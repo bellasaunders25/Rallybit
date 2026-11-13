@@ -407,7 +407,7 @@ test("full startup connects dashboard, registration and recovery without a real 
       commands: {
         set: async (commands) => {
           registrations++;
-          assert.equal(commands.length, 77);
+          assert.equal(commands.length, 78);
         },
       },
     },

@@ -1,6 +1,6 @@
 {
-  "root_count": 77,
-  "command_count": 202,
+  "root_count": 78,
+  "command_count": 216,
   "commands": [
     {
       "path": "activitycheck",
@@ -4872,6 +4872,18 @@
           "choices": []
         },
         {
+          "name": "voice",
+          "description": "Mark this as a report about your current voice channel.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
           "name": "private",
           "description": "Show Rallybit's command replies only to you.",
           "required": false,
@@ -9017,6 +9029,679 @@
         {
           "name": "private",
           "description": "Show Rallybit's command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms status",
+      "root": "cvms",
+      "description": "Show CVMS configuration, current coverage and local engine readiness.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms beta",
+      "root": "cvms",
+      "description": "Developer: admit or remove this server from the free beta.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "enabled",
+          "description": "Whether this server has beta access.",
+          "required": true,
+          "type": "boolean",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms setup",
+      "root": "cvms",
+      "description": "Configure CVMS. It remains review-only and requires member consent.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "log_channel",
+          "description": "A private staff text channel for short-lived cases.",
+          "required": true,
+          "type": "channel",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "enabled",
+          "description": "Enable CVMS for this beta server.",
+          "required": true,
+          "type": "boolean",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "mode",
+          "description": "How eligible sessions begin.",
+          "required": false,
+          "type": "string",
+          "default": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": [
+            {
+              "name": "manual",
+              "value": "manual"
+            },
+            {
+              "name": "watch",
+              "value": "watch"
+            },
+            {
+              "name": "always",
+              "value": "always"
+            }
+          ]
+        },
+        {
+          "name": "threshold",
+          "description": "Minimum approximate recognition score; not proof of misconduct.",
+          "required": false,
+          "type": "integer",
+          "default": null,
+          "min_value": 50,
+          "max_value": 99,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "retention_hours",
+          "description": "Keep staff case excerpts for this many hours.",
+          "required": false,
+          "type": "integer",
+          "default": null,
+          "min_value": 1,
+          "max_value": 24,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms channel",
+      "root": "cvms",
+      "description": "Manage the voice channels CVMS may monitor.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "action",
+          "description": "Operation to perform.",
+          "required": true,
+          "type": "string",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": [
+            {
+              "name": "add",
+              "value": "add"
+            },
+            {
+              "name": "remove",
+              "value": "remove"
+            },
+            {
+              "name": "list",
+              "value": "list"
+            }
+          ]
+        },
+        {
+          "name": "channel",
+          "description": "A standard voice channel in this server.",
+          "required": false,
+          "type": "channel",
+          "default": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms rule",
+      "root": "cvms",
+      "description": "Manage literal phrase rules; matches always require human review.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "action",
+          "description": "Operation to perform.",
+          "required": true,
+          "type": "string",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": [
+            {
+              "name": "add",
+              "value": "add"
+            },
+            {
+              "name": "remove",
+              "value": "remove"
+            },
+            {
+              "name": "list",
+              "value": "list"
+            }
+          ]
+        },
+        {
+          "name": "phrase",
+          "description": "Phrase to flag, not a regular expression.",
+          "required": false,
+          "type": "string",
+          "default": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 3,
+          "max_length": 120,
+          "choices": []
+        },
+        {
+          "name": "rule_id",
+          "description": "ID of the rule to remove.",
+          "required": false,
+          "type": "string",
+          "default": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": 32,
+          "choices": []
+        },
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms watch",
+      "root": "cvms",
+      "description": "Manage time-limited, consent-based voice watches.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "action",
+          "description": "Operation to perform.",
+          "required": true,
+          "type": "string",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": [
+            {
+              "name": "add",
+              "value": "add"
+            },
+            {
+              "name": "remove",
+              "value": "remove"
+            },
+            {
+              "name": "list",
+              "value": "list"
+            }
+          ]
+        },
+        {
+          "name": "member",
+          "description": "The member concerned.",
+          "required": false,
+          "type": "user",
+          "default": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "minutes",
+          "description": "Watch duration, with no secret monitoring.",
+          "required": false,
+          "type": "integer",
+          "default": null,
+          "min_value": 5,
+          "max_value": 1440,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "reason",
+          "description": "Moderation reason for the watch.",
+          "required": false,
+          "type": "string",
+          "default": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": 3,
+          "max_length": 500,
+          "choices": []
+        },
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms reports",
+      "root": "cvms",
+      "description": "Enable or disable consent-based voice-report sessions.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "enabled",
+          "description": "Enable the voice reporting integration.",
+          "required": true,
+          "type": "boolean",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms consent",
+      "root": "cvms",
+      "description": "Read the disclosure and consent for 24 hours, or withdraw immediately.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "enabled",
+          "description": "True opens the disclosure; false withdraws consent.",
+          "required": true,
+          "type": "boolean",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms start",
+      "root": "cvms",
+      "description": "Start a disclosed session after all present members consent.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "channel",
+          "description": "Voice channel; omitted uses your current channel.",
+          "required": false,
+          "type": "channel",
+          "default": null,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "minutes",
+          "description": "Session length, after which monitoring stops.",
+          "required": false,
+          "type": "integer",
+          "default": null,
+          "min_value": 5,
+          "max_value": 60,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms stop",
+      "root": "cvms",
+      "description": "Stop monitoring; available to current participants and authorised staff.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms report",
+      "root": "cvms",
+      "description": "Report a member in your current configured voice channel.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "member",
+          "description": "The member concerned.",
+          "required": true,
+          "type": "user",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        },
+        {
+          "name": "reason",
+          "description": "Explain what happened; a report is not proof.",
+          "required": true,
+          "type": "string",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": 3,
+          "max_length": 1000,
+          "choices": []
+        },
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms cases",
+      "root": "cvms",
+      "description": "Staff: list recent CVMS cases privately.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms review",
+      "root": "cvms",
+      "description": "Staff: mark a case reviewed or dismiss it without automatic punishment.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "case_id",
+          "description": "Case ID.",
+          "required": true,
+          "type": "string",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": 32,
+          "choices": []
+        },
+        {
+          "name": "action",
+          "description": "Operation to perform.",
+          "required": true,
+          "type": "string",
+          "default": "...",
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": [
+            {
+              "name": "confirm",
+              "value": "confirm"
+            },
+            {
+              "name": "dismiss",
+              "value": "dismiss"
+            }
+          ]
+        },
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
+          "required": false,
+          "type": "boolean",
+          "default": false,
+          "min_value": null,
+          "max_value": null,
+          "min_length": null,
+          "max_length": null,
+          "choices": []
+        }
+      ]
+    },
+    {
+      "path": "cvms privacy",
+      "root": "cvms",
+      "description": "Explain voice consent, local processing and evidence retention.",
+      "group_descriptions": [
+        "Free local Community Voice Moderation Services beta."
+      ],
+      "guild_only": true,
+      "default_permissions": null,
+      "parameters": [
+        {
+          "name": "private",
+          "description": "Show command replies only to you.",
           "required": false,
           "type": "boolean",
           "default": false,

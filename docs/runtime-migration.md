@@ -95,8 +95,9 @@ profile rollback, formula-safe CSV, journaled backups, duplicate quiz prevention
 safe event recovery, ticket role revocation and timed deletion, Prettfy coverage,
 temporary review cleanup, legacy undo snapshots, startup guards and gateway wiring.
 These are automated and service-level checks, not a claim that every destructive
-command was exercised against real members. CVMS voice capture has not been enabled
-by this migration; its implementation remains separate follow-up work.
+command was exercised against real members. The subsequent CVMS work adds a
+disabled-by-default, local-only beta module and 14 commands; it does not activate
+monitoring or admit servers automatically. See [the CVMS guide](cvms.html).
 
 ## Deployment checklist
 

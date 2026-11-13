@@ -102,6 +102,7 @@ export async function startRuntime({
       ready = false;
       for (const timer of timers) clearInterval(timer);
       app.prettfy.stop();
+      app.cvms.close();
       if (api) {
         api.close();
         api.closeIdleConnections?.();
@@ -232,6 +233,7 @@ export async function startRuntime({
           for (const guild of client.guilds.cache.values())
             await app.welcome.refresh(guild);
           await syncGuildCache(client, app.store);
+          await app.cvms.recover(client);
           assertOwner();
           ready = true;
           await statusSample(app, client);
