@@ -1156,6 +1156,7 @@ async def reconcile_ticket_support_roles(guild, panel_id=None, previous_panel=No
         channel = guild.get_channel(int(channel_id))
         if not isinstance(channel, discord.TextChannel):
             continue
+        failed = False
         desired = _ticket_support_role_ids(guild.id, record)
         old = {int(value) for value in record.get("managed_support_role_ids", []) if str(value).isdigit()}
         if previous_panel:
@@ -1176,8 +1177,12 @@ async def reconcile_ticket_support_roles(guild, panel_id=None, previous_panel=No
             overwrite = channel.overwrites_for(role)
             for key in ("view_channel", "send_messages", "read_message_history", "manage_messages"):
                 setattr(overwrite, key, None)
-            await channel.set_permissions(role, overwrite=None if overwrite.is_empty() else overwrite,
-                                          reason="Rallybit ticket support role removed")
+            try:
+                await channel.set_permissions(role, overwrite=None if overwrite.is_empty() else overwrite,
+                                              reason="Rallybit ticket support role removed")
+            except (discord.Forbidden, discord.HTTPException) as exc:
+                failed = True
+                print(f"[TICKET ACCESS] Cannot revoke role {role_id} in channel {channel_id}: {exc}")
         for role_id in desired:
             role = guild.get_role(role_id)
             if role is None or role.is_default():
@@ -1188,9 +1193,13 @@ async def reconcile_ticket_support_roles(guild, panel_id=None, previous_panel=No
             if any(getattr(overwrite, key) != value for key, value in expected.items()):
                 for key, value in expected.items():
                     setattr(overwrite, key, value)
-                await channel.set_permissions(role, overwrite=overwrite, reason="Rallybit ticket support roles updated")
+                try:
+                    await channel.set_permissions(role, overwrite=overwrite, reason="Rallybit ticket support roles updated")
+                except (discord.Forbidden, discord.HTTPException) as exc:
+                    failed = True
+                    print(f"[TICKET ACCESS] Cannot update role {role_id} in channel {channel_id}: {exc}")
         current = sorted(str(value) for value in desired)
-        if record.get("managed_support_role_ids") != current:
+        if not failed and record.get("managed_support_role_ids") != current:
             record["managed_support_role_ids"] = current
             changed = True
     if changed:

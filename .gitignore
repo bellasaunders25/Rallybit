@@ -14,5 +14,6 @@ rallybitbot/**/__pycache__/
 rallybitbot/data/
 .wrangler/
 node_modules/
+bot-js/data/
 .DS_Store
 Thumbs.db
